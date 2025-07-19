@@ -9,7 +9,7 @@ const Privacy = () => {
       mx: 'auto', 
       px: { xs: 2, sm: 3, md: 4 }, 
       py: { xs: 3, sm: 5, md: 6 },
-      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
     }}>
       <Typography 
         variant="h3" 
@@ -17,7 +17,7 @@ const Privacy = () => {
         mb={4} 
         fontSize={{ xs: '2.2rem', md: '2.8rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           textAlign: 'center',
           letterSpacing: '-0.02em'
@@ -32,7 +32,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           fontWeight: 400
         }}
       >
@@ -48,7 +48,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -60,7 +60,7 @@ const Privacy = () => {
         mb={3} 
         color="#4a4a4a"
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           fontWeight: 500
         }}
       >
@@ -73,10 +73,10 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 2.5, md: 3 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
-        <Typography component="span" fontWeight={600} color="#1a1a1a" sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif' }}>• Personal Information:</Typography> Your name, postal address, email address, phone number, and payment details when you place an order or register on our website.
+        <Typography component="span" fontWeight={600} color="#1a1a1a" sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ' }}>• Personal Information:</Typography> Your name, postal address, email address, phone number, and payment details when you place an order or register on our website.
       </Typography>
       <Typography 
         fontSize={{ xs: '1rem', md: '1.1rem' }} 
@@ -85,10 +85,10 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 2.5, md: 3 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
-        <Typography component="span" fontWeight={600} color="#1a1a1a" sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif' }}>• Sensitive Personal Data:</Typography> Payment information and any other sensitive details needed to complete your purchase securely.
+        <Typography component="span" fontWeight={600} color="#1a1a1a" sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ' }}>• Sensitive Personal Data:</Typography> Payment information and any other sensitive details needed to complete your purchase securely.
       </Typography>
       <Typography 
         fontSize={{ xs: '1rem', md: '1.1rem' }} 
@@ -97,10 +97,10 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 2.5, md: 3 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
-        <Typography component="span" fontWeight={600} color="#1a1a1a" sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif' }}>• Technical Data:</Typography> IP address, browser type, device information, and usage data collected automatically through cookies and similar technologies.
+        <Typography component="span" fontWeight={600} color="#1a1a1a" sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ' }}>• Technical Data:</Typography> IP address, browser type, device information, and usage data collected automatically through cookies and similar technologies.
       </Typography>
 
       <Box sx={{ borderBottom: '2px solid #e0e0e0', mb: 4 }} />
@@ -112,7 +112,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -124,7 +124,7 @@ const Privacy = () => {
         mb={3} 
         color="#4a4a4a"
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           fontWeight: 500
         }}
       >
@@ -137,7 +137,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Process and fulfill your orders.
@@ -149,7 +149,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Communicate order status, updates, and promotional offers (with your consent).
@@ -161,7 +161,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Prevent fraudulent or illegal activities.
@@ -173,7 +173,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Improve website experience and services.
@@ -185,7 +185,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 2.5, md: 3 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Comply with applicable legal and regulatory requirements.
@@ -200,7 +200,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -213,7 +213,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         By using our services or website, you consent to the collection, processing, and transfer of your data as described in this policy. We do not disclose your personal information to third parties except:
@@ -225,7 +225,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • To trusted service providers (payment processors, couriers, IT service providers) who agree to keep your information confidential and use it only to provide services to us.
@@ -237,7 +237,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 2.5, md: 3 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • As required by law, court order, or government regulation.
@@ -252,7 +252,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -265,7 +265,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         We have implemented reasonable security practices and procedures to protect your personal data from unauthorized access, misuse, or disclosure, including encryption and secured servers.
@@ -276,7 +276,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         However, no method of electronic transmission or storage is 100% secure. You acknowledge and accept the risks of sharing information online.
@@ -291,7 +291,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -304,7 +304,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         Our website uses cookies to enhance user experience, analyze website traffic, and provide relevant advertisements. You can disable cookies in your browser settings, but this may affect website functionality.
@@ -319,7 +319,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -332,7 +332,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         We retain your personal information only as long as necessary to fulfill the purposes outlined, comply with legal obligations, resolve disputes, and enforce our agreements.
@@ -347,7 +347,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -359,7 +359,7 @@ const Privacy = () => {
         mb={3} 
         color="#4a4a4a"
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           fontWeight: 500
         }}
       >
@@ -372,7 +372,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Access the personal data we hold about you.
@@ -384,7 +384,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Request corrections or updates to your information.
@@ -396,7 +396,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 1.5, md: 2 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Withdraw consent to marketing communications.
@@ -408,7 +408,7 @@ const Privacy = () => {
           ml: { xs: 2, md: 3 }, 
           mb: { xs: 2.5, md: 3 }, 
           lineHeight: 1.8,
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         • Request deletion or blocking of your personal data (subject to legal requirements).
@@ -419,7 +419,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         To exercise these rights, please contact us at{' '}
@@ -429,7 +429,7 @@ const Privacy = () => {
             color: '#1976d2', 
             textDecoration: 'none',
             fontWeight: 500,
-            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
           }}
           onMouseEnter={(e) => (e.target as HTMLElement).style.textDecoration = 'underline'}
           onMouseLeave={(e) => (e.target as HTMLElement).style.textDecoration = 'none'}
@@ -447,7 +447,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -460,7 +460,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         Our website and services are not directed at children under 13 years of age. We do not knowingly collect data from children under this age.
@@ -475,7 +475,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -488,7 +488,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         We may update this Privacy Policy occasionally to reflect changes in laws or business practices. We encourage you to review this policy regularly. Continued use of the website constitutes acceptance of any updates.
@@ -503,7 +503,7 @@ const Privacy = () => {
         mb={3} 
         fontSize={{ xs: '1.4rem', md: '1.5rem' }}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif',
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ',
           color: '#1a1a1a',
           letterSpacing: '-0.01em'
         }}
@@ -516,7 +516,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         For any questions, concerns, or requests related to your privacy, please reach out to us:
@@ -527,7 +527,7 @@ const Privacy = () => {
         color="#4a4a4a" 
         lineHeight={1.8}
         sx={{ 
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
         }}
       >
         Email:{' '}
@@ -537,7 +537,7 @@ const Privacy = () => {
             color: '#1976d2', 
             textDecoration: 'none',
             fontWeight: 500,
-            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", Futura, sans-serif'
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif '
           }}
           onMouseEnter={(e) => (e.target as HTMLElement).style.textDecoration = 'underline'}
           onMouseLeave={(e) => (e.target as HTMLElement).style.textDecoration = 'none'}

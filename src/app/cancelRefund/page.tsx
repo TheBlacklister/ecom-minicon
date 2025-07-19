@@ -83,7 +83,7 @@ export default function CancelRefundPage() {
               fontWeight: 700,
               mb: 3,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif'
             }}
           >
             CANCEL & REFUND – FREQUENTLY ASKED QUESTIONS (FAQS)
@@ -94,7 +94,7 @@ export default function CancelRefundPage() {
               fontSize: { xs: '1rem', md: '1.125rem' },
               lineHeight: 1.8,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif'
             }}
           >
             Everything you need to know about cancelling orders and requesting refunds.
@@ -136,7 +136,7 @@ export default function CancelRefundPage() {
                     fontWeight: 600, 
                     fontSize: '1.125rem',
                     color: '#000',
-                    fontFamily: 'Futura, sans-serif'
+                    fontFamily: '"Montserrat", sans-serif'
                   }}
                 >
                   🔻 {item.question}
@@ -147,7 +147,7 @@ export default function CancelRefundPage() {
                   fontSize: '1rem', 
                   lineHeight: 1.8, 
                   color: '#000', 
-                  fontFamily: 'Futura, sans-serif',
+                  fontFamily: '"Montserrat", sans-serif',
                   whiteSpace: 'pre-line'
                 }}>
                   {item.answer}
@@ -174,7 +174,7 @@ export default function CancelRefundPage() {
               fontWeight: 700,
               mb: 3,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif'
             }}
           >
             ❓ Still Need Help?
@@ -186,7 +186,7 @@ export default function CancelRefundPage() {
               lineHeight: 1.8,
               mb: 3,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif'
             }}
           >
             We&apos;re always here to help.
@@ -197,7 +197,7 @@ export default function CancelRefundPage() {
               fontSize: '1rem',
               lineHeight: 1.8,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif'
             }}
           >
             📩 Email us at: miniconclothing@gmail.com
@@ -211,7 +211,7 @@ export default function CancelRefundPage() {
             mb: 2, 
             color: '#000',
             fontSize: '1.125rem',
-            fontFamily: 'Futura, sans-serif'
+            fontFamily: '"Montserrat", sans-serif'
           }}>
             ⚠️ Important Notes:
           </Typography>
@@ -220,7 +220,7 @@ export default function CancelRefundPage() {
               lineHeight: 1.8,
               fontSize: '1rem',
               color: '#000',
-              fontFamily: 'Futura, sans-serif',
+              fontFamily: '"Montserrat", sans-serif',
               mb: 1
             }}>
               All cancellation requests must be made within 12 hours of order placement
@@ -229,7 +229,7 @@ export default function CancelRefundPage() {
               lineHeight: 1.8,
               fontSize: '1rem',
               color: '#000',
-              fontFamily: 'Futura, sans-serif',
+              fontFamily: '"Montserrat", sans-serif',
               mb: 1
             }}>
               Unboxing videos and clear images are mandatory for refund claims
@@ -238,7 +238,7 @@ export default function CancelRefundPage() {
               lineHeight: 1.8,
               fontSize: '1rem',
               color: '#000',
-              fontFamily: 'Futura, sans-serif',
+              fontFamily: '"Montserrat", sans-serif',
               mb: 1
             }}>
               Refund processing takes 5-7 business days
@@ -247,7 +247,7 @@ export default function CancelRefundPage() {
               lineHeight: 1.8,
               fontSize: '1rem',
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif'
             }}>
               Return processing fees apply for non-defective returns
             </Typography>

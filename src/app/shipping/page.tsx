@@ -74,7 +74,7 @@ export default function ShippingPage() {
               fontWeight: 700,
               mb: 3,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             📦 SHIPPING – FREQUENTLY ASKED QUESTIONS (FAQS)
@@ -85,7 +85,7 @@ export default function ShippingPage() {
               fontSize: { xs: '1rem', md: '1.125rem' },
               lineHeight: 1.8,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Everything you need to know about our shipping process, delivery times, and tracking your orders.
@@ -127,7 +127,7 @@ export default function ShippingPage() {
                     fontWeight: 600, 
                     fontSize: '1.125rem',
                     color: '#000',
-                    fontFamily: 'Futura, sans-serif'
+                    fontFamily: '"Montserrat", sans-serif '
                   }}
                 >
                   {item.question}
@@ -138,7 +138,7 @@ export default function ShippingPage() {
                   fontSize: '1rem', 
                   lineHeight: 1.8, 
                   color: '#000', 
-                  fontFamily: 'Futura, sans-serif',
+                  fontFamily: '"Montserrat", sans-serif ',
                   whiteSpace: 'pre-line'
                 }}>
                   {item.answer}
@@ -165,7 +165,7 @@ export default function ShippingPage() {
               fontWeight: 700,
               mb: 3,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Still Need Help?
@@ -177,7 +177,7 @@ export default function ShippingPage() {
               lineHeight: 1.8,
               mb: 3,
               color: '#000',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Reach out anytime at:
@@ -193,7 +193,7 @@ export default function ShippingPage() {
               borderRadius: 1,
               fontWeight: 600,
               fontSize: '1rem',
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             📧 miniconclothing@gmail.com
@@ -205,7 +205,7 @@ export default function ShippingPage() {
               lineHeight: 1.8,
               color: '#666',
               mt: 2,
-              fontFamily: 'Futura, sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             We&apos;ll respond within 24–48 hours.
@@ -218,14 +218,14 @@ export default function ShippingPage() {
             color: '#666', 
             mb: 2,
             fontSize: '1rem',
-            fontFamily: 'Futura, sans-serif'
+            fontFamily: '"Montserrat", sans-serif '
           }}>
             We&apos;re committed to providing you with the best shipping experience possible.
           </Typography>
           <Typography sx={{ 
             color: '#666',
             fontSize: '0.875rem',
-            fontFamily: 'Futura, sans-serif'
+            fontFamily: '"Montserrat", sans-serif '
           }}>
             For the most up-to-date shipping information, please check your order confirmation email.
           </Typography>

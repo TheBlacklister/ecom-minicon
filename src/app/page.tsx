@@ -133,7 +133,7 @@ export default function Home() {
           fontWeight: 600
         }}
         color="black">
-        Top picks for the week
+        TOP PICKS OF THE WEEK
       </Typography>
 
       {/* Horizontally scrolling marquee with border radius */}
@@ -256,7 +256,7 @@ export default function Home() {
             fontWeight: 600
           }}
           color="black">
-          Trending Category
+          TRENDING CATEGORY
         </Typography>
           <CategoryCards/>
       {/* Product grid section with minimal spacing */}
@@ -278,7 +278,7 @@ export default function Home() {
             fontWeight: 600
           }}
           color="black">
-          New Arrivals
+          NEW ARRIVALS
         </Typography>
         
         <Grid container spacing={{ xs: 0.5, sm: 1, md: 1 }} justifyContent="center">

@@ -250,7 +250,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                 flexDirection: 'column',
                 minHeight: '100vh',
                 bgcolor: '#f8f9fa',
-                fontFamily: 'Futura, sans-serif',
+                fontFamily: '"Montserrat", sans-serif ',
             }}
         >
             {/* 2. MAIN CONTENT GROWS - px: 0 ensures no double padding */}
@@ -272,7 +272,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                         mb: { xs: 2, md: 4, lg: 4 },
                         color: '#1a1a1a',
                         fontSize: { xs: '1.5rem', md: '2rem', lg: '2rem' },
-                        fontFamily: 'Futura, sans-serif',
+                        fontFamily: '"Montserrat", sans-serif ',
                         wordBreak: 'break-word',
                     }}
                 >
@@ -304,7 +304,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                 }}
                             >
                                 <ShoppingBagOutlinedIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
-                                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontFamily: 'Futura, sans-serif' }}>
+                                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
                                     Your cart is empty
                                 </Typography>
                                 <Button
@@ -339,7 +339,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                             mb: 2,
                                             color: '#1a1a1a',
                                             fontWeight: 600,
-                                            fontFamily: 'Futura, sans-serif'
+                                            fontFamily: '"Montserrat", sans-serif '
                                         }}
                                     >
                                         {buyNowProductId ? 'Product' : `Cart Items (${cart.length})`}
@@ -405,7 +405,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                                 fontWeight: 600,
                                                                 color: '#1a1a1a',
                                                                 mb: 0.5,
-                                                                fontFamily: 'Futura, sans-serif'
+                                                                fontFamily: '"Montserrat", sans-serif '
                                                             }}
                                                         >
                                                             {item.title}
@@ -413,14 +413,14 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                         <Typography
                                                             variant="body2"
                                                             color="text.secondary"
-                                                            sx={{ mb: 0.5, fontFamily: 'Futura, sans-serif' }}
+                                                            sx={{ mb: 0.5, fontFamily: '"Montserrat", sans-serif ' }}
                                                         >
                                                             {item.subtitle}
                                                         </Typography>
                                                         <Typography
                                                             variant="body2"
                                                             color="text.secondary"
-                                                            sx={{ fontFamily: 'Futura, sans-serif' }}
+                                                            sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                                                         >
                                                             Qty: {item.qty}
                                                         </Typography>
@@ -447,7 +447,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                         fontWeight: 600,
                                                         color: '#1a1a1a',
                                                         mt: 1,
-                                                        fontFamily: 'Futura, sans-serif'
+                                                        fontFamily: '"Montserrat", sans-serif '
                                                     }}
                                                 >
                                                     {formatINR(item.price * item.qty)}
@@ -475,7 +475,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                             mb: 2,
                                             color: '#1a1a1a',
                                             fontWeight: 600,
-                                            fontFamily: 'Futura, sans-serif'
+                                            fontFamily: '"Montserrat", sans-serif '
                                         }}
                                     >
                                         Price Details
@@ -483,21 +483,21 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
 
                                     <Stack spacing={1.5}>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography color="text.secondary" sx={{ fontFamily: 'Futura, sans-serif' }}>Subtotal</Typography>
-                                            <Typography sx={{ fontFamily: 'Futura, sans-serif' }}>{formatINR(subtotal)}</Typography>
+                                            <Typography color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Subtotal</Typography>
+                                            <Typography sx={{ fontFamily: '"Montserrat", sans-serif ' }}>{formatINR(subtotal)}</Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography color="text.secondary" sx={{ fontFamily: 'Futura, sans-serif' }}>Shipping</Typography>
-                                            <Typography sx={{ fontFamily: 'Futura, sans-serif' }}>{shipping === 0 ? 'Free' : formatINR(shipping)}</Typography>
+                                            <Typography color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Shipping</Typography>
+                                            <Typography sx={{ fontFamily: '"Montserrat", sans-serif ' }}>{shipping === 0 ? 'Free' : formatINR(shipping)}</Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography color="text.secondary" sx={{ fontFamily: 'Futura, sans-serif' }}>Taxes & Fees</Typography>
-                                            <Typography sx={{ fontFamily: 'Futura, sans-serif' }}>{formatINR(taxes)}</Typography>
+                                            <Typography color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Taxes & Fees</Typography>
+                                            <Typography sx={{ fontFamily: '"Montserrat", sans-serif ' }}>{formatINR(taxes)}</Typography>
                                         </Box>
                                         <Divider sx={{ my: 1 }} />
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="subtitle1" fontWeight={600} sx={{ fontFamily: 'Futura, sans-serif' }}>Total</Typography>
-                                            <Typography variant="subtitle1" fontWeight={600} sx={{ fontFamily: 'Futura, sans-serif' }}>
+                                            <Typography variant="subtitle1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Total</Typography>
+                                            <Typography variant="subtitle1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
                                                 {formatINR(total)}
                                             </Typography>
                                         </Box>
@@ -529,7 +529,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                     sx={{
                                         color: '#1a1a1a',
                                         fontWeight: 600,
-                                        fontFamily: 'Futura, sans-serif'
+                                        fontFamily: '"Montserrat", sans-serif '
                                     }}
                                 >
                                     Delivery Address
@@ -540,7 +540,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                     sx={{
                                         color: '#fe5000',
                                         '&:hover': { bgcolor: 'rgba(254, 80, 0, 0.04)' },
-                                        fontFamily: 'Futura, sans-serif'
+                                        fontFamily: '"Montserrat", sans-serif '
                                     }}
                                 >
                                     Add New
@@ -549,13 +549,13 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
 
                             {addresses.length === 0 ? (
                                 <Box sx={{ textAlign: 'center', py: 3 }}>
-                                    <Typography color="text.secondary" sx={{ fontFamily: 'Futura, sans-serif', mb: 2 }}>
+                                    <Typography color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ', mb: 2 }}>
                                         No addresses found. Add your first delivery address.
                                     </Typography>
                                     <Button
                                         variant="outlined"
                                         onClick={() => handleOpenAddressModal()}
-                                        sx={{ fontFamily: 'Futura, sans-serif' }}
+                                        sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                                     >
                                         Add Address
                                     </Button>
@@ -569,7 +569,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                             sx={{ 
                                                 backgroundColor: selectedAddress === addr.id ? 'rgba(254, 80, 0, 0.04)' : '#fff',
                                                 border: selectedAddress === addr.id ? '2px solid #fe5000' : '1px solid #e0e0e0',
-                                                fontFamily: 'Futura, sans-serif',
+                                                fontFamily: '"Montserrat", sans-serif ',
                                                 cursor: 'pointer',
                                                 '&:hover': {
                                                     borderColor: '#fe5000',
@@ -584,15 +584,15 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                     color="black" 
                                                     gutterBottom
                                                     variant={isMobile ? "subtitle1" : "h6"}
-                                                    sx={{ fontFamily: 'Futura, sans-serif' }}
+                                                    sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                                                 >
                                                     {addr.name}
                                                 </Typography>
-                                                <Typography color="black" sx={{ fontFamily: 'Futura, sans-serif' }}>{addr.line1}</Typography>
-                                                <Typography color="black" sx={{ fontFamily: 'Futura, sans-serif' }}>
+                                                <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>{addr.line1}</Typography>
+                                                <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
                                                     {addr.city}, {addr.state} – {addr.pincode}
                                                 </Typography>
-                                                <Typography color="black" sx={{ fontFamily: 'Futura, sans-serif' }}>Phone: {addr.phone}</Typography>
+                                                <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Phone: {addr.phone}</Typography>
                                                 <Divider sx={{ my: 1 }} />
                                                 <Stack 
                                                     direction={{ xs: 'column', sm: 'row' }} 
@@ -606,7 +606,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                             e.stopPropagation();
                                                             handleOpenAddressModal(addr);
                                                         }}
-                                                        sx={{ fontFamily: 'Futura, sans-serif' }}
+                                                        sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                                                     >
                                                         Edit
                                                     </Button>
@@ -618,7 +618,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                             e.stopPropagation();
                                                             handleDeleteAddress(addr.id);
                                                         }}
-                                                        sx={{ fontFamily: 'Futura, sans-serif' }}
+                                                        sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                                                     >
                                                         Delete
                                                     </Button>
@@ -647,7 +647,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                     sx={{
                                         color: '#1a1a1a',
                                         fontWeight: 600,
-                                        fontFamily: 'Futura, sans-serif'
+                                        fontFamily: '"Montserrat", sans-serif '
                                     }}
                                 >
                                     Payment Method
@@ -659,12 +659,12 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                 onChange={(e) => setPaymentMode(e.target.value)}
                                 fullWidth
                                 size="small"
-                                sx={{ fontFamily: 'Futura, sans-serif' }}
+                                sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                             >
-                                <MenuItem value="card" sx={{ fontFamily: 'Futura, sans-serif' }}>Credit/Debit Card</MenuItem>
-                                <MenuItem value="upi" sx={{ fontFamily: 'Futura, sans-serif' }}>UPI</MenuItem>
-                                <MenuItem value="netbanking" sx={{ fontFamily: 'Futura, sans-serif' }}>Net Banking</MenuItem>
-                                <MenuItem value="cod" sx={{ fontFamily: 'Futura, sans-serif' }}>Cash on Delivery</MenuItem>
+                                <MenuItem value="card" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Credit/Debit Card</MenuItem>
+                                <MenuItem value="upi" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>UPI</MenuItem>
+                                <MenuItem value="netbanking" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Net Banking</MenuItem>
+                                <MenuItem value="cod" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Cash on Delivery</MenuItem>
                             </Select>
                         </Paper>
 
@@ -682,7 +682,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                     bgcolor: '#f5f5f5',
                                     color: '#999'
                                 },
-                                fontFamily: 'Futura, sans-serif'
+                                fontFamily: '"Montserrat", sans-serif '
                             }}
                         >
                             Proceed to Payment ({formatINR(total)})
@@ -701,13 +701,13 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                     sx: {
                         borderRadius: 2,
                         p: 1,
-                        fontFamily: 'Futura, sans-serif',
+                        fontFamily: '"Montserrat", sans-serif ',
                         width: '100%',
                         boxSizing: 'border-box',
                     }
                 }}
             >
-                <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Futura, sans-serif' }}>
+                <DialogTitle sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
                     {editId ? 'Edit Address' : 'Add New Address'}
                 </DialogTitle>
                 <DialogContent>
@@ -721,10 +721,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             fullWidth
                             autoFocus
                             InputProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                             InputLabelProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                         />
                         <TextField
@@ -735,10 +735,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             required
                             fullWidth
                             InputProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                             InputLabelProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                         />
                         <TextField
@@ -749,10 +749,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             required
                             fullWidth
                             InputProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                             InputLabelProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                         />
                         <TextField
@@ -763,10 +763,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             required
                             fullWidth
                             InputProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                             InputLabelProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                         />
                         <TextField
@@ -777,10 +777,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             required
                             fullWidth
                             InputProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                             InputLabelProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                         />
                         <TextField
@@ -791,10 +791,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             required
                             fullWidth
                             InputProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                             InputLabelProps={{
-                                sx: { fontFamily: 'Futura, sans-serif' }
+                                sx: { fontFamily: '"Montserrat", sans-serif ' }
                             }}
                         />
                     </Stack>
@@ -804,7 +804,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                         onClick={handleCloseAddressModal}
                         sx={{
                             color: '#666',
-                            fontFamily: 'Futura, sans-serif'
+                            fontFamily: '"Montserrat", sans-serif '
                         }}
                     >
                         Cancel
@@ -817,7 +817,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             bgcolor: '#fe5000',
                             color: '#fff',
                             '&:hover': { bgcolor: '#d64500' },
-                            fontFamily: 'Futura, sans-serif'
+                            fontFamily: '"Montserrat", sans-serif '
                         }}
                     >
                         {editId ? 'Update Address' : 'Add Address'}
