@@ -76,7 +76,7 @@ export default function CategoryCards() {
                   color="#fff"
                   fontWeight={500}
                   sx={{ 
-                    fontFamily: 'sans-serif',
+                    fontFamily: 'Futura, sans-serif',
                     fontSize: { xs: '0.875rem', sm: '1rem' } // Smaller font on mobile
                   }}
                 >

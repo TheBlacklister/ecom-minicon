@@ -53,14 +53,14 @@ export default function AccountPage() {
       py: { xs: 2, sm: 3, md: 4 }, 
       backgroundColor: '#fff', 
       minHeight: '100vh',
-      fontFamily: 'sans-serif'
+      fontFamily: 'Futura, sans-serif'
     }}>
       <Typography 
         color='black' 
         variant={isMobile ? "h5" : "h4"} 
         fontWeight={700} 
         mb={3}
-        sx={{ fontFamily: 'sans-serif' }}
+        sx={{ fontFamily: 'Futura, sans-serif' }}
       >
         My Account
       </Typography>
@@ -76,7 +76,7 @@ export default function AccountPage() {
           mb: 3,
           color: 'black',
           '& .MuiTab-root': {
-            fontFamily: 'sans-serif',
+            fontFamily: 'Futura, sans-serif',
             fontSize: { xs: '0.875rem', sm: '1rem' },
             minWidth: { xs: 'auto', sm: '120px' },
             padding: { xs: '12px 8px', sm: '12px 16px' }

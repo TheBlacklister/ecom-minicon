@@ -25,13 +25,13 @@ export default function OrdersSection() {
   return (
     <>
       {MOCK_ORDERS.length === 0 ? (
-        <Typography sx={{ fontFamily: 'sans-serif' }}>No past orders.</Typography>
+        <Typography sx={{ fontFamily: 'Futura, sans-serif' }}>No past orders.</Typography>
       ) : (
         <Stack spacing={2}>
           {MOCK_ORDERS.map((o) => (
             <Card key={o.id} variant="outlined" sx={{ 
               backgroundColor: '#fff',
-              fontFamily: 'sans-serif',
+              fontFamily: 'Futura, sans-serif',
               width: '100%'
             }}>
               <CardContent>
@@ -50,14 +50,14 @@ export default function OrdersSection() {
                       fontWeight={600} 
                       color="black"
                       variant={isMobile ? "subtitle1" : "h6"}
-                      sx={{ fontFamily: 'sans-serif' }}
+                      sx={{ fontFamily: 'Futura, sans-serif' }}
                     >
                       {o.id}
                     </Typography>
                     <Typography 
                       variant="body2" 
                       color="black"
-                      sx={{ fontFamily: 'sans-serif' }}
+                      sx={{ fontFamily: 'Futura, sans-serif' }}
                     >
                       {o.date}
                     </Typography>
@@ -65,7 +65,7 @@ export default function OrdersSection() {
                   <Box>
                     <Typography 
                       color="black"
-                      sx={{ fontFamily: 'sans-serif' }}
+                      sx={{ fontFamily: 'Futura, sans-serif' }}
                     >
                       {o.items} item{o.items > 1 ? 's' : ''}
                     </Typography>
@@ -74,7 +74,7 @@ export default function OrdersSection() {
                     <Typography 
                       fontWeight={700} 
                       color="black"
-                      sx={{ fontFamily: 'sans-serif' }}
+                      sx={{ fontFamily: 'Futura, sans-serif' }}
                     >
                       ₹ {o.total}
                     </Typography>
@@ -82,7 +82,7 @@ export default function OrdersSection() {
                   <Box>
                     <Typography 
                       color="black"
-                      sx={{ fontFamily: 'sans-serif' }}
+                      sx={{ fontFamily: 'Futura, sans-serif' }}
                     >
                       {o.status}
                     </Typography>
@@ -93,7 +93,7 @@ export default function OrdersSection() {
                       size="small" 
                       variant="outlined"
                       sx={{ 
-                        fontFamily: 'sans-serif',
+                        fontFamily: 'Futura, sans-serif',
                         mt: { xs: 1, sm: 0 }
                       }}
                     >

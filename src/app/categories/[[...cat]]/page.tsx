@@ -227,7 +227,7 @@ export default function CataloguePage() {
     <Box sx={{ width: { xs: '100%', sm: 260 }, p: 2, overflowX: 'hidden' }}>
     
       {/* Category filter */}
-      <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'sans-serif' }}>
+      <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'Futura, sans-serif' }}>
         CATEGORIES
       </Typography>
 
@@ -243,7 +243,7 @@ export default function CataloguePage() {
                   onChange={(e) => handleCategoryChange(c, e.target.checked)}
                 />
               }
-              label={<Typography variant="body2" style={{color:'black',fontFamily: 'sans-serif'}}>{c}</Typography>}
+              label={<Typography variant="body2" style={{color:'black',fontFamily: 'Futura, sans-serif'}}>{c}</Typography>}
             />
           </ListItem>
         ))}
@@ -252,7 +252,7 @@ export default function CataloguePage() {
       <Divider sx={{ my: 2, color: 'black' }} />
 
       {/* Size filter */}
-      <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'sans-serif' }}>
+      <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'Futura, sans-serif' }}>
         SIZE
       </Typography>
       <Box sx={{ 
@@ -278,7 +278,7 @@ export default function CataloguePage() {
               '&:hover': { 
                 backgroundColor: selectedSizes.has(s) ? '#333' : '#f5f5f5' 
               },
-              fontFamily: 'sans-serif',
+              fontFamily: 'Futura, sans-serif',
               textTransform: 'none',
               minWidth: 'auto',
               flexShrink: 0
@@ -292,7 +292,7 @@ export default function CataloguePage() {
       <Divider sx={{ my: 2, color: 'black' }} />
 
       {/* Color filter */}
-      <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'sans-serif' }}>
+      <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'Futura, sans-serif' }}>
         COLORS
       </Typography>
       <Box sx={{ 
@@ -318,7 +318,7 @@ export default function CataloguePage() {
               '&:hover': { 
                 backgroundColor: selectedColors.has(color) ? '#333' : '#f5f5f5' 
               },
-              fontFamily: 'sans-serif',
+              fontFamily: 'Futura, sans-serif',
               textTransform: 'none',
               minWidth: 'auto',
               flexShrink: 0
@@ -343,7 +343,7 @@ export default function CataloguePage() {
               color: 'black',
               backgroundColor: '#fff',
               '&:hover': { backgroundColor: '#f5f5f5' },
-              fontFamily: 'sans-serif',
+              fontFamily: 'Futura, sans-serif',
               textTransform: 'none'
             }}
           >
@@ -359,7 +359,7 @@ export default function CataloguePage() {
   const mobileSortDrawer = (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6" fontWeight={600} sx={{ fontFamily: 'sans-serif', color: 'black' }}>
+        <Typography variant="h6" fontWeight={600} sx={{ fontFamily: 'Futura, sans-serif', color: 'black' }}>
           Sort Products
         </Typography>
         <IconButton onClick={() => setSortDrawerOpen(false)}>
@@ -384,7 +384,7 @@ export default function CataloguePage() {
             <ListItemText
               primary={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body1" sx={{ fontFamily: 'sans-serif', fontWeight: sortOpt === '' ? 600 : 400 }}>
+                  <Typography variant="body1" sx={{ fontFamily: 'Futura, sans-serif', fontWeight: sortOpt === '' ? 600 : 400 }}>
                     Sort by
                   </Typography>
                   {sortOpt === '' && <Chip label="Default" size="small" sx={{ fontSize: 10, height: 20 }} />}
@@ -411,7 +411,7 @@ export default function CataloguePage() {
               <ListItemText
                 primary={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body1" sx={{ fontFamily: 'sans-serif', fontWeight: sortOpt === option.value ? 600 : 400 }}>
+                    <Typography variant="body1" sx={{ fontFamily: 'Futura, sans-serif', fontWeight: sortOpt === option.value ? 600 : 400 }}>
                       {option.label}
                     </Typography>
                     {sortOpt === option.value && <Chip label="Selected" size="small" sx={{ fontSize: 10, height: 20 }} />}
@@ -448,7 +448,7 @@ export default function CataloguePage() {
           >
             <FilterListIcon />
           </IconButton>
-          <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: 'sans-serif' }}>
+          <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: 'Futura, sans-serif' }}>
             {heading} — {products.length} items
           </Typography>
         </Box>
@@ -497,7 +497,7 @@ export default function CataloguePage() {
               mb: 2,
             }}
           >
-            <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: 'sans-serif' }}>
+            <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: 'Futura, sans-serif' }}>
               {heading} — {products.length} items
             </Typography>
 
@@ -525,7 +525,7 @@ export default function CataloguePage() {
                   minWidth: 200,
                   color: 'black',
                   backgroundColor: 'transparent',
-                  fontFamily: 'sans-serif',
+                  fontFamily: 'Futura, sans-serif',
                   fontWeight: 500,
                   '& .MuiSelect-select': {
                     py: 1.5,
@@ -560,7 +560,7 @@ export default function CataloguePage() {
                   sx={{
                     py: 1.5,
                     px: 2,
-                    fontFamily: 'sans-serif',
+                    fontFamily: 'Futura, sans-serif',
                     '&.Mui-selected': {
                       backgroundColor: '#f8f8f8',
                       fontWeight: 600,
@@ -582,7 +582,7 @@ export default function CataloguePage() {
                     sx={{
                       py: 1.5,
                       px: 2,
-                      fontFamily: 'sans-serif',
+                      fontFamily: 'Futura, sans-serif',
                       '&.Mui-selected': {
                         backgroundColor: '#f8f8f8',
                         fontWeight: 600,
@@ -629,7 +629,7 @@ export default function CataloguePage() {
                   justifyContent: 'space-between',
                   color: 'black',
                   backgroundColor: 'transparent',
-                  fontFamily: 'sans-serif',
+                  fontFamily: 'Futura, sans-serif',
                   fontWeight: 500,
                   textTransform: 'none',
                   border: 'none',
