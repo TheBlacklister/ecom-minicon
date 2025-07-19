@@ -179,7 +179,7 @@ const PreCheckout = () => {
       >
         {/* Title with Favorite Icon */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
-          <Typography sx={{ fontSize: "2.1rem", fontWeight: 700, fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: "2.1rem", fontWeight: 700, fontFamily: '"Montserrat", sans-serif ' }}>
             {product.title}
           </Typography>
           <IconButton
@@ -193,19 +193,19 @@ const PreCheckout = () => {
             <FavoriteIcon sx={{ fontSize: '1.8rem' }} />
           </IconButton>
         </Box>
-        <Typography sx={{ fontSize: "1.2rem", mb: 1, fontFamily: 'sans-serif', color: '#555' }}>
+        <Typography sx={{ fontSize: "1.2rem", mb: 1, fontFamily: '"Montserrat", sans-serif ', color: '#555' }}>
           {product.subtitle}
         </Typography>
         {/* Price and Quantity */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: 'sans-serif', color: '#222' }}>
+          <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: '"Montserrat", sans-serif ', color: '#222' }}>
             ₹{product.price_after}
           </Typography>
           <Select
             value={quantity}
             onChange={e => setQuantity(Number(e.target.value))}
             size="small"
-            sx={{ minWidth: 60, fontFamily: 'sans-serif', fontWeight: 500 }}
+            sx={{ minWidth: 60, fontFamily: '"Montserrat", sans-serif ', fontWeight: 500 }}
           >
             {[...Array(10)].map((_, i) => (
               <MenuItem key={i + 1} value={i + 1}>{i + 1}</MenuItem>
@@ -214,7 +214,7 @@ const PreCheckout = () => {
         </Box>
         {/* Size Buttons */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: 'sans-serif' }}>
+          <Typography variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
             Select size
           </Typography>
           {product.available_sizes.map((s) => (
@@ -231,7 +231,7 @@ const PreCheckout = () => {
                 margin: '1vh 0.5vw',
                 textTransform: 'none',
                 fontWeight: selectedSize === s ? 700 : 400,
-                fontFamily: 'sans-serif',
+                fontFamily: '"Montserrat", sans-serif ',
                 bgcolor: selectedSize === s ? '#ffeaea' : 'white',
                 boxShadow: selectedSize === s ? 2 : 0,
               }}
@@ -239,7 +239,7 @@ const PreCheckout = () => {
               {s}
             </Button>
           ))}
-          <Typography variant="body2" sx={{ ml: 1, color: '#1976d2', display: 'inline', fontFamily: 'sans-serif', cursor: 'pointer' }}>
+          <Typography variant="body2" sx={{ ml: 1, color: '#1976d2', display: 'inline', fontFamily: '"Montserrat", sans-serif ', cursor: 'pointer' }}>
             Notify Me
           </Typography>
         </Box>
@@ -259,7 +259,7 @@ const PreCheckout = () => {
               width: { xs: '100%', sm: 140 },
               height: 48,
               fontWeight: 700,
-              fontFamily: 'sans-serif',
+              fontFamily: '"Montserrat", sans-serif ',
               mb: { xs: 1, sm: 0 },
               fontSize: 16,
               textTransform: 'none',
@@ -279,7 +279,7 @@ const PreCheckout = () => {
               width: { xs: '100%', sm: 140 },
               height: 48,
               fontWeight: 700,
-              fontFamily: 'sans-serif',
+              fontFamily: '"Montserrat", sans-serif ',
               fontSize: 16,
               textTransform: 'none',
               borderRadius: 2,
@@ -297,7 +297,7 @@ const PreCheckout = () => {
         </Box>
         {/* Social Share Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Typography variant="body2" sx={{ fontFamily: 'sans-serif', color: '#888' }}>Share</Typography>
+          <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif ', color: '#888' }}>Share</Typography>
           <WhatsAppIcon sx={{ color: '#25D366', cursor: 'pointer' }} />
           <FacebookIcon sx={{ color: '#4267B2', cursor: 'pointer' }} />
           <InstagramIcon sx={{ color: '#C13584', cursor: 'pointer' }} />
@@ -308,9 +308,9 @@ const PreCheckout = () => {
             placeholder="Enter Pincode"
             value={pincode}
             onChange={e => setPincode(e.target.value)}
-            sx={{ fontFamily: 'sans-serif', fontSize: 15, width: 160 }}
+            sx={{ fontFamily: '"Montserrat", sans-serif ', fontSize: 15, width: 160 }}
           />
-          <Button variant="outlined" color="primary" sx={{ fontFamily: 'sans-serif', fontWeight: 600 }}>
+          <Button variant="outlined" color="primary" sx={{ fontFamily: '"Montserrat", sans-serif ', fontWeight: 600 }}>
             CHECK
           </Button>
         </Box>
@@ -340,7 +340,7 @@ const PreCheckout = () => {
                 }
               }}
             >
-              <Typography variant="subtitle1" fontWeight={700} sx={{ fontFamily: 'sans-serif' }}>
+              <Typography variant="subtitle1" fontWeight={700} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
                 DESCRIPTION
               </Typography>
             </AccordionSummary>
@@ -348,7 +348,7 @@ const PreCheckout = () => {
               <ul style={{ paddingLeft: 20, margin: 0 }}>
                 {PRODUCT_DESCRIPTION.map((line, idx) => (
                   <li key={idx} style={{ marginBottom: 3 }}>
-                    <Typography variant="body2" color="black" sx={{ fontFamily: 'sans-serif' }}>
+                    <Typography variant="body2" color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
                       {line}
                     </Typography>
                   </li>

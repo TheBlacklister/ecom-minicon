@@ -10,8 +10,8 @@ interface CategoryCardProps {
 }
 
 const categories: CategoryCardProps[] = [
-  { image: '/products/Regular Fit Tshirt/Rabbit/3 rabbit.png', title: 'T-shirts' },
-  { image: '/products/Regular Fit Tshirt/Peace/3Peace.png', title: 'Under 999' },
+  { image: '/products/Regular Fit Tshirt/Rabbit/3 rabbit.png', title: 'Under 999' },
+  { image: '/products/Regular Fit Tshirt/Peace/3Peace.png', title: 'T-shirts' },
   { image: '/products/Regular Fit Tshirt/Supernova/1Supernova.png', title: 'Oversized' },
   { image: '/products/Regular Fit Tshirt/Aesthetics Bloom/2Minicon Asthetic 2.png', title: 'Relaxed' },
   { image: '/products/Regular Fit Tshirt/Aesthetic Outgrown/1Minicon Asthetic 3.png', title: 'Polo' },
@@ -76,7 +76,7 @@ export default function CategoryCards() {
                   color="#fff"
                   fontWeight={500}
                   sx={{ 
-                    fontFamily: 'sans-serif',
+                    fontFamily: '"Montserrat", sans-serif ',
                     fontSize: { xs: '0.875rem', sm: '1rem' } // Smaller font on mobile
                   }}
                 >

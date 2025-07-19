@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 
 const theme = createTheme({
   typography: {
-    fontFamily: 'sans-serif',
+    fontFamily: '"Montserrat", sans-serif ',
   },
   palette: {
     text: {
@@ -19,7 +19,7 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          fontFamily: 'sans-serif',
+          fontFamily: '"Montserrat", sans-serif ',
         },
       },
     },

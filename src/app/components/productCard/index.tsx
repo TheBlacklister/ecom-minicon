@@ -154,7 +154,7 @@ export const ProductCard: React.FC<{
               fontWeight={700}
               color="black"
               sx={{
-                fontFamily: 'sans-serif',
+                fontFamily: '"Montserrat", sans-serif ',
                 fontSize: titleFontSize,
                 whiteSpace: 'nowrap',
                 overflow: 'visible',
@@ -172,7 +172,7 @@ export const ProductCard: React.FC<{
               fontWeight={700}
               color="black"
               sx={{
-                fontFamily: 'sans-serif',
+                fontFamily: '"Montserrat", sans-serif ',
                 fontSize: { xs: '0.92rem', sm: '1rem' },
                 whiteSpace: 'nowrap',
               }}
@@ -185,7 +185,7 @@ export const ProductCard: React.FC<{
               color="text.secondary"
               sx={{
                 textDecoration: 'line-through',
-                fontFamily: 'sans-serif',
+                fontFamily: '"Montserrat", sans-serif ',
                 fontSize: { xs: '0.7rem', sm: '0.82rem' },
                 whiteSpace: 'nowrap',
               }}

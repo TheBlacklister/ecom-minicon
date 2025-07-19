@@ -84,7 +84,7 @@ export default function ProfileSection() {
       <Card variant="outlined" sx={{ 
         maxWidth: 600, 
         backgroundColor: '#fff',
-        fontFamily: 'sans-serif',
+        fontFamily: '"Montserrat", sans-serif ',
         width: '100%'
       }}>
         <CardContent>
@@ -93,20 +93,20 @@ export default function ProfileSection() {
             variant={isMobile ? "subtitle1" : "h6"} 
             fontWeight={600} 
             gutterBottom
-            sx={{ fontFamily: 'sans-serif' }}
+            sx={{ fontFamily: '"Montserrat", sans-serif ' }}
           >
             Personal Information
           </Typography>
           <Stack spacing={1}>
-            <Typography color="black" sx={{ fontFamily: 'sans-serif' }}>Name: {profile?.name || ''}</Typography>
-            <Typography color="black" sx={{ fontFamily: 'sans-serif' }}>Email: {profile?.email || ''}</Typography>
-            <Typography color="black" sx={{ fontFamily: 'sans-serif' }}>Phone: {profile?.phone || ''}</Typography>
+            <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Name: {profile?.name || ''}</Typography>
+            <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Email: {profile?.email || ''}</Typography>
+            <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Phone: {profile?.phone || ''}</Typography>
           </Stack>
           <Button 
             variant="contained" 
             sx={{ 
               mt: 2,
-              fontFamily: 'sans-serif',
+              fontFamily: '"Montserrat", sans-serif ',
               width: { xs: '100%', sm: 'auto' }
             }} 
             onClick={handleOpen}
@@ -118,7 +118,7 @@ export default function ProfileSection() {
 
       {/* Edit Profile Modal */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <form style={{ backgroundColor: '#fff', fontFamily: 'sans-serif' }} onSubmit={handleSubmit}>
+        <form style={{ backgroundColor: '#fff', fontFamily: '"Montserrat", sans-serif ' }} onSubmit={handleSubmit}>
           <DialogContent sx={{ minWidth: { xs: '100%', sm: 340 } }}>
             <Stack spacing={2}>
               <TextField
@@ -130,8 +130,8 @@ export default function ProfileSection() {
                 autoFocus
                 required
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif ' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif ' }
                 }}
               />
               <TextField
@@ -143,8 +143,8 @@ export default function ProfileSection() {
                 onChange={handleChange}
                 required
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif ' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif ' }
                 }}
               />
               <TextField
@@ -155,8 +155,8 @@ export default function ProfileSection() {
                 onChange={handleChange}
                 required
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif ' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif ' }
                 }}
               />
             </Stack>
@@ -165,14 +165,14 @@ export default function ProfileSection() {
             <Button 
               onClick={handleClose} 
               color="inherit"
-              sx={{ fontFamily: 'sans-serif' }}
+              sx={{ fontFamily: '"Montserrat", sans-serif ' }}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               variant="contained"
-              sx={{ fontFamily: 'sans-serif' }}
+              sx={{ fontFamily: '"Montserrat", sans-serif ' }}
             >
               Save
             </Button>

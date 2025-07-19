@@ -33,13 +33,13 @@ export default function WishlistPage() {
         fontWeight={700}
         mb={4}
         align="center"
-        fontFamily="sans-serif"
+        fontFamily="'Montserrat', sans-serif"
       >
         Your Wishlist
       </Typography>
 
       {wishlist.length === 0 ? (
-        <Typography align="center" color="text.secondary" fontFamily="sans-serif">
+        <Typography align="center" color="text.secondary" fontFamily="'Montserrat', sans-serif">
           Your wishlist is empty!
         </Typography>
       ) : (

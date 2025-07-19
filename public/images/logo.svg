@@ -24,7 +24,7 @@
 
     .stroke { stroke:#fff; }
     .fill   { fill:#fff; }
-    .mark   { fill:#fff; font-family:sans-serif; letter-spacing:8px; }
+    .mark   { fill:#fff; font-family:"Montserrat", sans-serif ; letter-spacing:8px; }
   </style>
 
   <!-- ------------- Icon block ------------- -->
@@ -34,7 +34,7 @@
 
     <!-- 😉 -->
     <g class="face face-1">
-      <text x="35" y="55" font-size="28" class="fill" font-family="sans-serif">&gt;</text>
+      <text x="35" y="55" font-size="28" class="fill" font-family=""Montserrat", sans-serif ">&gt;</text>
       <circle cx="90" cy="50" r="6" class="fill"/>
       <path d="M36 96 Q60 116 84 96" class="stroke" stroke-width="6" fill="none"/>
     </g>

@@ -29,6 +29,14 @@
   }
 }
 
+/* Add more spacing for larger screens */
+@media (min-width: 960px) {
+  .centerGroup {
+    justify-content: center;
+    gap: 10vw; /* 13vw gap between logo, menus, and actions */
+  }
+}
+
 .logo {
   display: flex;
   align-items: center;

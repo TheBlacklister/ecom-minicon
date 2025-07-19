@@ -16,7 +16,7 @@ const ReturnPolicy = () => {
       question: 'Can I return or exchange my product?',
       content: (
         <>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 3, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 3, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             You can request a return or exchange only if the item is:
           </Typography>
           
@@ -30,7 +30,7 @@ const ReturnPolicy = () => {
               <Typography 
                 key={index}
                 component="li" 
-                sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: 'sans-serif' }}
+                sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: '"Montserrat", sans-serif ' }}
               >
                 {item}
               </Typography>
@@ -38,13 +38,13 @@ const ReturnPolicy = () => {
           </Box>
           
           <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, mb: 2, color: '#000', fontFamily: 'sans-serif' }}>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, mb: 2, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
               • All returned items must be new, unused, and in their original condition.
             </Typography>
-            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, mb: 2, color: '#000', fontFamily: 'sans-serif' }}>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, mb: 2, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
               • Returns will not be accepted if the brand tag or labels is removed from the product.
             </Typography>
-            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
               📌 Change of mind or wrong size orders are not eligible for free return/exchange. You&apos;ll need to place a new order at your cost.
             </Typography>
           </Box>
@@ -56,10 +56,10 @@ const ReturnPolicy = () => {
       question: 'What is the time frame to raise a return request?',
       content: (
         <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             All return/exchange claims must be made within <strong>5 days</strong> of product delivery.
           </Typography>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
             After this period, the return request will be declined.
           </Typography>
         </Box>
@@ -70,7 +70,7 @@ const ReturnPolicy = () => {
       question: 'What evidence is required to submit a return request?',
       content: (
         <>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 3, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 3, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             To submit a valid claim, you must provide:
           </Typography>
           
@@ -83,7 +83,7 @@ const ReturnPolicy = () => {
               <Typography 
                 key={index}
                 component="li" 
-                sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: 'sans-serif' }}
+                sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: '"Montserrat", sans-serif ' }}
               >
                 {item}
               </Typography>
@@ -91,7 +91,7 @@ const ReturnPolicy = () => {
           </Box>
           
           <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-            <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
               📩 Email all documents to: <strong>miniconclothing@gmail.com</strong>
             </Typography>
           </Box>
@@ -103,13 +103,13 @@ const ReturnPolicy = () => {
       question: 'Can I return or exchange if I ordered the wrong size?',
       content: (
         <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
             Unfortunately, we do not offer returns or exchanges for incorrect size selection.
           </Typography>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             However, you may place a new order at your own expense if you&apos;d like to get a different size.
           </Typography>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             <strong>Tip:</strong> Always refer to our size chart before placing your order.
           </Typography>
         </Box>
@@ -120,18 +120,18 @@ const ReturnPolicy = () => {
       question: 'What if the product was damaged while opening?',
       content: (
         <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
             If the item was accidentally cut or damaged while opening (e.g. with scissors), we cannot approve a return unless:
           </Typography>
           <Box component="ul" sx={{ pl: 3, mb: 2 }}>
-            <Typography component="li" sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: 'sans-serif' }}>
+            <Typography component="li" sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: '"Montserrat", sans-serif ' }}>
               A clear unboxing video shows the condition before damage
             </Typography>
-            <Typography component="li" sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: 'sans-serif' }}>
+            <Typography component="li" sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: '"Montserrat", sans-serif ' }}>
               The damage wasn&apos;t caused during unpacking
             </Typography>
           </Box>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
             Please unbox your order carefully.
           </Typography>
         </Box>
@@ -142,10 +142,10 @@ const ReturnPolicy = () => {
       question: 'How do I arrange a reverse pickup (if eligible)?',
       content: (
         <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             In select approved return cases, we may help arrange a reverse pickup within 5 days of delivery.
           </Typography>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
             📦 This will be confirmed via email with instructions.
           </Typography>
         </Box>
@@ -156,11 +156,11 @@ const ReturnPolicy = () => {
       question: 'What should I do if the package looks damaged on delivery?',
       content: (
         <>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 3, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 3, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             Inspect the package before signing from the courier.
           </Typography>
           
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: 'sans-serif' }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, mb: 2, color: '#000', fontFamily: '"Montserrat", sans-serif ' }}>
             If you notice visible damage:
           </Typography>
           
@@ -173,7 +173,7 @@ const ReturnPolicy = () => {
               <Typography 
                 key={index}
                 component="li" 
-                sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: 'sans-serif' }}
+                sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', mb: 1, fontFamily: '"Montserrat", sans-serif ' }}
               >
                 {item}
               </Typography>
@@ -181,7 +181,7 @@ const ReturnPolicy = () => {
           </Box>
           
           <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
-            <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: 'sans-serif' }}>
+            <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
               This helps us raise claims with the courier partner.
             </Typography>
           </Box>
@@ -210,7 +210,7 @@ const ReturnPolicy = () => {
               fontWeight: 700,
               mb: 3,
               color: '#000',
-              fontFamily: 'sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Return & Exchange Policy
@@ -221,7 +221,7 @@ const ReturnPolicy = () => {
               fontSize: { xs: '1rem', md: '1.125rem' },
               lineHeight: 1.8,
               color: '#000',
-              fontFamily: 'sans-serif',
+              fontFamily: '"Montserrat", sans-serif ',
               mb: 1
             }}
           >
@@ -233,7 +233,7 @@ const ReturnPolicy = () => {
               fontSize: { xs: '1rem', md: '1.125rem' },
               lineHeight: 1.8,
               color: '#000',
-              fontFamily: 'sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Here are some key return and exchange guidelines.
@@ -275,7 +275,7 @@ const ReturnPolicy = () => {
                     fontWeight: 600, 
                     fontSize: '1.125rem',
                     color: '#000',
-                    fontFamily: 'sans-serif'
+                    fontFamily: '"Montserrat", sans-serif '
                   }}
                 >
                   {item.question}
@@ -305,7 +305,7 @@ const ReturnPolicy = () => {
               fontWeight: 700,
               mb: 3,
               color: '#000',
-              fontFamily: 'sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Still Need Help?
@@ -317,7 +317,7 @@ const ReturnPolicy = () => {
               lineHeight: 1.8,
               mb: 3,
               color: '#000',
-              fontFamily: 'sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             Reach out anytime at:
@@ -333,7 +333,7 @@ const ReturnPolicy = () => {
               borderRadius: 1,
               fontWeight: 600,
               fontSize: '1rem',
-              fontFamily: 'sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             📧 miniconclothing@gmail.com
@@ -345,7 +345,7 @@ const ReturnPolicy = () => {
               lineHeight: 1.8,
               color: '#666',
               mt: 2,
-              fontFamily: 'sans-serif'
+              fontFamily: '"Montserrat", sans-serif '
             }}
           >
             We&apos;ll respond within 24–48 hours.

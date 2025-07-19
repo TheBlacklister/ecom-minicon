@@ -134,7 +134,7 @@ export default function AddressesSection() {
         {addresses.map((a) => (
           <Card key={a.id} variant="outlined" sx={{ 
             backgroundColor: '#fff',
-            fontFamily: 'sans-serif',
+            fontFamily: '"Montserrat", sans-serif',
             width: '100%'
           }}>
             <CardContent>
@@ -143,15 +143,15 @@ export default function AddressesSection() {
                 color="black" 
                 gutterBottom
                 variant={isMobile ? "subtitle1" : "h6"}
-                sx={{ fontFamily: 'sans-serif' }}
+                sx={{ fontFamily: '"Montserrat", sans-serif' }}
               >
                 {a.name}
               </Typography>
-              <Typography color="black" sx={{ fontFamily: 'sans-serif' }}>{a.line1}</Typography>
-              <Typography color="black" sx={{ fontFamily: 'sans-serif' }}>
+              <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif' }}>{a.line1}</Typography>
+              <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif' }}>
                 {a.city}, {a.state} – {a.pincode}
               </Typography>
-              <Typography color="black" sx={{ fontFamily: 'sans-serif' }}>Phone: {a.phone}</Typography>
+              <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif' }}>Phone: {a.phone}</Typography>
               <Divider sx={{ my: 1 }} />
               <Stack 
                 direction={{ xs: 'column', sm: 'row' }} 
@@ -162,7 +162,7 @@ export default function AddressesSection() {
                   size="small" 
                   variant="outlined" 
                   onClick={() => handleOpen(a)}
-                  sx={{ fontFamily: 'sans-serif' }}
+                  sx={{ fontFamily: '"Montserrat", sans-serif' }}
                 >
                   Edit
                 </Button>
@@ -171,7 +171,7 @@ export default function AddressesSection() {
                   color="error"
                   variant="outlined"
                   onClick={() => handleDelete(a.id)}
-                  sx={{ fontFamily: 'sans-serif' }}
+                  sx={{ fontFamily: '"Montserrat", sans-serif' }}
                 >
                   Delete
                 </Button>
@@ -183,7 +183,7 @@ export default function AddressesSection() {
           variant="contained" 
           sx={{ 
             alignSelf: 'start',
-            fontFamily: 'sans-serif',
+            fontFamily: '"Montserrat", sans-serif',
             width: { xs: '100%', sm: 'auto' }
           }} 
           onClick={() => handleOpen()}
@@ -195,12 +195,12 @@ export default function AddressesSection() {
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle sx={{ 
           backgroundColor: '#fff', 
-          fontFamily: 'sans-serif',
+          fontFamily: '"Montserrat", sans-serif',
           fontSize: { xs: '1.1rem', sm: '1.25rem' }
         }}>
           {editId ? 'Edit Address' : 'Add New Address'}
         </DialogTitle>
-        <form style={{ backgroundColor: '#fff', fontFamily: 'sans-serif' }} onSubmit={handleSubmit}>
+        <form style={{ backgroundColor: '#fff', fontFamily: '"Montserrat", sans-serif' }} onSubmit={handleSubmit}>
           <DialogContent sx={{ minWidth: { xs: '100%', sm: 340 } }}>
             <Stack spacing={2}>
               <TextField
@@ -212,8 +212,8 @@ export default function AddressesSection() {
                 fullWidth
                 autoFocus
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
               <TextField
@@ -224,8 +224,8 @@ export default function AddressesSection() {
                 required
                 fullWidth
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
               <TextField
@@ -236,8 +236,8 @@ export default function AddressesSection() {
                 required
                 fullWidth
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
               <TextField
@@ -248,8 +248,8 @@ export default function AddressesSection() {
                 required
                 fullWidth
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
               <TextField
@@ -260,8 +260,8 @@ export default function AddressesSection() {
                 required
                 fullWidth
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
               <TextField
@@ -272,8 +272,8 @@ export default function AddressesSection() {
                 required
                 fullWidth
                 sx={{ 
-                  '& .MuiInputBase-root': { fontFamily: 'sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: 'sans-serif' }
+                  '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
             </Stack>
@@ -282,14 +282,14 @@ export default function AddressesSection() {
             <Button 
               onClick={handleClose} 
               color="inherit"
-              sx={{ fontFamily: 'sans-serif' }}
+              sx={{ fontFamily: '"Montserrat", sans-serif' }}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               variant="contained"
-              sx={{ fontFamily: 'sans-serif' }}
+              sx={{ fontFamily: '"Montserrat", sans-serif' }}
             >
               {editId ? 'Update' : 'Add'}
             </Button>
