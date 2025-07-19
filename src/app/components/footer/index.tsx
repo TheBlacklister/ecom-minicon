@@ -22,11 +22,11 @@ export default function Footer() {
             {/* Column 1: About Us & Disclaimer */}
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Stack spacing={0.5}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: 'sans-serif' }}>ABOUT US</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: 'Futura, sans-serif' }}>ABOUT US</Typography>
                 <Stack spacing={0.5}>
                  
-                  <Link href="/about" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'sans-serif' }}>Learn More</Link>
-                  <Link href="/disclaimer" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'sans-serif' }}>Disclaimer</Link>
+                  <Link href="/about" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'Futura, sans-serif' }}>Learn More</Link>
+                  <Link href="/disclaimer" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'Futura, sans-serif' }}>Disclaimer</Link>
                 </Stack>
               </Stack>
             </Grid>
@@ -34,12 +34,12 @@ export default function Footer() {
             {/* Column 2: Policies */}
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: 'sans-serif' }}>POLICIES</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: 'Futura, sans-serif' }}>POLICIES</Typography>
                 <Stack spacing={0.5}>
-                  <Link href="/returnPolicy" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'sans-serif' }}>Return Your Order</Link>
-                  <Link href="/shipping" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'sans-serif' }}>Shipping Policy</Link>
-                  <Link href="/cancelRefund" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'sans-serif' }}>Cancel and refund</Link>
-                  <Link href="/privacy" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'sans-serif' }}>Privacy Policy</Link>
+                  <Link href="/returnPolicy" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'Futura, sans-serif' }}>Return Your Order</Link>
+                  <Link href="/shipping" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'Futura, sans-serif' }}>Shipping Policy</Link>
+                  <Link href="/cancelRefund" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'Futura, sans-serif' }}>Cancel and refund</Link>
+                  <Link href="/privacy" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: 'Futura, sans-serif' }}>Privacy Policy</Link>
                 </Stack>
               </Box>
             </Grid>

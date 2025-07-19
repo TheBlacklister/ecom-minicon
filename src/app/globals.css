@@ -24,7 +24,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: sans-serif;
+  font-family: Futura, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
