@@ -6,7 +6,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
 import type { Product } from '@/types';
@@ -19,36 +19,51 @@ export const ProductCard: React.FC<{
   const { user } = useAuth();
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
   const [titleFontSize, setTitleFontSize] = useState('1rem');
-  const titleRef = useRef<HTMLSpanElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const titleRef = useRef<HTMLSpanElement>(null);
 
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
-    // Replace all backslashes with forward slashes
     let formatted = path.replace(/\\/g, '/');
-    
-    // Remove 'public' from the beginning of the path
     formatted = formatted.replace(/^public\//i, '/');
-    
-    // Replace multiple consecutive slashes with a single slash
     formatted = formatted.replace(/\/+/g, '/');
-    
-    // Ensure the path starts with a single forward slash
     if (!formatted.startsWith('/')) {
       formatted = '/' + formatted;
     }
-    
     return formatted;
   };
 
   // Get formatted images array
-  const formattedImages = product.images?.map(formatImagePath) || [];
-  
-  console.log('Product data:', product);
-  console.log('Raw images array:', product.images);
-  console.log('Formatted images array:', formattedImages);
-  console.log('Current image being displayed:', formattedImages[currentImageIndex]);
+  const formattedImages = useMemo(
+    () => product.images?.map(formatImagePath) || [],
+    [product.images]
+  );
+
+  // Preload all images when component mounts or when hovered
+  useEffect(() => {
+    if (formattedImages.length <= 1) return;
+
+    const preloadImages = () => {
+      formattedImages.forEach((src, index) => {
+        if (index === 0) return; // First image is already loaded
+        const img = new window.Image();
+        img.src = src;
+        img.onload = () => {
+          
+        };
+      });
+    };
+
+    // Start preloading when user hovers or after a short delay
+    if (isHovered) {
+      preloadImages();
+    } else {
+      // Preload after 2 seconds if not hovered
+      const timer = setTimeout(preloadImages, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [formattedImages, isHovered]);
 
   useEffect(() => {
     if (!user) return;
@@ -74,11 +89,11 @@ export const ProductCard: React.FC<{
       const container = titleRef.current.parentElement;
       if (!container) return;
       
-      const containerWidth = container.clientWidth - 16; // Account for padding
+      const containerWidth = container.clientWidth - 16;
       titleRef.current.style.fontSize = '1rem';
       titleRef.current.style.whiteSpace = 'nowrap';
       
-      let fontSize = 16; // Start with 1rem = 16px
+      let fontSize = 16;
       
       while (titleRef.current.scrollWidth > containerWidth && fontSize > 10) {
         fontSize -= 0.5;
@@ -88,10 +103,7 @@ export const ProductCard: React.FC<{
       setTitleFontSize(`${fontSize}px`);
     };
 
-    // Small delay to ensure DOM is ready
     const timer = setTimeout(adjustTitleFontSize, 100);
-    
-    // Adjust on window resize
     window.addEventListener('resize', adjustTitleFontSize);
     
     return () => {
@@ -161,13 +173,35 @@ export const ProductCard: React.FC<{
       {/* Product Image - 85% height */}
       <Box sx={{ position: 'relative', height: '85%' }}>
         {formattedImages.length > 0 ? (
-          <Image
-            src={formattedImages[currentImageIndex]}
-            alt={`${product.title} - Image ${currentImageIndex + 1}`}
-            fill
-            sizes="(max-width:600px) 90vw, (max-width:900px) 45vw, 20vw"
-            style={{ objectFit: 'cover' }}
-          />
+          <>
+            {/* Render all images but only show the current one */}
+            {formattedImages.map((image, index) => (
+              <Box
+                key={index}
+                sx={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  opacity: index === currentImageIndex ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out',
+                  zIndex: index === currentImageIndex ? 1 : 0,
+                }}
+              >
+                <Image
+                  src={image}
+                  alt={`${product.title} - Image ${index + 1}`}
+                  fill
+                  sizes="(max-width:600px) 90vw, (max-width:900px) 45vw, 20vw"
+                  style={{ objectFit: 'cover' }}
+                  priority={index === 0} // Prioritize first image
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  quality={85} // Slightly reduce quality for faster loading
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                />
+              </Box>
+            ))}
+          </>
         ) : (
           <Box
             sx={{

@@ -3,44 +3,95 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Image from 'next/image';
 import { GridLegacy as Grid } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 interface CategoryCardProps {
   image: string;
   title: string;
+  route: string;
 }
 
 const categories: CategoryCardProps[] = [
-  { image: '/products/Regular Fit Tshirt/Rabbit/3 rabbit.png', title: 'Under 999' },
-  { image: '/products/Regular Fit Tshirt/Peace/3Peace.png', title: 'T-shirts' },
-  { image: '/products/Regular Fit Tshirt/Supernova/1Supernova.png', title: 'Oversized' },
-  { image: '/products/Regular Fit Tshirt/Aesthetics Bloom/2Minicon Asthetic 2.png', title: 'Relaxed' },
-  { image: '/products/Regular Fit Tshirt/Aesthetic Outgrown/1Minicon Asthetic 3.png', title: 'Polo' },
-  { image: '/products/Regular Fit Tshirt/Aesthetics Royal Blue/5 Minicon Asthetic.png', title: 'Gym vest' },
-  { image: '/products/Regular Fit Tshirt/AstroBuddy/2 AstroBuddy.png', title: 'Sweatshirts' },
-  { image: '/products/Regular Fit Tshirt/Hedgehog/2Hedgehog Regular fit.png', title: 'Puff' },
-  { image: '/products/Regular Fit Tshirt/Hoot Pepar/3Hoot Pepar.png', title: 'Supima' },
+  { 
+    image: '/products/Regular Fit Tshirt/Rabbit/3 rabbit.png', 
+    title: 'Under 999',
+    route: '/categories/price_after/999'
+  },
+  { 
+    image: '/products/Regular Fit Tshirt/Peace/3Peace.png', 
+    title: 'T-shirts',
+    route: '/categories/shop-by/new-arrivals'
+  },
+  { 
+    image: '/products/Oversized Solid/Oversized Solid/Yellow Mustard/2Solid yellow Mustard Oversized Classic T-Shirt.png', 
+    title: 'Oversized',
+    route: '/categories/category/oversized-fit'
+  },
+  { 
+    image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Faith over fear_Printed & Streetwear/1 faith over fear.png', 
+    title: 'Relaxed',
+    route: '/categories/category/oversized-fit'
+  },
+  { 
+    image: "/products/Men's Polo T-Shirt/Men's Polo T-Shirt/Black/1Men Black embroidery Polo T-Shirt.png", 
+    title: 'Polo',
+    route: "/categories/category/men's-polo"
+  },
+  { 
+    image: "/products/Mens Gym vest/Mens Gym vest/Maroon-Printed/3hustle for the muscle.png", 
+    title: 'Gym vest',
+    route: "/categories/category/men's-gym"
+  },
+  { 
+    image: '/products/Sweatshirt/Yellow Mustard- aesthetic or minimalist/2Bloom Yellow Mustard Sweatshirt.png', 
+    title: 'Sweatshirts',
+    route: "/categories/category/men's-sweatshirts"
+  },
+  { 
+    image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Faith over fear 2_Printed & Streetear/3 faith over fear.png', 
+    title: 'Puff',
+    route: '/categories/category/oversized-fit'
+  },
+  { 
+    image: '/products/Oversized Solid/Oversized Solid/Red/4Solid Red Oversized Classic T-Shirt.png', 
+    title: 'Supima',
+    route: '/categories/material/super_combed_cotton'
+  },
 ];
 
-
-
 export default function CategoryCards() {
+  const router = useRouter();
+
+  const handleCategoryClick = (route: string) => {
+    router.push(route);
+  };
+
   return (
-    <Box sx={{ mb: 4, px: { xs: 1, sm: 2 } }}> {/* Added horizontal padding */}
-      <Grid container spacing={{ xs: 1, sm: 2 }}> {/* Added spacing */}
+    <Box sx={{ mb: 4, px: { xs: 1, sm: 2 } }}>
+      <Grid container spacing={{ xs: 1, sm: 2 }}>
         {categories.map((category, idx) => (
           <Grid
             item
-            xs={4} // Changed from 6 to 4 for 3 columns on mobile
+            xs={4}
             sm={4}
             key={idx}
           >
             <Box
+              onClick={() => handleCategoryClick(category.route)}
               sx={{
                 position: 'relative',
                 aspectRatio: '9/16',
                 width: '100%',
                 overflow: 'hidden',
                 borderRadius: 2,
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                },
+                '&:active': {
+                  transform: 'scale(0.98)',
+                },
               }}
             >
               <Image
@@ -77,7 +128,7 @@ export default function CategoryCards() {
                   fontWeight={500}
                   sx={{ 
                     fontFamily: '"Montserrat", sans-serif ',
-                    fontSize: { xs: '0.875rem', sm: '1rem' } // Smaller font on mobile
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
                   }}
                 >
                   {category.title}

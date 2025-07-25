@@ -27,6 +27,14 @@ interface CartApiItem {
 
 const formatINR = (v:number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
 
+// Helper function to convert Windows path to web URL
+const convertImagePath = (path: string): string => {
+  // Remove 'public' prefix and convert backslashes to forward slashes
+  return path
+    .replace(/^public\\/, '/')
+    .replace(/\\/g, '/')
+}
+
 export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=>void }) {
   const { user } = useAuth()
   const router = useRouter()
@@ -43,7 +51,7 @@ export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=
           id: item.product.id,
           title: item.product.title,
           subtitle: item.product.subtitle,
-          img: item.product.images[0],
+          img: convertImagePath(item.product.images[0]), // Convert the image path
           price: item.product.price_after,
           qty: item.quantity,
         }))))
@@ -95,7 +103,7 @@ export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=
     <Drawer anchor="right" open={open} onClose={onClose}
       sx={{ '& .MuiDrawer-paper': { width: { xs: '80vw', sm: 380 }, maxWidth: 380 } }}>
       <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', bgcolor: '#fff' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontFamily: '"Montserrat", sans-serif ' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontFamily: '"Montserrat", sans-serif' }}>
           My Cart ({cart.length})
         </Typography>
         <Box sx={{ flex: 1, overflowY: 'auto' }}>
@@ -105,11 +113,11 @@ export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=
                 <Image src={item.img} alt={item.title} width={80} height={80} style={{ objectFit: 'contain' }} />
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>{item.title}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>{item.subtitle}</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>{item.title}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif' }}>{item.subtitle}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                   <IconButton size="small" onClick={() => handleDecrease(item.id)}><RemoveIcon fontSize="inherit" /></IconButton>
-                  <Typography sx={{ mx: 0.5, fontFamily: '"Montserrat", sans-serif ' }}>{item.qty}</Typography>
+                  <Typography sx={{ mx: 0.5, fontFamily: '"Montserrat", sans-serif' }}>{item.qty}</Typography>
                   <IconButton size="small" onClick={() => handleIncrease(item.id)}><AddIcon fontSize="inherit" /></IconButton>
                   <IconButton onClick={() => handleDelete(item.id)} sx={{ ml: 'auto' }}><DeleteOutlineIcon /></IconButton>
                 </Box>
@@ -119,11 +127,11 @@ export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=
         </Box>
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Total</Typography>
-            <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif ', fontWeight: 600 }}>{formatINR(subtotal)}</Typography>
+            <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif' }}>Total</Typography>
+            <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600 }}>{formatINR(subtotal)}</Typography>
           </Box>
           <Button variant="contained" fullWidth disabled={cart.length === 0}
-            sx={{ bgcolor: '#fe5000', '&:hover': { bgcolor: '#d64500' }, fontFamily: '"Montserrat", sans-serif ' }}
+            sx={{ bgcolor: '#fe5000', '&:hover': { bgcolor: '#d64500' }, fontFamily: '"Montserrat", sans-serif' }}
             onClick={() => { router.push('/cart'); onClose(); }}>
             Proceed to Checkout
           </Button>

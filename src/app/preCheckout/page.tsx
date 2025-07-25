@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent } from "@mui/material";
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress } from "@mui/material";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -24,6 +24,7 @@ const PreCheckout = () => {
   const { user } = useAuth();
   const id = searchParams.get("id");
   const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true); // Add loading state
   const [selectedSize, setSelectedSize] = React.useState('');
   const [quantity, setQuantity] = React.useState(1);
   const [pincode, setPincode] = React.useState("");
@@ -53,16 +54,23 @@ const PreCheckout = () => {
 
   useEffect(() => {
     async function fetchProduct() {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      
       try {
+        setLoading(true);
         const res = await fetch('/api/products');
         const data: Product[] = await res.json();
         const prod = data.find(p => p.id === Number(id)) || null;
-        setProduct(prod || null);
-        console.log("CURRENT PRODUCT",prod,product,)
+        setProduct(prod);
+        console.log("CURRENT PRODUCT", prod, product);
         if (prod) setSelectedSize(prod.available_sizes[0] || '');
       } catch (error) {
         console.error('Error fetching product:', error);
+      } finally {
+        setLoading(false);
       }
     }
     fetchProduct();
@@ -80,8 +88,100 @@ const PreCheckout = () => {
     });
   }, [user, product]);
 
+  // Preload images when product is loaded
+  useEffect(() => {
+    if (!product || !product.images || product.images.length <= 1) return;
+
+    const formattedImages = product.images.map(formatImagePath);
+    const loadedState = new Array(formattedImages.length).fill(false);
+    loadedState[0] = true; // First image is loaded by default
+  
+
+    // Preload all images
+    formattedImages.forEach((src, index) => {
+      if (index === 0) return; // Skip first image as it's already loaded
+      const img = new window.Image();
+      img.src = src;
+      img.onload = () => {
+    
+      };
+    });
+  }, [product]);
+
+  // Show loading screen while fetching data
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          width: '100vw',
+          bgcolor: 'white',
+        }}
+      >
+        <CircularProgress 
+          size={60} 
+          thickness={4}
+          sx={{ 
+            color: '#e53935',
+            mb: 3 
+          }} 
+        />
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontFamily: '"Montserrat", sans-serif',
+            color: '#666',
+            fontWeight: 500 
+          }}
+        >
+          Loading product details...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Show error message if product not found after loading
   if (!product) {
-    return <Typography color="error">Product not found</Typography>;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          width: '100vw',
+          bgcolor: 'white',
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          color="error"
+          sx={{ 
+            fontFamily: '"Montserrat", sans-serif',
+            fontWeight: 600,
+            mb: 2
+          }}
+        >
+          Product not found
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => router.push('/')}
+          sx={{
+            fontFamily: '"Montserrat", sans-serif',
+            fontWeight: 600,
+            textTransform: 'none',
+          }}
+        >
+          Go back to home
+        </Button>
+      </Box>
+    );
   }
 
   // Get formatted images array
@@ -207,14 +307,36 @@ const PreCheckout = () => {
           onMouseLeave={() => setIsHoveringImage(false)}
         >
           {formattedImages.length > 0 ? (
-            <Image
-              src={formattedImages[currentImageIndex]}
-              alt={`${product.title} - Image ${currentImageIndex + 1}`}
-              fill
-              style={{ objectFit: 'contain' }}
-              sizes="(max-width: 600px) 100vw, 50vw"
-              priority
-            />
+            <>
+              {/* Render all images but only show the current one */}
+              {formattedImages.map((image, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    opacity: index === currentImageIndex ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out',
+                    zIndex: index === currentImageIndex ? 1 : 0,
+                    bgcolor: 'white', // White background while loading
+                  }}
+                >
+                  <Image
+                    src={image}
+                    alt={`${product.title} - Image ${index + 1}`}
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    sizes="(max-width: 600px) 100vw, 50vw"
+                    priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    quality={85}
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                  />
+                </Box>
+              ))}
+            </>
           ) : (
             <Box
               sx={{
@@ -341,6 +463,7 @@ const PreCheckout = () => {
                   border: index === currentImageIndex ? '2px solid' : '1px solid',
                   borderColor: index === currentImageIndex ? 'primary.main' : 'grey.300',
                   transition: 'all 0.3s ease',
+                  bgcolor: 'white', // White background for thumbnails
                   '&:hover': {
                     borderColor: 'primary.main',
                     transform: 'scale(1.05)',
@@ -353,6 +476,9 @@ const PreCheckout = () => {
                   fill
                   style={{ objectFit: 'cover' }}
                   sizes="80px"
+                  quality={70}
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                 />
               </Box>
             ))}
@@ -666,6 +792,7 @@ const PreCheckout = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    bgcolor: 'white', // White background for size chart
                   }}
                 >
                   <Image
@@ -678,6 +805,9 @@ const PreCheckout = () => {
                       height: 'auto',
                       objectFit: 'contain',
                     }}
+                    quality={85}
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
                 </Box>
               )}

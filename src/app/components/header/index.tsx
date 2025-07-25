@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, MouseEvent } from 'react';
+import { useState, MouseEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { FavoriteBorderOutlined, Menu as MenuIcon, Search as SearchIcon } from '@mui/icons-material';
+import { FavoriteBorderOutlined, Menu as MenuIcon, Search as SearchIcon, Close as CloseIcon } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -20,7 +20,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import styles from './index.module.css';
 import { MENUS } from '@/app/dummyData';
-import { Typography, Divider, InputAdornment } from '@mui/material'
+import { Typography, Divider, InputAdornment, Card, CardMedia, CardContent } from '@mui/material'
 import CartDrawer from '../cartDrawer'
 import { useAuth } from '../AuthProvider'
 
@@ -36,6 +36,40 @@ export default function Header() {
   const [expandedAccordion, setExpandedAccordion] = useState<string | false>(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchDrawerOpen, setSearchDrawerOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  // Load products from localStorage and filter based on search
+  useEffect(() => {
+    if (search.trim()) {
+      try {
+        const storedProducts = localStorage.getItem('allProducts');
+        if (storedProducts) {
+          const products = JSON.parse(storedProducts);
+          const searchLower = search.toLowerCase();
+          
+          const filtered = products.filter((product: any) => {
+            // Search in multiple fields
+            return (
+              product.title?.toLowerCase().includes(searchLower) ||
+              product.subtitle?.toLowerCase().includes(searchLower) ||
+              product.description?.toLowerCase().includes(searchLower) ||
+              product.collections?.some((col: string) => col.toLowerCase().includes(searchLower)) ||
+              product.material?.toLowerCase().includes(searchLower) ||
+              product.category?.some((cat: string) => cat.toLowerCase().includes(searchLower)) ||
+              product.available_colors?.some((color: string) => color.toLowerCase().includes(searchLower))
+            );
+          });
+          
+          setSearchResults(filtered);
+        }
+      } catch (error) {
+        console.error('Error parsing products from localStorage:', error);
+        setSearchResults([]);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  }, [search]);
 
   const handleOpen =
     (index: number) =>
@@ -57,7 +91,16 @@ export default function Header() {
     setSearchDrawerOpen(!searchDrawerOpen);
     if (!searchDrawerOpen) {
       setSearch(''); // Clear search when opening
+      setSearchResults([]); // Clear results
     }
+  };
+
+  const handleProductClick = (productSlug: string) => {
+    router.push(`/product/${productSlug}`);
+    setSearchDrawerOpen(false);
+    setMobileMenuOpen(false);
+    setSearch('');
+    setSearchResults([]);
   };
 
   const slug = (str: string) =>
@@ -93,7 +136,12 @@ export default function Header() {
               <MenuItem
                 key={item}
                 onClick={() => {
-                  router.push(`/categories/${slug(label)}/${slug(item)}`);
+                  if (slug(item)==='supima') {
+                    router.push(`/categories/material/super_combed_cotton`);
+                  } else {
+                    router.push(`/categories/${slug(label)}/${slug(item)}`);
+                  }
+                  
                   handleClose();
                   setMobileMenuOpen(false);
                 }}
@@ -115,6 +163,83 @@ export default function Header() {
       ))}
     </div>
   );
+
+  const renderSearchResults = () => {
+    if (!search.trim() || searchResults.length === 0) {
+      return search.trim() ? (
+        <Box sx={{ textAlign: 'center', mt: 4, color: 'text.secondary' }}>
+          <Typography>No products found matching "{search}"</Typography>
+        </Box>
+      ) : null;
+    }
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="subtitle2" sx={{ mb: 2, color: 'text.secondary' }}>
+          {searchResults.length} {searchResults.length === 1 ? 'product' : 'products'} found
+        </Typography>
+        {searchResults.map((product) => {
+          // Debug image path
+          const imagePath = product.images?.[0]?.replace(/\\/g, '/')?.replace(/^public\//, '') || '/placeholder.jpg';
+          console.log('SEARCH IMAGE:', {
+            productTitle: product.title,
+            originalPath: product.images?.[0],
+            formattedPath: imagePath
+          });
+          
+          return (
+            <Card
+              key={product.id}
+              onClick={() => handleProductClick(product.slug)}
+              sx={{
+                display: 'flex',
+                mb: 2,
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  boxShadow: 3,
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
+              <CardMedia
+                component="img"
+                sx={{ width: 80, height: 80, objectFit: 'cover' }}
+                image={imagePath}
+                alt={product.title}
+              />
+            <CardContent sx={{ flex: 1, py: 1, '&:last-child': { pb: 1 } }}>
+              <Typography variant="body1" component="div" sx={{ fontWeight: 500 }}>
+                {product.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {product.subtitle}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                  ₹{product.price_after}
+                </Typography>
+                {product.price_before > product.price_after && (
+                  <>
+                    <Typography
+                      variant="body2"
+                      sx={{ textDecoration: 'line-through', ml: 1, color: 'text.secondary' }}
+                    >
+                      ₹{product.price_before}
+                    </Typography>
+                    <Typography variant="body2" sx={{ ml: 1, color: 'success.main' }}>
+                      {product.discount_percentage}% off
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        );
+        })}
+      </Box>
+    );
+  };
 
   return (
     <>
@@ -154,7 +279,7 @@ export default function Header() {
 
           {/* Right actions */}
           <div className={styles.actions}>
-            {/* Search Icon - Disabled functionality */}
+            {/* Search Icon - Now functional */}
             {!isMobile && (
               <SearchIcon
                 className={styles.icon}
@@ -203,47 +328,46 @@ export default function Header() {
           }}
         >
           <Box sx={{ p: 0 }}>
-            {/* Mobile search bar - UI only, no functionality */}
+            {/* Mobile search bar - Now functional */}
             {isMobile && (
-              <TextField
-                fullWidth
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search products..."
-                size="small"
-                variant="outlined"
-                disabled
-                sx={{
-                  background: '#f5f5f5',
-                  borderRadius: 1,
-                  color: '#000',
-                  opacity: 0.6,
-                  '& .MuiInputBase-input': {
-                    color: '#000',
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#666',
-                    opacity: 1,
-                  },
-                }}
-                inputProps={{ style: { padding: 8, fontSize: 16 } }}
-                InputProps={{
-                  endAdornment: (
-                    <span style={{ display: 'flex', alignItems: 'center', color: '#666' }}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        width="20"
-                        fill="currentColor"
-                        style={{ marginRight: 4 }}
-                      >
-                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99a1 1 0 0 0 1.41-1.41l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z" />
-                      </svg>
-                    </span>
-                  ),
-                }}
-              />
+              <Box sx={{ p: 2 }}>
+                <TextField
+                  fullWidth
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search products..."
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    background: '#f5f5f5',
+                    borderRadius: 1,
+                    '& .MuiInputBase-input': {
+                      color: '#000',
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#666',
+                      opacity: 1,
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {search ? (
+                          <IconButton size="small" onClick={() => setSearch('')}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        ) : (
+                          <SearchIcon sx={{ color: '#666' }} />
+                        )}
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                {/* Mobile search results */}
+                <Box sx={{ mt: 2, maxHeight: '300px', overflowY: 'auto' }}>
+                  {renderSearchResults()}
+                </Box>
+              </Box>
             )}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {MENUS.map(({ label, items }) => (
@@ -313,7 +437,7 @@ export default function Header() {
         <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       </header>
 
-      {/* Search Drawer - Only for desktop - UI only, no functionality */}
+      {/* Search Drawer - Desktop - Now functional */}
       {!isMobile && (
         <Drawer
           anchor="right"
@@ -328,24 +452,23 @@ export default function Header() {
           }}
         >
           <Box>
-            {/* Search Bar at the top - disabled */}
+            {/* Search Bar at the top - Now functional */}
             <TextField
               fullWidth
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search products..."
               variant="outlined"
-              disabled
+              autoFocus
               sx={{
                 mb: 3,
-                opacity: 0.6,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
                   '&:hover fieldset': {
-                    borderColor: '#ccc',
+                    borderColor: 'primary.main',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#ccc',
+                    borderColor: 'primary.main',
                   },
                 },
               }}
@@ -355,17 +478,29 @@ export default function Header() {
                     <SearchIcon sx={{ color: '#666' }} />
                   </InputAdornment>
                 ),
+                endAdornment: search && (
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setSearch('')}>
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
               }}
             />
 
             <Divider sx={{ mb: 2 }} />
 
-            {/* Placeholder content */}
-            <Box sx={{ textAlign: 'center', mt: 8 }}>
-              <SearchIcon sx={{ fontSize: 60, color: '#ddd', mb: 2 }} />
-              <Typography color="text.secondary">
-                Search functionality is currently disabled
-              </Typography>
+            {/* Search Results */}
+            <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+              {renderSearchResults()}
+              {!search.trim() && (
+                <Box sx={{ textAlign: 'center', mt: 8 }}>
+                  <SearchIcon sx={{ fontSize: 60, color: '#ddd', mb: 2 }} />
+                  <Typography color="text.secondary">
+                    Start typing to search products
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Box>
         </Drawer>
