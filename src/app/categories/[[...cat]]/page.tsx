@@ -21,6 +21,7 @@ import {
   ListItemButton,
   ListItemText,
   Chip,
+  CircularProgress,
 } from '@mui/material';
 import { GridLegacy as Grid } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -50,6 +51,7 @@ export default function CataloguePage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true); // Add loading state
   const { user } = useAuth();
   const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
   const pathname = usePathname();
@@ -65,11 +67,14 @@ export default function CataloguePage() {
   useEffect(() => {
     async function fetchProducts() {
       try {
+        setLoading(true);
         const res = await fetch('/api/products');
         const data = await res.json();
         setAllProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
       }
     }
     fetchProducts();
@@ -117,6 +122,7 @@ export default function CataloguePage() {
       const label = labelSegment;
       const value = valueSegment || '';
   
+      // Handle category filtering
       if (label === 'category' && value) {
         filtered = filtered.filter((p) => {
           const categories = Array.isArray(p.category) ? p.category : (p.category ? [p.category] : []);
@@ -127,7 +133,9 @@ export default function CataloguePage() {
           });
           return categoryMatches;
         });
-      } else if (label === 'collections' && value) {
+      } 
+      // Handle collections filtering
+      else if (label === 'collections' && value) {
         filtered = filtered.filter((p) => {
           const collections = Array.isArray(p.collections) ? p.collections : (p.collections ? [p.collections] : []);
           const collectionMatches = collections.some(col => {
@@ -137,13 +145,46 @@ export default function CataloguePage() {
           });
           return collectionMatches;
         });
-      } else if (label === 'shop_by') {
+      } 
+      // Handle price_after filtering (less than the specified value)
+      else if (label === 'price_after' && value) {
+        const priceThreshold = parseFloat(value);
+        if (!isNaN(priceThreshold)) {
+          filtered = filtered.filter((p) => {
+            const match = p.price_after < priceThreshold;
+            console.log(`Comparing product price_after '${p.price_after}' with threshold '${priceThreshold}':`, match);
+            return match;
+          });
+        } else {
+          console.log(`Invalid price value: ${value}`);
+        }
+      }
+      // Handle material filtering
+      else if (label === 'material' && value) {
+        filtered = filtered.filter((p) => {
+          // Handle material as string or array
+          const materials = Array.isArray(p.material) ? p.material : (p.material ? [p.material] : []);
+          const materialMatches = materials.some(mat => {
+            // Convert material to lowercase and replace spaces with underscores for comparison
+            const normalizedMaterial = mat.toLowerCase().replace(/\s+/g, '_');
+            const match = normalizedMaterial === value;
+            console.log(`Comparing product material '${normalizedMaterial}' with URL value '${value}':`, match);
+            return match;
+          });
+          return materialMatches;
+        });
+      }
+      else if (label === 'shop_by') {
         console.log("No filtering applied for 'shop_by'");
+      }
+      else {
+        console.log(`Unknown filter label: ${label}`);
       }
     } else {
       console.log("No URL filtering segment detected.");
     }
   
+    // Apply checkbox filters from sidebar
     if (selectedCategories.size > 0) {
       filtered = filtered.filter(p => 
         (Array.isArray(p.category) ? p.category : [p.category])
@@ -162,9 +203,9 @@ export default function CataloguePage() {
     }
   
     console.log("Final filtered products:", filtered);
+    console.log("SLUG", catSegments);
     return filtered;
   }, [catSegments, allProducts, selectedCategories, selectedSizes, selectedColors]);
-  
   
   /* ---------------- Optional client-side sorting -------------------------- */
   const products = useMemo(() => {
@@ -177,20 +218,41 @@ export default function CataloguePage() {
     }
   }, [filteredProducts, sortOpt]);
 
-  /* ---------------- Human-readable heading -------------------------------- */
-  const heading = useMemo(() => {
-    const baseHeading = catSegments.length === 0
-      ? 'All Products'
-      : catSegments.join(' • ').replace(/-/g, ' ');
-    
-    const activeFiltersCount = selectedCategories.size + selectedSizes.size + selectedColors.size;
-    
-    if (activeFiltersCount > 0) {
-      return `${baseHeading} (${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied)`;
-    }
-    
-    return baseHeading;
-  }, [catSegments, selectedCategories, selectedSizes, selectedColors]);
+  // Show loading screen while fetching data
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          width: '100vw',
+          bgcolor: 'white',
+        }}
+      >
+        <CircularProgress 
+          size={60} 
+          thickness={4}
+          sx={{ 
+            color: '#e53935',
+            mb: 3 
+          }} 
+        />
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            fontFamily: '"Montserrat", sans-serif',
+            color: '#666',
+            fontWeight: 500 
+          }}
+        >
+          Loading products...
+        </Typography>
+      </Box>
+    );
+  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -481,7 +543,7 @@ export default function CataloguePage() {
             <FilterListIcon />
           </IconButton>
           <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
-            {heading} — {products.length} items
+           {products.length} items found
           </Typography>
         </Box>
       )}
@@ -530,7 +592,7 @@ export default function CataloguePage() {
             }}
           >
             <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
-              {heading} — {products.length} items
+            {products.length} items found
             </Typography>
 
             {/* Premium Desktop Sort Select */}

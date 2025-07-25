@@ -56,6 +56,9 @@ export default function Home() {
         const data = await res.json();
         console.log('Products from Supabase:', data);
         setProducts(data);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('allProducts', JSON.stringify(data));
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -101,12 +104,14 @@ export default function Home() {
       <Box
         sx={{
           width: '100%',
+          mb: { xs: 4, sm: 1 },
           display: 'flex',
           justifyContent: 'center',
           height: {
             xs: '100vh',
             sm: 'auto'
           }
+          
         }}
       >
         <video
@@ -115,7 +120,7 @@ export default function Home() {
           loop
           muted
           playsInline
-          style={{ 
+          style={{
             width: '100%',
             height: isMobile ? '100%' : 'auto',
             objectFit: 'cover'
@@ -137,150 +142,150 @@ export default function Home() {
       </Typography>
 
       {/* Horizontally scrolling marquee with border radius */}
-<Box
-  component="section"
-  sx={{
-    position: 'relative',
-    width: '100%',
-    overflow: 'hidden',
-    display: 'flex',
-    alignItems: 'center',
-    background: '#fff',
-    mb: { xs: 4, sm: 1 },
-    py: { xs: 2, sm: 3 } // Add vertical padding instead of fixed height
-  }}
->
-  <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      whiteSpace: 'nowrap',
-      width: 'max-content',
-      animation: `${scroll} ${isMobile ? 20 : 30}s linear infinite`,
-      gap: { xs: 1, sm: 1.5 },
-    }}
-  >
-    {/* First set of images */}
-    {marqueeImages.map((src, i) => (
       <Box
-        key={`${src}-1-${i}`}
+        component="section"
         sx={{
           position: 'relative',
-          display: 'inline-block',
-          borderRadius: { xs: 2, sm: 3 },
+          width: '100%',
           overflow: 'hidden',
-          flexShrink: 0,
-          // Scale images responsively
-          width: {
-            xs: 'auto',
-            sm: 'auto'
-          },
-          height: {
-            xs: '300px', // Base height for mobile
-            sm: '400px', // Base height for desktop
-            md: '450px'
-          },
-          '& img': {
-            height: '100%',
-            width: 'auto',
-            maxWidth: 'none'
-          }
+          display: 'flex',
+          alignItems: 'center',
+          background: '#fff',
+          mb: { xs: 4, sm: 1 },
+          py: { xs: 2, sm: 3 } // Add vertical padding instead of fixed height
         }}
       >
-        <Image
-          src={src}
-          alt={`Marquee ${i + 1}`}
-          width={0}
-          height={0}
-          sizes="100vw"
-          style={{
-            width: 'auto',
-            height: '100%',
-            objectFit: 'contain'
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            whiteSpace: 'nowrap',
+            width: 'max-content',
+            animation: `${scroll} ${isMobile ? 20 : 30}s linear infinite`,
+            gap: { xs: 1, sm: 1.5 },
           }}
-        />
+        >
+          {/* First set of images */}
+          {marqueeImages.map((src, i) => (
+            <Box
+              key={`${src}-1-${i}`}
+              sx={{
+                position: 'relative',
+                display: 'inline-block',
+                borderRadius: { xs: 2, sm: 3 },
+                overflow: 'hidden',
+                flexShrink: 0,
+                // Scale images responsively
+                width: {
+                  xs: 'auto',
+                  sm: 'auto'
+                },
+                height: {
+                  xs: '300px', // Base height for mobile
+                  sm: '400px', // Base height for desktop
+                  md: '450px'
+                },
+                '& img': {
+                  height: '100%',
+                  width: 'auto',
+                  maxWidth: 'none'
+                }
+              }}
+            >
+              <Image
+                src={src}
+                alt={`Marquee ${i + 1}`}
+                width={0}
+                height={0}
+                sizes="100vw"
+                style={{
+                  width: 'auto',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            </Box>
+          ))}
+          {/* Duplicate set for seamless loop */}
+          {marqueeImages.map((src, i) => (
+            <Box
+              key={`${src}-2-${i}`}
+              sx={{
+                position: 'relative',
+                display: 'inline-block',
+                borderRadius: { xs: 2, sm: 3 },
+                overflow: 'hidden',
+                flexShrink: 0,
+                // Scale images responsively
+                width: {
+                  xs: 'auto',
+                  sm: 'auto'
+                },
+                height: {
+                  xs: '300px', // Base height for mobile
+                  sm: '400px', // Base height for desktop
+                  md: '450px'
+                },
+                '& img': {
+                  height: '100%',
+                  width: 'auto',
+                  maxWidth: 'none'
+                }
+              }}
+            >
+              <Image
+                src={src}
+                alt={`Marquee duplicate ${i + 1}`}
+                width={0}
+                height={0}
+                sizes="100vw"
+                style={{
+                  width: 'auto',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
       </Box>
-    ))}
-    {/* Duplicate set for seamless loop */}
-    {marqueeImages.map((src, i) => (
-      <Box
-        key={`${src}-2-${i}`}
+      <Typography variant="h4"
+        align="center"
         sx={{
-          position: 'relative',
-          display: 'inline-block',
-          borderRadius: { xs: 2, sm: 3 },
-          overflow: 'hidden',
-          flexShrink: 0,
-          // Scale images responsively
-          width: {
-            xs: 'auto',
-            sm: 'auto'
+          mb: {
+            xs: 1,  // Reduced margin bottom
+            sm: 1,
+            md: 3,
+            lg: 3
           },
-          height: {
-            xs: '300px', // Base height for mobile
-            sm: '400px', // Base height for desktop
-            md: '450px'
-          },
-          '& img': {
-            height: '100%',
-            width: 'auto',
-            maxWidth: 'none'
-          }
+          fontWeight: 600
         }}
-      >
-        <Image
-          src={src}
-          alt={`Marquee duplicate ${i + 1}`}
-          width={0}
-          height={0}
-          sizes="100vw"
-          style={{
-            width: 'auto',
-            height: '100%',
-            objectFit: 'contain'
-          }}
-        />
-      </Box>
-    ))}
-  </Box>
-</Box>
-      <Typography variant="h4" 
-          align="center" 
-          sx={{ 
-            mb: { 
-              xs: 1,  // Reduced margin bottom
-              sm: 1,
-              md: 3,
-              lg: 3
-            },
-            fontWeight: 600
-          }}
-          color="black">
-          TRENDING CATEGORY
-        </Typography>
-          <CategoryCards/>
+        color="black">
+        TRENDING CATEGORY
+      </Typography>
+      <CategoryCards />
       {/* Product grid section with minimal spacing */}
-      <Box sx={{ 
-        padding: { 
+      <Box sx={{
+        padding: {
           xs: '0 8px 0 0',    // Minimal padding on mobile
           sm: '0 16px 0 0',   // Small padding on tablets
           md: '0 24px 0 0'    // Moderate padding on desktop
         },
-        mb: 6 
+        mb: 6
       }}>
-        <Typography variant="h4" 
-          align="center" 
-          sx={{ 
-            mb: { 
+        <Typography variant="h4"
+          align="center"
+          sx={{
+            mb: {
               xs: 1,  // Reduced margin bottom
-              sm: 1 
+              sm: 1
             },
             fontWeight: 600
           }}
           color="black">
           NEW ARRIVALS
         </Typography>
-        
+
         <Grid container spacing={{ xs: 0.5, sm: 1, md: 1 }} justifyContent="center">
           {displayProducts.map((p) => (
             <Grid item xs={6} sm={4} md={1.5} key={p.id}>
@@ -294,9 +299,9 @@ export default function Home() {
 
         {/* Show More Button */}
         {!showAllProducts && products.length > 16 && (
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
             mt: { xs: 3, sm: 4 }
           }}>
             <Button
