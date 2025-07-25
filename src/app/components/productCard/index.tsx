@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { Box, Typography, IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
@@ -18,6 +20,35 @@ export const ProductCard: React.FC<{
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
   const [titleFontSize, setTitleFontSize] = useState('1rem');
   const titleRef = useRef<HTMLSpanElement>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Format image paths by replacing backslashes with forward slashes
+  const formatImagePath = (path: string): string => {
+    // Replace all backslashes with forward slashes
+    let formatted = path.replace(/\\/g, '/');
+    
+    // Remove 'public' from the beginning of the path
+    formatted = formatted.replace(/^public\//i, '/');
+    
+    // Replace multiple consecutive slashes with a single slash
+    formatted = formatted.replace(/\/+/g, '/');
+    
+    // Ensure the path starts with a single forward slash
+    if (!formatted.startsWith('/')) {
+      formatted = '/' + formatted;
+    }
+    
+    return formatted;
+  };
+
+  // Get formatted images array
+  const formattedImages = product.images?.map(formatImagePath) || [];
+  
+  console.log('Product data:', product);
+  console.log('Raw images array:', product.images);
+  console.log('Formatted images array:', formattedImages);
+  console.log('Current image being displayed:', formattedImages[currentImageIndex]);
 
   useEffect(() => {
     if (!user) return;
@@ -87,9 +118,25 @@ export const ProductCard: React.FC<{
     }
   };
 
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? formattedImages.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => 
+      prev === formattedImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
   return (
     <Box
       onClick={() => router.push(`/preCheckout?id=${encodeURIComponent(product.id)}`)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       sx={{
         width: '100%',
         height: { xs: 320, sm: 390, md: 420 },
@@ -104,18 +151,111 @@ export const ProductCard: React.FC<{
         position: 'relative',
         cursor: 'pointer',
         overflow: 'hidden',
-        m: { xs: 1, sm: 1.5, md: 2 }
+        m: { xs: 1, sm: 1.5, md: 2 },
+        transition: 'box-shadow 0.3s ease',
+        '&:hover': {
+          boxShadow: 3,
+        }
       }}
     >
       {/* Product Image - 85% height */}
       <Box sx={{ position: 'relative', height: '85%' }}>
-        <Image
-          src={product.images?.[1] || product.images?.[0] || ''}
-          alt={product.title}
-          fill
-          sizes="(max-width:600px) 90vw, (max-width:900px) 45vw, 20vw"
-          style={{ objectFit: 'cover' }}
-        />
+        {formattedImages.length > 0 ? (
+          <Image
+            src={formattedImages[currentImageIndex]}
+            alt={`${product.title} - Image ${currentImageIndex + 1}`}
+            fill
+            sizes="(max-width:600px) 90vw, (max-width:900px) 45vw, 20vw"
+            style={{ objectFit: 'cover' }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'grey.200',
+              color: 'grey.500',
+            }}
+          >
+            <Typography>No image available</Typography>
+          </Box>
+        )}
+
+        {/* Carousel Navigation Arrows - Only show on hover and if more than 1 image */}
+        {formattedImages.length > 1 && isHovered && (
+          <>
+            <IconButton
+              onClick={handlePrevImage}
+              sx={{
+                position: 'absolute',
+                left: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
+                zIndex: 2,
+              }}
+            >
+              <ChevronLeftIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleNextImage}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
+                zIndex: 2,
+              }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
+          </>
+        )}
+
+        {/* Image Dots Indicator */}
+        {formattedImages.length > 1 && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 12,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: 0.5,
+              zIndex: 2,
+            }}
+          >
+            {formattedImages.map((_, index) => (
+              <Box
+                key={index}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex(index);
+                }}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: index === currentImageIndex ? 'white' : 'rgba(255, 255, 255, 0.5)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: 'white',
+                    transform: 'scale(1.2)',
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        )}
+
+        {/* Wishlist Button */}
         <IconButton
           aria-label="add to wishlist"
           onClick={handleWishlistToggle}
@@ -125,7 +265,8 @@ export const ProductCard: React.FC<{
             right: 12,
             color: isWished ? 'red' : 'white',
             zIndex: 2,
-            '&:hover': { background: 'rgba(0,0,0,0.35)' }
+            bgcolor: 'rgba(0, 0, 0, 0.2)',
+            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.35)' }
           }}
         >
           <FavoriteIcon sx={{ fontSize: '1.7rem' }} />

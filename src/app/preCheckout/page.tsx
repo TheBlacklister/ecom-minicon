@@ -3,29 +3,20 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton } from "@mui/material";
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent } from "@mui/material";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Input from '@mui/material/Input';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CloseIcon from '@mui/icons-material/Close';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
-
-const PRODUCT_DESCRIPTION = [
-  "100% Super Combed Cotton",
-  "Pre Shrunk",
-  "Bio Washed",
-  "Lycra Ribbed Neck",
-  "Oversized Fit",
-  "wash care :",
-  "Machine wash cold, inside-out,",
-  "gentle cycle with mild detergent.",
-  "Made in India"
-];
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -37,6 +28,28 @@ const PreCheckout = () => {
   const [quantity, setQuantity] = React.useState(1);
   const [pincode, setPincode] = React.useState("");
   const [isWished, setIsWished] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
+
+  // Format image paths by replacing backslashes with forward slashes
+  const formatImagePath = (path: string): string => {
+    // Replace all backslashes with forward slashes
+    let formatted = path.replace(/\\/g, '/');
+    
+    // Remove 'public' from the beginning of the path
+    formatted = formatted.replace(/^public\//i, '/');
+    
+    // Replace multiple consecutive slashes with a single slash
+    formatted = formatted.replace(/\/+/g, '/');
+    
+    // Ensure the path starts with a single forward slash
+    if (!formatted.startsWith('/')) {
+      formatted = '/' + formatted;
+    }
+    
+    return formatted;
+  };
 
   useEffect(() => {
     async function fetchProduct() {
@@ -46,6 +59,7 @@ const PreCheckout = () => {
         const data: Product[] = await res.json();
         const prod = data.find(p => p.id === Number(id)) || null;
         setProduct(prod || null);
+        console.log("CURRENT PRODUCT",prod,product,)
         if (prod) setSelectedSize(prod.available_sizes[0] || '');
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -69,6 +83,9 @@ const PreCheckout = () => {
   if (!product) {
     return <Typography color="error">Product not found</Typography>;
   }
+
+  // Get formatted images array
+  const formattedImages = product.images?.map(formatImagePath) || [];
 
   // Handlers
   const handleWishlistToggle = async () => {
@@ -126,6 +143,30 @@ const PreCheckout = () => {
     router.push(`/cart?buyNow=${product.id}`);
   };
 
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? formattedImages.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === formattedImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handleThumbnailClick = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
+  const handleSizeChartOpen = () => {
+    setSizeChartOpen(true);
+  };
+
+  const handleSizeChartClose = () => {
+    setSizeChartOpen(false);
+  };
+
   return (
     <Box
       sx={{
@@ -141,31 +182,184 @@ const PreCheckout = () => {
         boxSizing: "border-box"
       }}
     >
-      {/* Product Image with banner */}
+      {/* Product Image with carousel */}
       <Box
         sx={{
-          position: 'relative',
           width: { xs: '100%', md: '38vw' },
           minWidth: 220,
-          aspectRatio: '4/5',
-          bgcolor: 'white',
-          borderRadius: 3,
-          overflow: 'hidden',
           flexShrink: 0,
           alignSelf: { md: 'flex-start' },
           mb: { xs: 2, md: 0 },
         }}
       >
-        <Image
-          src={product.images[0]}
-          alt={product.title}
-          fill
-          style={{ objectFit: 'contain' }}
-          sizes="(max-width: 600px) 100vw, 50vw"
-        />
-        {/* Banner overlay */}
-       
+        {/* Main Image with Navigation */}
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            aspectRatio: '4/5',
+            bgcolor: 'white',
+            borderRadius: 3,
+            overflow: 'hidden',
+            mb: 2,
+          }}
+          onMouseEnter={() => setIsHoveringImage(true)}
+          onMouseLeave={() => setIsHoveringImage(false)}
+        >
+          {formattedImages.length > 0 ? (
+            <Image
+              src={formattedImages[currentImageIndex]}
+              alt={`${product.title} - Image ${currentImageIndex + 1}`}
+              fill
+              style={{ objectFit: 'contain' }}
+              sizes="(max-width: 600px) 100vw, 50vw"
+              priority
+            />
+          ) : (
+            <Box
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'grey.200',
+                color: 'grey.500',
+              }}
+            >
+              <Typography>No image available</Typography>
+            </Box>
+          )}
+
+          {/* Navigation Arrows - Only show on hover and if more than 1 image */}
+          {formattedImages.length > 1 && isHoveringImage && (
+            <>
+              <IconButton
+                onClick={handlePrevImage}
+                sx={{
+                  position: 'absolute',
+                  left: 16,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
+                  zIndex: 2,
+                  boxShadow: 1,
+                }}
+              >
+                <ChevronLeftIcon />
+              </IconButton>
+              <IconButton
+                onClick={handleNextImage}
+                sx={{
+                  position: 'absolute',
+                  right: 16,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
+                  zIndex: 2,
+                  boxShadow: 1,
+                }}
+              >
+                <ChevronRightIcon />
+              </IconButton>
+            </>
+          )}
+
+          {/* Image Dots Indicator */}
+          {formattedImages.length > 1 && (
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 16,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: 1,
+                zIndex: 2,
+              }}
+            >
+              {formattedImages.map((_, index) => (
+                <Box
+                  key={index}
+                  onClick={() => handleThumbnailClick(index)}
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    bgcolor: index === currentImageIndex ? 'grey.800' : 'rgba(0, 0, 0, 0.3)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      bgcolor: 'grey.700',
+                      transform: 'scale(1.2)',
+                    }
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* Thumbnail Gallery */}
+        {formattedImages.length > 1 && (
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              overflowX: 'auto',
+              pb: 1,
+              '&::-webkit-scrollbar': {
+                height: 6,
+              },
+              '&::-webkit-scrollbar-track': {
+                bgcolor: 'grey.200',
+                borderRadius: 3,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: 'grey.400',
+                borderRadius: 3,
+                '&:hover': {
+                  bgcolor: 'grey.500',
+                },
+              },
+            }}
+          >
+            {formattedImages.map((image, index) => (
+              <Box
+                key={index}
+                onClick={() => handleThumbnailClick(index)}
+                sx={{
+                  position: 'relative',
+                  width: 80,
+                  height: 100,
+                  flexShrink: 0,
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: index === currentImageIndex ? '2px solid' : '1px solid',
+                  borderColor: index === currentImageIndex ? 'primary.main' : 'grey.300',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <Image
+                  src={image}
+                  alt={`${product.title} - Thumbnail ${index + 1}`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="80px"
+                />
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
+
       {/* Product Details */}
       <Box
         sx={{
@@ -196,11 +390,24 @@ const PreCheckout = () => {
         <Typography sx={{ fontSize: "1.2rem", mb: 1, fontFamily: '"Montserrat", sans-serif ', color: '#555' }}>
           {product.subtitle}
         </Typography>
+        
         {/* Price and Quantity */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
           <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: '"Montserrat", sans-serif ', color: '#222' }}>
             ₹{product.price_after}
           </Typography>
+          {product.price_before && product.price_before > product.price_after && (
+            <Typography 
+              sx={{ 
+                fontSize: "1.2rem", 
+                textDecoration: 'line-through', 
+                color: 'grey.600',
+                fontFamily: '"Montserrat", sans-serif ' 
+              }}
+            >
+              ₹{product.price_before}
+            </Typography>
+          )}
           <Select
             value={quantity}
             onChange={e => setQuantity(Number(e.target.value))}
@@ -212,6 +419,7 @@ const PreCheckout = () => {
             ))}
           </Select>
         </Box>
+        
         {/* Size Buttons */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
@@ -239,10 +447,25 @@ const PreCheckout = () => {
               {s}
             </Button>
           ))}
-          <Typography variant="body2" sx={{ ml: 1, color: '#1976d2', display: 'inline', fontFamily: '"Montserrat", sans-serif ', cursor: 'pointer' }}>
-            Notify Me
+          <Typography 
+            variant="body2" 
+            onClick={handleSizeChartOpen}
+            sx={{ 
+              ml: 1, 
+              color: '#1976d2', 
+              display: 'inline', 
+              fontFamily: '"Montserrat", sans-serif ', 
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              '&:hover': {
+                color: '#1565c0',
+              }
+            }}
+          >
+            Size Chart
           </Typography>
         </Box>
+        
         {/* Action Buttons */}
         <Box sx={{
           display: 'flex',
@@ -295,6 +518,7 @@ const PreCheckout = () => {
             Buy Now
           </Button>
         </Box>
+        
         {/* Social Share Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif ', color: '#888' }}>Share</Typography>
@@ -302,6 +526,7 @@ const PreCheckout = () => {
           <FacebookIcon sx={{ color: '#4267B2', cursor: 'pointer' }} />
           <InstagramIcon sx={{ color: '#C13584', cursor: 'pointer' }} />
         </Box>
+        
         {/* Delivery Details */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Input
@@ -314,6 +539,7 @@ const PreCheckout = () => {
             CHECK
           </Button>
         </Box>
+        
         {/* Description Section */}
         <Box sx={{ mt: 2 }}>
           <Accordion 
@@ -346,7 +572,50 @@ const PreCheckout = () => {
             </AccordionSummary>
             <AccordionDetails sx={{ pt: 0 }}>
               <ul style={{ paddingLeft: 20, margin: 0 }}>
-                {PRODUCT_DESCRIPTION.map((line, idx) => (
+                {product.description?.split('\\n').map((line, idx) => (
+                  <li key={idx} style={{ marginBottom: 3 }}>
+                    <Typography variant="body2" color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
+                      {line}
+                    </Typography>
+                  </li>
+                ))}
+              </ul>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Wash Care Section */}
+          <Accordion 
+            sx={{ 
+              boxShadow: 'none',
+              '&:before': {
+                display: 'none',
+              },
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px !important',
+              marginTop: 2,
+              '&.Mui-expanded': {
+                margin: '16px 0 0 0',
+              }
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                '& .MuiAccordionSummary-content': {
+                  margin: '12px 0',
+                },
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                }
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
+                WASH CARE
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+              <ul style={{ paddingLeft: 20, margin: 0 }}>
+                {product.wash_care?.split('\\n').map((line, idx) => (
                   <li key={idx} style={{ marginBottom: 3 }}>
                     <Typography variant="body2" color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
                       {line}
@@ -357,6 +626,64 @@ const PreCheckout = () => {
             </AccordionDetails>
           </Accordion>
         </Box>
+
+        {/* Size Chart Modal */}
+        <Dialog
+          open={sizeChartOpen}
+          onClose={handleSizeChartClose}
+          maxWidth="md"
+          fullWidth
+          sx={{
+            '& .MuiDialog-paper': {
+              borderRadius: 2,
+            }
+          }}
+        >
+          <Box sx={{ position: 'relative' }}>
+            <IconButton
+              onClick={handleSizeChartClose}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                zIndex: 1,
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 1)',
+                }
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+            <DialogContent sx={{ p: 0 }}>
+              {product.size_chart_image && (
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: 'auto',
+                    minHeight: 400,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Image
+                    src={formatImagePath(product.size_chart_image)}
+                    alt="Size Chart"
+                    width={800}
+                    height={600}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      objectFit: 'contain',
+                    }}
+                  />
+                </Box>
+              )}
+            </DialogContent>
+          </Box>
+        </Dialog>
       </Box>
     </Box>
   );

@@ -7,7 +7,7 @@ export interface Product {
   price_after: number;
   discount_percentage: number | null;
   category: string;
-  collection: string[];
+  collections: string[];
   material: string | null;
   images: string[];
   size_chart_image: string | null;

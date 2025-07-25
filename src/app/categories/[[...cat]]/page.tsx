@@ -31,7 +31,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 /*                             Product utilities                              */
 /* -------------------------------------------------------------------------- */
 import type { Product } from '@/types';
-import { slugify } from '@/app/dummyData';
 import { ProductCard } from '@/app/components/productCard';
 import { useAuth } from '@/app/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
@@ -75,6 +74,7 @@ export default function CataloguePage() {
     }
     fetchProducts();
   }, []);
+  console.log("ALL products",allProducts)
 
   useEffect(() => {
     if (!user) {
@@ -97,7 +97,7 @@ export default function CataloguePage() {
   }, [user]);
 
   const filters = useMemo(() => ({
-    categories: Array.from(new Set(allProducts.map(p => p.category))).sort(),
+    categories: Array.from(new Set(allProducts.map(p => p.category).flat())).sort(),
     size: Array.from(new Set(allProducts.flatMap(p => p.available_sizes))).sort(),
     colors: Array.from(new Set(allProducts.flatMap(p => p.available_colors))).sort(),
   }), [allProducts]);
@@ -105,35 +105,67 @@ export default function CataloguePage() {
   /* ---------------- Filter products by label / item ----------------------- */
   const filteredProducts = useMemo(() => {
     let filtered = allProducts;
-    
-    // First apply URL-based filtering
-    if (catSegments.length > 0) {
-      const [labelSlug, itemSlug] = catSegments;
-      if (labelSlug === 'category' && itemSlug) {
-        filtered = filtered.filter(p => slugify(p.category) === itemSlug);
-      } else if (labelSlug === 'collections' && itemSlug) {
-        filtered = filtered.filter(p => p.collection.some(c => slugify(c) === itemSlug));
+  
+    // Transform catSegments: replace "-" with "_" and convert to lowercase
+    const transformedSegment = catSegments.map(seg => seg.replace(/-/g, '_').toLowerCase());
+    const transformedSegments = transformedSegment.map(seg => seg.replace(/'/g, ''));
+  
+    console.log("Transformed catSegments:", transformedSegments);
+  
+    if (transformedSegments.length > 0) {
+      const [labelSegment, valueSegment] = transformedSegments;
+      const label = labelSegment;
+      const value = valueSegment || '';
+  
+      if (label === 'category' && value) {
+        filtered = filtered.filter((p) => {
+          const categories = Array.isArray(p.category) ? p.category : (p.category ? [p.category] : []);
+          const categoryMatches = categories.some(cat => {
+            const match = cat.toLowerCase() === value;
+            console.log(`Comparing product category '${cat.toLowerCase()}' with URL value '${value}':`, match);
+            return match;
+          });
+          return categoryMatches;
+        });
+      } else if (label === 'collections' && value) {
+        filtered = filtered.filter((p) => {
+          const collections = Array.isArray(p.collections) ? p.collections : (p.collections ? [p.collections] : []);
+          const collectionMatches = collections.some(col => {
+            const match = col.toLowerCase() === value;
+            console.log(`Comparing product collection '${col.toLowerCase()}' with URL value '${value}':`, match);
+            return match;
+          });
+          return collectionMatches;
+        });
+      } else if (label === 'shop_by') {
+        console.log("No filtering applied for 'shop_by'");
       }
+    } else {
+      console.log("No URL filtering segment detected.");
     }
-    
-    // Apply category filters
+  
     if (selectedCategories.size > 0) {
-      filtered = filtered.filter(p => selectedCategories.has(p.category));
+      filtered = filtered.filter(p => 
+        (Array.isArray(p.category) ? p.category : [p.category])
+          .some(cat => selectedCategories.has(cat))
+      );
     }
-    
-    // Apply size filters
     if (selectedSizes.size > 0) {
-      filtered = filtered.filter(p => p.available_sizes.some(s => selectedSizes.has(s)));
+      filtered = filtered.filter(p => 
+        p.available_sizes.some(size => selectedSizes.has(size))
+      );
     }
-    
-    // Apply color filters
     if (selectedColors.size > 0) {
-      filtered = filtered.filter(p => p.available_colors.some(c => selectedColors.has(c)));
+      filtered = filtered.filter(p => 
+        p.available_colors.some(color => selectedColors.has(color))
+      );
     }
-    
+  
+    console.log("Final filtered products:", filtered);
     return filtered;
   }, [catSegments, allProducts, selectedCategories, selectedSizes, selectedColors]);
-
+  
+  
   /* ---------------- Optional client-side sorting -------------------------- */
   const products = useMemo(() => {
     const list = [...filteredProducts];
