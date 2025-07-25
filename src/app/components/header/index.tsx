@@ -168,7 +168,7 @@ export default function Header() {
     if (!search.trim() || searchResults.length === 0) {
       return search.trim() ? (
         <Box sx={{ textAlign: 'center', mt: 4, color: 'text.secondary' }}>
-          <Typography>No products found matching "{search}"</Typography>
+          <Typography>No products found matching {search}</Typography>
         </Box>
       ) : null;
     }
