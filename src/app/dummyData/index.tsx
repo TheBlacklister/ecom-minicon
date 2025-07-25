@@ -16,7 +16,7 @@ export const MENUS = [
   ] as const;
   
   /* Helper left here in case other files import it */
-  export const slugify = (s: string) => encodeURIComponent(s.toLowerCase().replace(/\s+/g, '-'));
+  
   
   /* -------------------------------------------------------------------------- */
   /*  Product type (single variant baked-in)                                    */
