@@ -61,7 +61,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   loading = 'lazy',
   quality,
   onLoad,
-  onError
+  
 }) => {
   const [imageSrc, setImageSrc] = useState(src);
   const [screenCategory, setScreenCategory] = useState<'sm' | 'md' | 'lg' | 'xl'>('md');
