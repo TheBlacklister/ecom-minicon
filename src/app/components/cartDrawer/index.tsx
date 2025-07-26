@@ -29,10 +29,10 @@ const formatINR = (v:number) => `₹${v.toLocaleString('en-IN', { maximumFractio
 
 // Helper function to convert Windows path to web URL
 const convertImagePath = (path: string): string => {
-  // Remove 'public' prefix and convert backslashes to forward slashes
   return path
-    .replace(/^public\\/, '/')
-    .replace(/\\/g, '/')
+    .replace(/\\/g, '/')                 // Convert backslashes to forward slashes
+    .replace(/^public\//, '/')            // Remove 'public/' prefix
+    .replace(/\/+/g, '/')                 // Replace multiple slashes with single slash
 }
 
 export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=>void }) {

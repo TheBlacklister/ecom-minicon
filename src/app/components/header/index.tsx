@@ -3,6 +3,7 @@
 import { useState, MouseEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { FavoriteBorderOutlined, Menu as MenuIcon, Search as SearchIcon, Close as CloseIcon } from '@mui/icons-material';
@@ -20,7 +21,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import styles from './index.module.css';
 import { MENUS } from '@/app/dummyData';
-import { Typography, Divider, InputAdornment, Card, CardMedia, CardContent } from '@mui/material'
+import { Typography, Divider, InputAdornment, Card, CardContent } from '@mui/material'
 import CartDrawer from '../cartDrawer'
 import { useAuth } from '../AuthProvider'
 
@@ -82,6 +83,7 @@ export default function Header() {
     setAnchorEl(null);
     setActiveMenu(null);
   };
+  
 
   const handleMobileMenuToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -179,13 +181,20 @@ export default function Header() {
           {searchResults.length} {searchResults.length === 1 ? 'product' : 'products'} found
         </Typography>
         {searchResults.map((product) => {
-          // Debug image path
-          const imagePath = product.images?.[0]?.replace(/\\/g, '/')?.replace(/^public\//, '') || '/placeholder.jpg';
-          console.log('SEARCH IMAGE:', {
-            product: product,
-            productTitle: product.title,
-            originalPath: product.images?.[0],
-            formattedPath: imagePath
+          // ✅ FIXED: Properly clean the image path
+          let imagePath = '/placeholder.jpg'; // Default fallback
+          
+          if (product.images?.[0]) {
+            imagePath = product.images[0]
+              .replace(/\\\\/g, '/') // Replace double backslashes with single forward slash
+              .replace(/\\/g, '/')   // Replace any remaining backslashes with forward slashes
+              .replace(/^public\//, '/') // Remove 'public/' prefix and ensure leading slash
+              .replace(/\/+/g, '/'); // Replace multiple consecutive slashes with single slash
+          }
+          
+          console.log('CLEANED IMAGE PATH:', {
+            original: product.images?.[0],
+            cleaned: imagePath
           });
           
           return (
@@ -203,40 +212,51 @@ export default function Header() {
                 },
               }}
             >
-              <CardMedia
-                component="img"
-                sx={{ width: 80, height: 80, objectFit: 'cover' }}
-                image={imagePath}
-                alt={product.title}
-              />
-            <CardContent sx={{ flex: 1, py: 1, '&:last-child': { pb: 1 } }}>
-              <Typography variant="body1" component="div" sx={{ fontWeight: 500 }}>
-                {product.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {product.subtitle}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                  ₹{product.price_after}
-                </Typography>
-                {product.price_before > product.price_after && (
-                  <>
-                    <Typography
-                      variant="body2"
-                      sx={{ textDecoration: 'line-through', ml: 1, color: 'text.secondary' }}
-                    >
-                      ₹{product.price_before}
-                    </Typography>
-                    <Typography variant="body2" sx={{ ml: 1, color: 'success.main' }}>
-                      {product.discount_percentage}% off
-                    </Typography>
-                  </>
-                )}
+              {/* Updated image component with proper error handling */}
+              <Box sx={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+                <Image
+                  src={imagePath}
+                  alt={product.title}
+                  fill
+                  sizes="80px"
+                  quality={40} // Reduce quality to 40% for thumbnails
+                  style={{ objectFit: 'cover' }}
+                  // ✅ Add error handling
+                  onError={(e) => {
+                    console.error('Image failed to load:', imagePath);
+                    e.currentTarget.src = '/placeholder.jpg';
+                  }}
+                />
               </Box>
-            </CardContent>
-          </Card>
-        );
+              
+              <CardContent sx={{ flex: 1, py: 1, '&:last-child': { pb: 1 } }}>
+                <Typography variant="body1" component="div" sx={{ fontWeight: 500 }}>
+                  {product.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {product.subtitle}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    ₹{product.price_after}
+                  </Typography>
+                  {product.price_before > product.price_after && (
+                    <>
+                      <Typography
+                        variant="body2"
+                        sx={{ textDecoration: 'line-through', ml: 1, color: 'text.secondary' }}
+                      >
+                        ₹{product.price_before}
+                      </Typography>
+                      <Typography variant="body2" sx={{ ml: 1, color: 'success.main' }}>
+                        {product.discount_percentage}% off
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          );
         })}
       </Box>
     );

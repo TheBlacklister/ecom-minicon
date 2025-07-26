@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress } from "@mui/material";
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton } from "@mui/material";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -24,7 +24,7 @@ const PreCheckout = () => {
   const { user } = useAuth();
   const id = searchParams.get("id");
   const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = React.useState('');
   const [quantity, setQuantity] = React.useState(1);
   const [pincode, setPincode] = React.useState("");
@@ -32,23 +32,17 @@ const PreCheckout = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
+  const [mainImageLoading, setMainImageLoading] = useState(true);
+  const [thumbnailsLoaded, setThumbnailsLoaded] = useState<boolean[]>([]);
 
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
-    // Replace all backslashes with forward slashes
     let formatted = path.replace(/\\/g, '/');
-    
-    // Remove 'public' from the beginning of the path
     formatted = formatted.replace(/^public\//i, '/');
-    
-    // Replace multiple consecutive slashes with a single slash
     formatted = formatted.replace(/\/+/g, '/');
-    
-    // Ensure the path starts with a single forward slash
     if (!formatted.startsWith('/')) {
       formatted = '/' + formatted;
     }
-    
     return formatted;
   };
 
@@ -65,8 +59,11 @@ const PreCheckout = () => {
         const data: Product[] = await res.json();
         const prod = data.find(p => p.id === Number(id)) || null;
         setProduct(prod);
-        console.log("CURRENT PRODUCT", prod, product);
-        if (prod) setSelectedSize(prod.available_sizes[0] || '');
+        if (prod) {
+          setSelectedSize(prod.available_sizes[0] || '');
+          // Initialize thumbnails loaded state
+          setThumbnailsLoaded(new Array(prod.images?.length || 0).fill(false));
+        }
       } catch (error) {
         console.error('Error fetching product:', error);
       } finally {
@@ -76,7 +73,7 @@ const PreCheckout = () => {
     fetchProduct();
   }, [id]);
 
-  // Check initial wishlist and cart status
+  // Check initial wishlist status
   useEffect(() => {
     if (!product || !user) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -87,26 +84,6 @@ const PreCheckout = () => {
         .then(data => setIsWished(!!data));
     });
   }, [user, product]);
-
-  // Preload images when product is loaded
-  useEffect(() => {
-    if (!product || !product.images || product.images.length <= 1) return;
-
-    const formattedImages = product.images.map(formatImagePath);
-    const loadedState = new Array(formattedImages.length).fill(false);
-    loadedState[0] = true; // First image is loaded by default
-  
-
-    // Preload all images
-    formattedImages.forEach((src, index) => {
-      if (index === 0) return; // Skip first image as it's already loaded
-      const img = new window.Image();
-      img.src = src;
-      img.onload = () => {
-    
-      };
-    });
-  }, [product]);
 
   // Show loading screen while fetching data
   if (loading) {
@@ -232,31 +209,34 @@ const PreCheckout = () => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
     
-    // Add product to cart with buyNow parameter to ensure quantity is set correctly
     await fetch('/api/cart?buyNow=true', {
       method: 'POST',
       headers,
       body: JSON.stringify({ product_id: product.id, quantity: quantity })
     });
     
-    // Redirect to cart page with buyNow parameter
     router.push(`/cart?buyNow=${product.id}`);
   };
 
   const handlePrevImage = () => {
+    setMainImageLoading(true);
     setCurrentImageIndex((prev) => 
       prev === 0 ? formattedImages.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
+    setMainImageLoading(true);
     setCurrentImageIndex((prev) => 
       prev === formattedImages.length - 1 ? 0 : prev + 1
     );
   };
 
   const handleThumbnailClick = (index: number) => {
-    setCurrentImageIndex(index);
+    if (index !== currentImageIndex) {
+      setMainImageLoading(true);
+      setCurrentImageIndex(index);
+    }
   };
 
   const handleSizeChartOpen = () => {
@@ -265,6 +245,14 @@ const PreCheckout = () => {
 
   const handleSizeChartClose = () => {
     setSizeChartOpen(false);
+  };
+
+  const handleThumbnailLoad = (index: number) => {
+    setThumbnailsLoaded(prev => {
+      const newState = [...prev];
+      newState[index] = true;
+      return newState;
+    });
   };
 
   return (
@@ -306,37 +294,46 @@ const PreCheckout = () => {
           onMouseEnter={() => setIsHoveringImage(true)}
           onMouseLeave={() => setIsHoveringImage(false)}
         >
+          {/* Loading skeleton for main image */}
+          {mainImageLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                zIndex: 2,
+                bgcolor: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CircularProgress size={40} />
+            </Box>
+          )}
+
           {formattedImages.length > 0 ? (
-            <>
-              {/* Render all images but only show the current one */}
-              {formattedImages.map((image, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    opacity: index === currentImageIndex ? 1 : 0,
-                    transition: 'opacity 0.3s ease-in-out',
-                    zIndex: index === currentImageIndex ? 1 : 0,
-                    bgcolor: 'white', // White background while loading
-                  }}
-                >
-                  <Image
-                    src={image}
-                    alt={`${product.title} - Image ${index + 1}`}
-                    fill
-                    style={{ objectFit: 'contain' }}
-                    sizes="(max-width: 600px) 100vw, 50vw"
-                    priority={index === 0}
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    quality={85}
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-                  />
-                </Box>
-              ))}
-            </>
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <Image
+                key={currentImageIndex}
+                src={formattedImages[currentImageIndex]}
+                alt={`${product.title} - Image ${currentImageIndex + 1}`}
+                fill
+                style={{ objectFit: 'contain' }}
+                sizes="(max-width: 600px) 90vw, 40vw"
+                quality={75}
+                onLoad={() => setMainImageLoading(false)}
+                onError={() => setMainImageLoading(false)}
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+              />
+            </Box>
           ) : (
             <Box
               sx={{
@@ -365,7 +362,7 @@ const PreCheckout = () => {
                   transform: 'translateY(-50%)',
                   bgcolor: 'rgba(255, 255, 255, 0.9)',
                   '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                  zIndex: 2,
+                  zIndex: 3,
                   boxShadow: 1,
                 }}
               >
@@ -380,7 +377,7 @@ const PreCheckout = () => {
                   transform: 'translateY(-50%)',
                   bgcolor: 'rgba(255, 255, 255, 0.9)',
                   '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                  zIndex: 2,
+                  zIndex: 3,
                   boxShadow: 1,
                 }}
               >
@@ -424,7 +421,7 @@ const PreCheckout = () => {
           )}
         </Box>
 
-        {/* Thumbnail Gallery */}
+        {/* Thumbnail Gallery with Progressive Loading */}
         {formattedImages.length > 1 && (
           <Box
             sx={{
@@ -463,20 +460,38 @@ const PreCheckout = () => {
                   border: index === currentImageIndex ? '2px solid' : '1px solid',
                   borderColor: index === currentImageIndex ? 'primary.main' : 'grey.300',
                   transition: 'all 0.3s ease',
-                  bgcolor: 'white', // White background for thumbnails
+                  bgcolor: 'grey.100',
                   '&:hover': {
                     borderColor: 'primary.main',
                     transform: 'scale(1.05)',
                   },
                 }}
               >
+                {/* Skeleton loader for thumbnail */}
+                {!thumbnailsLoaded[index] && (
+                  <Skeleton
+                    variant="rectangular"
+                    width={80}
+                    height={100}
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                    }}
+                  />
+                )}
                 <Image
                   src={image}
                   alt={`${product.title} - Thumbnail ${index + 1}`}
                   fill
-                  style={{ objectFit: 'cover' }}
+                  style={{ 
+                    objectFit: 'cover',
+                    opacity: thumbnailsLoaded[index] ? 1 : 0,
+                    transition: 'opacity 0.3s ease'
+                  }}
                   sizes="80px"
-                  quality={70}
+                  quality={40} // Lower quality for thumbnails
+                  onLoad={() => handleThumbnailLoad(index)}
                   placeholder="blur"
                   blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                 />
@@ -592,56 +607,58 @@ const PreCheckout = () => {
           </Typography>
         </Box>
         
-        {/* Action Buttons */}
+        {/* Action Buttons - Updated to vertical layout */}
         <Box sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: 2,
+          flexDirection: 'column',
+          gap: 1.5,
           mb: 2,
-          alignItems: { sm: 'center' },
+          maxWidth: { xs: '100%', sm: 320 },
         }}>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleAddToCart}
-            sx={{
-              width: { xs: '100%', sm: 140 },
-              height: 48,
-              fontWeight: 700,
-              fontFamily: '"Montserrat", sans-serif ',
-              mb: { xs: 1, sm: 0 },
-              fontSize: 16,
-              textTransform: 'none',
-              borderRadius: 2,
-              boxShadow: 'none',
-              '&:hover': {
-                boxShadow: 'none',
-              }
-            }}
-          >
-            Add to Cart
-          </Button>
           <Button
             variant="contained"
             onClick={handleBuyNow}
             sx={{
-              width: { xs: '100%', sm: 140 },
-              height: 48,
+              width: '100%',
+              height: 54,
               fontWeight: 700,
               fontFamily: '"Montserrat", sans-serif ',
-              fontSize: 16,
+              fontSize: 17,
               textTransform: 'none',
               borderRadius: 2,
-              boxShadow: 'none',
-              backgroundColor: 'black',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              backgroundColor: '#000000',
               color: 'white',
               '&:hover': {
-                backgroundColor: 'black',
-                boxShadow: 'none',
+                backgroundColor: '#333333',
+                boxShadow: '0 6px 8px rgba(0, 0, 0, 0.15)',
               }
             }}
           >
             Buy Now
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handleAddToCart}
+            sx={{
+              width: '100%',
+              height: 54,
+              fontWeight: 700,
+              fontFamily: '"Montserrat", sans-serif ',
+              fontSize: 17,
+              textTransform: 'none',
+              borderRadius: 2,
+              border: '2px solid #000000',
+              color: '#000000',
+              bgcolor: 'white',
+              '&:hover': {
+                border: '2px solid #000000',
+                bgcolor: '#f5f5f5',
+                color: '#000000',
+              }
+            }}
+          >
+            Add to Cart
           </Button>
         </Box>
         
@@ -751,6 +768,20 @@ const PreCheckout = () => {
               </ul>
             </AccordionDetails>
           </Accordion>
+
+          {/* Made in India - Added below wash care */}
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              mt: 3,
+              fontFamily: '"Montserrat", sans-serif',
+              fontWeight: 600,
+              color: '#333',
+              textAlign: 'center',
+            }}
+          >
+            Made in India
+          </Typography>
         </Box>
 
         {/* Size Chart Modal */}
@@ -792,7 +823,7 @@ const PreCheckout = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: 'white', // White background for size chart
+                    bgcolor: 'white',
                   }}
                 >
                   <Image
@@ -805,9 +836,7 @@ const PreCheckout = () => {
                       height: 'auto',
                       objectFit: 'contain',
                     }}
-                    quality={85}
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                    quality={70}
                   />
                 </Box>
               )}

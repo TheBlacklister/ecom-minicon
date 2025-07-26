@@ -58,7 +58,7 @@ export default function CataloguePage() {
   const catSegments = useMemo(() => pathname.split('/').slice(2), [pathname]);
   const [sortOpt, setSortOpt] = useState<string>('');
   const [sortDrawerOpen, setSortDrawerOpen] = useState(false);
-  
+
   // Filter states
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
@@ -79,7 +79,7 @@ export default function CataloguePage() {
     }
     fetchProducts();
   }, []);
-  console.log("ALL products",allProducts)
+  console.log("ALL products", allProducts)
 
   useEffect(() => {
     if (!user) {
@@ -102,26 +102,37 @@ export default function CataloguePage() {
   }, [user]);
 
   const filters = useMemo(() => ({
-    categories: Array.from(new Set(allProducts.map(p => p.category).flat())).sort(),
+    categories: Array.from(new Set(allProducts.flatMap(p => p.category)))
+  .sort()
+  .map(category => ({
+    label: category
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' '),
+    value: category,
+  })),
+
     size: Array.from(new Set(allProducts.flatMap(p => p.available_sizes))).sort(),
     colors: Array.from(new Set(allProducts.flatMap(p => p.available_colors))).sort(),
   }), [allProducts]);
 
+  console.log("FILTERS",filters)
+
   /* ---------------- Filter products by label / item ----------------------- */
   const filteredProducts = useMemo(() => {
     let filtered = allProducts;
-  
+
     // Transform catSegments: replace "-" with "_" and convert to lowercase
     const transformedSegment = catSegments.map(seg => seg.replace(/-/g, '_').toLowerCase());
     const transformedSegments = transformedSegment.map(seg => seg.replace(/'/g, ''));
-  
+
     console.log("Transformed catSegments:", transformedSegments);
-  
+
     if (transformedSegments.length > 0) {
       const [labelSegment, valueSegment] = transformedSegments;
       const label = labelSegment;
       const value = valueSegment || '';
-  
+
       // Handle category filtering
       if (label === 'category' && value) {
         filtered = filtered.filter((p) => {
@@ -133,7 +144,7 @@ export default function CataloguePage() {
           });
           return categoryMatches;
         });
-      } 
+      }
       // Handle collections filtering
       else if (label === 'collections' && value) {
         filtered = filtered.filter((p) => {
@@ -145,7 +156,7 @@ export default function CataloguePage() {
           });
           return collectionMatches;
         });
-      } 
+      }
       // Handle price_after filtering (less than the specified value)
       else if (label === 'price_after' && value) {
         const priceThreshold = parseFloat(value);
@@ -183,30 +194,31 @@ export default function CataloguePage() {
     } else {
       console.log("No URL filtering segment detected.");
     }
-  
+
     // Apply checkbox filters from sidebar
     if (selectedCategories.size > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         (Array.isArray(p.category) ? p.category : [p.category])
           .some(cat => selectedCategories.has(cat))
       );
     }
+    
     if (selectedSizes.size > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.available_sizes.some(size => selectedSizes.has(size))
       );
     }
     if (selectedColors.size > 0) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.available_colors.some(color => selectedColors.has(color))
       );
     }
-  
+
     console.log("Final filtered products:", filtered);
     console.log("SLUG", catSegments);
     return filtered;
   }, [catSegments, allProducts, selectedCategories, selectedSizes, selectedColors]);
-  
+
   /* ---------------- Optional client-side sorting -------------------------- */
   const products = useMemo(() => {
     const list = [...filteredProducts];
@@ -232,20 +244,20 @@ export default function CataloguePage() {
           bgcolor: 'white',
         }}
       >
-        <CircularProgress 
-          size={60} 
+        <CircularProgress
+          size={60}
           thickness={4}
-          sx={{ 
+          sx={{
             color: '#e53935',
-            mb: 3 
-          }} 
+            mb: 3
+          }}
         />
-        <Typography 
-          variant="h6" 
-          sx={{ 
+        <Typography
+          variant="h6"
+          sx={{
             fontFamily: '"Montserrat", sans-serif',
             color: '#666',
-            fontWeight: 500 
+            fontWeight: 500
           }}
         >
           Loading products...
@@ -319,29 +331,37 @@ export default function CataloguePage() {
 
   const drawer = (
     <Box sx={{ width: { xs: '100%', sm: 260 }, p: 2, overflowX: 'hidden' }}>
-    
+
       {/* Category filter */}
       <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
         CATEGORIES
       </Typography>
 
       <List dense sx={{ maxHeight: 180, overflowY: 'auto', color: 'black' }}>
-        {filters.categories.map((c) => (
-          <ListItem key={c} disableGutters>
-            <FormControlLabel
-              control={
-                <Checkbox 
-                  size="small" 
-                  sx={{ color: 'black' }}
-                  checked={selectedCategories.has(c)}
-                  onChange={(e) => handleCategoryChange(c, e.target.checked)}
-                />
-              }
-              label={<Typography variant="body2" style={{color:'black',fontFamily: '"Montserrat", sans-serif'}}>{c}</Typography>}
-            />
-          </ListItem>
-        ))}
-      </List>
+  {filters.categories.map((c) => (
+    <ListItem key={c.value} disableGutters>
+      <FormControlLabel
+        control={
+          <Checkbox
+            size="small"
+            sx={{ color: 'black' }}
+            checked={selectedCategories.has(c.value)}
+            onChange={(e) => handleCategoryChange(c.value, e.target.checked)}
+          />
+        }
+        label={
+          <Typography
+            variant="body2"
+            style={{ color: 'black', fontFamily: '"Montserrat", sans-serif' }}
+          >
+            {c.label}
+          </Typography>
+        }
+      />
+    </ListItem>
+  ))}
+</List>
+
 
       <Divider sx={{ my: 2, color: 'black' }} />
 
@@ -349,9 +369,9 @@ export default function CataloguePage() {
       <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
         SIZE
       </Typography>
-      <Box sx={{ 
-        display: 'flex', 
-        flexWrap: 'wrap', 
+      <Box sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
         gap: 1,
         maxWidth: '100%',
         overflowX: 'hidden'
@@ -369,8 +389,8 @@ export default function CataloguePage() {
               cursor: 'pointer',
               color: selectedSizes.has(s) ? 'white' : 'black',
               backgroundColor: selectedSizes.has(s) ? 'black' : '#fff',
-              '&:hover': { 
-                backgroundColor: selectedSizes.has(s) ? '#333' : '#f5f5f5' 
+              '&:hover': {
+                backgroundColor: selectedSizes.has(s) ? '#333' : '#f5f5f5'
               },
               fontFamily: '"Montserrat", sans-serif',
               textTransform: 'none',
@@ -389,9 +409,9 @@ export default function CataloguePage() {
       <Typography color='black' variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
         COLORS
       </Typography>
-      <Box sx={{ 
-        display: 'flex', 
-        flexWrap: 'wrap', 
+      <Box sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
         gap: 1,
         maxWidth: '100%',
         overflowX: 'hidden'
@@ -409,8 +429,8 @@ export default function CataloguePage() {
               cursor: 'pointer',
               color: selectedColors.has(color) ? 'white' : 'black',
               backgroundColor: selectedColors.has(color) ? 'black' : '#fff',
-              '&:hover': { 
-                backgroundColor: selectedColors.has(color) ? '#333' : '#f5f5f5' 
+              '&:hover': {
+                backgroundColor: selectedColors.has(color) ? '#333' : '#f5f5f5'
               },
               fontFamily: '"Montserrat", sans-serif',
               textTransform: 'none',
@@ -423,8 +443,8 @@ export default function CataloguePage() {
         ))}
       </Box>
       <Divider sx={{ my: 2, color: 'black' }} />
-        {/* Clear filters button */}
-        {(selectedCategories.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
+      {/* Clear filters button */}
+      {(selectedCategories.size > 0 || selectedSizes.size > 0 || selectedColors.size > 0) && (
         <Box sx={{ mb: 2 }}>
           <Button
             onClick={clearAllFilters}
@@ -460,7 +480,7 @@ export default function CataloguePage() {
           <Typography sx={{ fontSize: 24, color: 'black' }}>×</Typography>
         </IconButton>
       </Box>
-      
+
       <List>
         <ListItem disablePadding sx={{ mb: 1 }}>
           <ListItemButton
@@ -487,7 +507,7 @@ export default function CataloguePage() {
             />
           </ListItemButton>
         </ListItem>
-        
+
         {sortOptions.map((option) => (
           <ListItem key={option.value} disablePadding sx={{ mb: 1 }}>
             <ListItemButton
@@ -520,15 +540,16 @@ export default function CataloguePage() {
   );
 
   return (
-    <Box component="section" sx={{ 
-      display: 'flex', 
-      flexDirection: { xs: 'column', md: 'row' }, 
-      px: { xs: 1, sm: 2 }, 
-      py: 4, 
-      gap: 4, 
+    <Box component="section" sx={{
+      display: 'flex',
+      flexDirection: { xs: 'column', md: 'row' },
+      px: { xs: 1, sm: 2 },
+      py: 1,
+      gap: 4,
       backgroundColor: '#fff',
       overflowX: 'hidden',
-      maxWidth: '100vw'
+      maxWidth: '100vw',
+
     }}>
       {/* Mobile drawer toggle */}
       {isMobile && (
@@ -543,7 +564,7 @@ export default function CataloguePage() {
             <FilterListIcon />
           </IconButton>
           <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
-           {products.length} items found
+            {products.length} items found
           </Typography>
         </Box>
       )}
@@ -566,14 +587,14 @@ export default function CataloguePage() {
           {drawer}
         </Drawer>
       ) : (
-        <Box sx={{ 
-          width: 260, 
-          flexShrink: 0, 
-          overflowY: 'auto', 
+        <Box sx={{
+          width: 260,
+          flexShrink: 0,
+          overflowY: 'auto',
           overflowX: 'hidden',
-          backgroundColor: '#fff', 
-          color: 'black', 
-          borderRight: '1px solid #eee' 
+          backgroundColor: '#fff',
+          color: 'black',
+          borderRight: '1px solid #eee'
         }}>
           {drawer}
         </Box>
@@ -592,7 +613,7 @@ export default function CataloguePage() {
             }}
           >
             <Typography color='black' variant="h6" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
-            {products.length} items found
+              {products.length} items found
             </Typography>
 
             {/* Premium Desktop Sort Select */}
@@ -628,7 +649,7 @@ export default function CataloguePage() {
                     alignItems: 'center',
                     gap: 1,
                   },
-                  '& .MuiSelect-icon': { 
+                  '& .MuiSelect-icon': {
                     color: 'black',
                     transition: 'transform 0.2s ease-in-out',
                   },
