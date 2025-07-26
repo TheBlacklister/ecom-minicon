@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useMemo } from 'react'
 import Drawer from '@mui/material/Drawer'
-import { Box, Typography, IconButton, Button } from '@mui/material'
+import { Box, Typography, IconButton, Button, CircularProgress } from '@mui/material'
 import Image from 'next/image'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import AddIcon from '@mui/icons-material/Add'
@@ -25,41 +25,43 @@ interface CartApiItem {
   quantity: number
 }
 
-const formatINR = (v:number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+const formatINR = (v: number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
 
-// Helper function to convert Windows path to web URL
 const convertImagePath = (path: string): string => {
   return path
-    .replace(/\\/g, '/')                 // Convert backslashes to forward slashes
-    .replace(/^public\//, '/')            // Remove 'public/' prefix
-    .replace(/\/+/g, '/')                 // Replace multiple slashes with single slash
+    .replace(/\\/g, '/')
+    .replace(/^public\//, '/')
+    .replace(/\/+/g, '/')
 }
 
-export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=>void }) {
+export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth()
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
     if (!open || !user) return
+
+    setLoading(true)
     supabase.auth.getSession().then(({ data: { session } }) => {
       const headers: Record<string, string> = {}
       if (session) headers['Authorization'] = `Bearer ${session.access_token}`
+
       fetch('/api/cart', { headers })
         .then(res => res.ok ? res.json() : [])
         .then((data: CartApiItem[]) => setCart(data.map((item) => ({
           id: item.product.id,
           title: item.product.title,
           subtitle: item.product.subtitle,
-          img: convertImagePath(item.product.images[0]), // Convert the image path
+          img: convertImagePath(item.product.images[0]),
           price: item.product.price_after,
           qty: item.quantity,
-        }))))
+        })))).finally(() => setLoading(false))
     })
   }, [open, user])
 
   const subtotal = useMemo(() => cart.reduce((sum, i) => sum + i.price * i.qty, 0), [cart])
-
   const handleIncrease = async (id:number) => {
     const item = cart.find(i => i.id === id)
     if (!item) return
@@ -106,36 +108,45 @@ export default function CartDrawer({ open, onClose }:{ open:boolean; onClose:()=
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontFamily: '"Montserrat", sans-serif' }}>
           My Cart ({cart.length})
         </Typography>
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
-          {cart.map(item => (
-            <Box key={item.id} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
-              <Box sx={{ width: 80, height: 80, bgcolor: '#f5f5f5', borderRadius: 1, overflow: 'hidden', mr: 1 }}>
-                <Image src={item.img} alt={item.title} width={80} height={80} style={{ objectFit: 'contain' }} />
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>{item.title}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif' }}>{item.subtitle}</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                  <IconButton size="small" onClick={() => handleDecrease(item.id)}><RemoveIcon fontSize="inherit" /></IconButton>
-                  <Typography sx={{ mx: 0.5, fontFamily: '"Montserrat", sans-serif' }}>{item.qty}</Typography>
-                  <IconButton size="small" onClick={() => handleIncrease(item.id)}><AddIcon fontSize="inherit" /></IconButton>
-                  <IconButton onClick={() => handleDelete(item.id)} sx={{ ml: 'auto' }}><DeleteOutlineIcon /></IconButton>
-                </Box>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif' }}>Total</Typography>
-            <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600 }}>{formatINR(subtotal)}</Typography>
+
+        {loading ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+            <CircularProgress />
           </Box>
-          <Button variant="contained" fullWidth disabled={cart.length === 0}
-            sx={{ bgcolor: '#fe5000', '&:hover': { bgcolor: '#d64500' }, fontFamily: '"Montserrat", sans-serif' }}
-            onClick={() => { router.push('/cart'); onClose(); }}>
-            Proceed to Checkout
-          </Button>
-        </Box>
+        ) : (
+          <>
+            <Box sx={{ flex: 1, overflowY: 'auto' }}>
+              {cart.map(item => (
+                <Box key={item.id} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
+                  <Box sx={{ width: 80, height: 80, bgcolor: '#f5f5f5', borderRadius: 1, overflow: 'hidden', mr: 1 }}>
+                    <Image src={item.img} alt={item.title} width={80} height={80} style={{ objectFit: 'contain' }} />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>{item.title}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif' }}>{item.subtitle}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                      <IconButton size="small" onClick={() => handleDecrease(item.id)}><RemoveIcon fontSize="inherit" /></IconButton>
+                      <Typography sx={{ mx: 0.5, fontFamily: '"Montserrat", sans-serif' }}>{item.qty}</Typography>
+                      <IconButton size="small" onClick={() => handleIncrease(item.id)}><AddIcon fontSize="inherit" /></IconButton>
+                      <IconButton onClick={() => handleDelete(item.id)} sx={{ ml: 'auto' }}><DeleteOutlineIcon /></IconButton>
+                    </Box>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif' }}>Total</Typography>
+                <Typography variant="subtitle1" sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600 }}>{formatINR(subtotal)}</Typography>
+              </Box>
+              <Button variant="contained" fullWidth disabled={cart.length === 0}
+                sx={{ bgcolor: '#fe5000', '&:hover': { bgcolor: '#d64500' }, fontFamily: '"Montserrat", sans-serif' }}
+                onClick={() => { router.push('/cart'); onClose(); }}>
+                Proceed to Checkout
+              </Button>
+            </Box>
+          </>
+        )}
       </Box>
     </Drawer>
   )
