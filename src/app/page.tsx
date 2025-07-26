@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef  } from 'react';
 import Image from 'next/image';
 import { keyframes } from '@mui/system';
 import { Box, Typography, Button } from '@mui/material';
@@ -49,6 +49,7 @@ export default function Home() {
   const { user } = useAuth();
   const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
   const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -67,6 +68,23 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && isMobile) {
+      // Try to play the video programmatically
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Video started playing');
+          })
+          .catch((error) => {
+            console.log('Autoplay prevented:', error);
+          });
+      }
+    }
+  }, [isMobile]);
   useEffect(() => {
     if (!user) {
       setWishedIds(new Set());
@@ -121,6 +139,8 @@ export default function Home() {
           loop
           muted
           playsInline
+          webkit-playsinline="true" // For older iOS versions
+  x5-playsinline="true" // For some Android browsers
           style={{
             width: '100%',
             height: isMobile ? '100%' : 'auto',
