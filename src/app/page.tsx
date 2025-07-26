@@ -12,6 +12,7 @@ import { useAuth } from './components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import type { Product } from '@/types';
 import CategoryCards from './components/categoryCards';
+import { useRouter } from 'next/navigation';
 
 // Define types for API responses
 interface WishlistItem {
@@ -47,7 +48,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const { user } = useAuth();
   const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
-  const [showAllProducts, setShowAllProducts] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchProducts() {
@@ -87,7 +88,7 @@ export default function Home() {
   }, [user]);
 
   // Get products to display based on showAllProducts state
-  const displayProducts = showAllProducts ? products : products.slice(0, 16);
+  const displayProducts =  products.slice(0, 16);
 
   return (
     <Box
@@ -298,7 +299,7 @@ export default function Home() {
         </Grid>
 
         {/* Show More Button */}
-        {!showAllProducts && products.length > 16 && (
+        { products.length > 16 && (
           <Box sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -306,7 +307,7 @@ export default function Home() {
           }}>
             <Button
               variant="contained"
-              onClick={() => setShowAllProducts(true)}
+              onClick={() => router.push('/categories/shop-by/new-arrivals')}
               sx={{
                 backgroundColor: '#000',
                 color: '#fff',
