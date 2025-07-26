@@ -48,7 +48,6 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const { user } = useAuth();
   const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
-  const [showAllProducts, setShowAllProducts] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -89,7 +88,7 @@ export default function Home() {
   }, [user]);
 
   // Get products to display based on showAllProducts state
-  const displayProducts = showAllProducts ? products : products.slice(0, 16);
+  const displayProducts =  products.slice(0, 16);
 
   return (
     <Box
@@ -300,7 +299,7 @@ export default function Home() {
         </Grid>
 
         {/* Show More Button */}
-        {!showAllProducts && products.length > 16 && (
+        { products.length > 16 && (
           <Box sx={{
             display: 'flex',
             justifyContent: 'center',
