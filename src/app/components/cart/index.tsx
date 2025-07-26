@@ -21,6 +21,8 @@ import {
     CardContent,
     useTheme,
     useMediaQuery,
+    CircularProgress,
+    Skeleton,
 } from '@mui/material';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
@@ -68,6 +70,98 @@ const emptyAddress: Address = {
 
 const formatINR = (v: number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
+// Loading component
+const LoadingScreen = () => (
+    <Box
+        sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            bgcolor: '#f8f9fa',
+            fontFamily: '"Montserrat", sans-serif',
+        }}
+    >
+        <CircularProgress 
+            size={60} 
+            sx={{ 
+                color: '#fe5000',
+                mb: 3 
+            }} 
+        />
+        <Typography
+            variant="h6"
+            sx={{
+                color: '#1a1a1a',
+                fontWeight: 600,
+                fontFamily: '"Montserrat", sans-serif',
+                textAlign: 'center',
+            }}
+        >
+            Loading your cart...
+        </Typography>
+        <Typography
+            variant="body2"
+            sx={{
+                color: '#666',
+                mt: 1,
+                fontFamily: '"Montserrat", sans-serif',
+                textAlign: 'center',
+            }}
+        >
+            Please wait while we fetch your items
+        </Typography>
+    </Box>
+);
+
+// Skeleton components for loading states
+const CartItemSkeleton = () => (
+    <Box
+        sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'center', sm: 'flex-start' },
+            mb: 3,
+            pb: 3,
+            borderBottom: '1px solid #eee',
+            width: '100%',
+        }}
+    >
+        <Skeleton
+            variant="rectangular"
+            width={120}
+            height={120}
+            sx={{ 
+                borderRadius: 2,
+                mb: { xs: 2, sm: 0 },
+                mr: { sm: 3 },
+            }}
+        />
+        <Box sx={{ flex: 1, width: '100%' }}>
+            <Skeleton variant="text" width="70%" height={24} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="50%" height={20} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="30%" height={20} sx={{ mb: 2 }} />
+            <Skeleton variant="text" width="25%" height={24} />
+        </Box>
+    </Box>
+);
+
+const AddressSkeleton = () => (
+    <Card variant="outlined" sx={{ mb: 2 }}>
+        <CardContent sx={{ p: 2 }}>
+            <Skeleton variant="text" width="60%" height={24} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="80%" height={20} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="70%" height={20} sx={{ mb: 1 }} />
+            <Skeleton variant="text" width="50%" height={20} sx={{ mb: 2 }} />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+                <Skeleton variant="rectangular" width={60} height={32} />
+                <Skeleton variant="rectangular" width={60} height={32} />
+            </Box>
+        </CardContent>
+    </Card>
+);
+
 export default function CartPage({ buyNowProductId }: { buyNowProductId?: string | null }) {
     const { user } = useAuth();
     const theme = useTheme();
@@ -78,46 +172,68 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
     const [selectedAddress, setSelectedAddress] = useState<string>('');
     const [paymentMode, setPaymentMode] = useState('card');
 
+    // Loading states
+    const [isLoading, setIsLoading] = useState(true);
+    const [isCartLoading, setIsCartLoading] = useState(true);
+    const [isAddressesLoading, setIsAddressesLoading] = useState(true);
+
     // Address management state
     const [openAddModal, setOpenAddModal] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [newAddr, setNewAddr] = useState(emptyAddress);
 
     useEffect(() => {
-        if (!user) return;
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            const headers: Record<string, string> = {};
-            if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
 
-            // Fetch addresses
-            fetch('/api/addresses', { headers })
-                .then(res => res.ok ? res.json() : [])
-                .then((data: Address[]) => {
-                    setAddresses(data);
-                    if (data.length > 0 && !selectedAddress) {
-                        setSelectedAddress(data[0].id);
+        const loadData = async () => {
+            setIsLoading(true);
+            setIsCartLoading(true);
+            setIsAddressesLoading(true);
+
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const headers: Record<string, string> = {};
+                if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+
+                // Load addresses and cart data in parallel
+                const [addressesRes, cartRes] = await Promise.allSettled([
+                    fetch('/api/addresses', { headers }),
+                    buyNowProductId 
+                        ? fetch(`/api/cart?productId=${buyNowProductId}`, { headers })
+                        : fetch('/api/cart', { headers })
+                ]);
+
+                // Handle addresses
+                if (addressesRes.status === 'fulfilled' && addressesRes.value.ok) {
+                    const addressesData = await addressesRes.value.json();
+                    setAddresses(addressesData);
+                    if (addressesData.length > 0 && !selectedAddress) {
+                        setSelectedAddress(addressesData[0].id);
                     }
-                });
+                }
+                setIsAddressesLoading(false);
 
-            if (buyNowProductId) {
-                // For "Buy Now" - fetch only the specific product
-                fetch(`/api/cart?productId=${buyNowProductId}`, { headers })
-                    .then(res => res.ok ? res.json() : null)
-                    .then(async (data) => {
-                        if (data) {
+                // Handle cart data
+                if (cartRes.status === 'fulfilled') {
+                    if (buyNowProductId) {
+                        // For "Buy Now" - fetch only the specific product
+                        const cartData = await cartRes.value.json();
+                        if (cartData) {
                             // Product is already in cart, use the existing quantity
                             setCart([{
-                                id: data.product.id,
-                                title: data.product.title,
-                                subtitle: data.product.subtitle,
-                                img: '/' + data.product.images[0]
-                                    .replace(/\\/g, '/')          // Replace all backslashes with forward slashes
-                                    .replace(/^public\//, '')     // Remove leading 'public/'
+                                id: cartData.product.id,
+                                title: cartData.product.title,
+                                subtitle: cartData.product.subtitle,
+                                img: '/' + cartData.product.images[0]
+                                    .replace(/\\/g, '/')
+                                    .replace(/^public\//, '')
                                     .replace(/\/{2,}/g, '/'),
-                                price: data.product.price_after,
-                                qty: data.quantity,
+                                price: cartData.product.price_after,
+                                qty: cartData.quantity,
                             }]);
-
                         } else {
                             // Product not in cart, add it with quantity 1
                             await fetch('/api/cart?buyNow=true', {
@@ -127,45 +243,52 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             });
 
                             // Now fetch the cart item
-                            const cartRes = await fetch(`/api/cart?productId=${buyNowProductId}`, { headers });
-                            const cartData = await cartRes.json();
-                            if (cartData) {
+                            const newCartRes = await fetch(`/api/cart?productId=${buyNowProductId}`, { headers });
+                            const newCartData = await newCartRes.json();
+                            if (newCartData) {
                                 setCart([{
-                                    id: cartData.product.id,
-                                    title: cartData.product.title,
-                                    subtitle: cartData.product.subtitle,
-                                    img: '/' + cartData.product.images[0]
-                                        .replace(/\\/g, '/')          // Replace all backslashes with forward slashes
-                                        .replace(/^public\//, '')     // Remove leading 'public/'
+                                    id: newCartData.product.id,
+                                    title: newCartData.product.title,
+                                    subtitle: newCartData.product.subtitle,
+                                    img: '/' + newCartData.product.images[0]
+                                        .replace(/\\/g, '/')
+                                        .replace(/^public\//, '')
                                         .replace(/\/{2,}/g, '/'),
-                                    price: cartData.product.price_after,
-                                    qty: cartData.quantity,
+                                    price: newCartData.product.price_after,
+                                    qty: newCartData.quantity,
                                 }]);
-
                             }
                         }
-                    });
-            } else {
-                // For regular cart - fetch all cart items
-                fetch('/api/cart', { headers })
-                    .then(res => res.ok ? res.json() : [])
-                    .then((data: CartApiItem[]) => {
-                        console.log('Cart items fetched:', data); // debugging cart items
-                        setCart(data.map((item) => ({
-                            id: item.product.id,
-                            title: item.product.title,
-                            subtitle: item.product.subtitle,
-                            img: '/' + item.product.images[0]
-                                .replace(/\\/g, '/')          // Replace all backslashes with forward slashes
-                                .replace(/^public\//, '')     // Remove leading 'public/'
-                                .replace(/\/{2,}/g, '/'),     // Replace multiple slashes with single slash
-                            price: item.product.price_after,
-                            qty: item.quantity,
-                        })))
-                    });
-
+                    } else {
+                        // For regular cart - fetch all cart items
+                        if (cartRes.value.ok) {
+                            const cartData = await cartRes.value.json();
+                            console.log('Cart items fetched:', cartData);
+                            setCart(cartData.map((item: CartApiItem) => ({
+                                id: item.product.id,
+                                title: item.product.title,
+                                subtitle: item.product.subtitle,
+                                img: '/' + item.product.images[0]
+                                    .replace(/\\/g, '/')
+                                    .replace(/^public\//, '')
+                                    .replace(/\/{2,}/g, '/'),
+                                price: item.product.price_after,
+                                qty: item.quantity,
+                            })));
+                        }
+                    }
+                }
+                setIsCartLoading(false);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                setIsCartLoading(false);
+                setIsAddressesLoading(false);
+            } finally {
+                setIsLoading(false);
             }
-        });
+        };
+
+        loadData();
     }, [user, buyNowProductId, selectedAddress]);
 
     const subtotal = useMemo(
@@ -257,6 +380,11 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
     const canAdd = newAddr.name.trim() && newAddr.line1.trim() && newAddr.city.trim() &&
         newAddr.state.trim() && newAddr.pincode.trim() && newAddr.phone.trim();
 
+    // Show loading screen while initial data is loading
+    if (isLoading) {
+        return <LoadingScreen />;
+    }
+
     return (
         // 1. FLEX COLUMN LAYOUT - GROWS AS NEEDED
         <Box
@@ -308,7 +436,33 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                         mb: { xs: 2, md: 0, lg: 0 },
                         boxSizing: 'border-box',
                     }}>
-                        {cart.length === 0 ? (
+                        {isCartLoading ? (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: { xs: 1.5, md: 3, lg: 3 },
+                                    mb: 2,
+                                    bgcolor: 'white',
+                                    borderRadius: 2,
+                                    width: '100%',
+                                    boxSizing: 'border-box',
+                                }}
+                            >
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        mb: 2,
+                                        color: '#1a1a1a',
+                                        fontWeight: 600,
+                                        fontFamily: '"Montserrat", sans-serif '
+                                    }}
+                                >
+                                    {buyNowProductId ? 'Product' : 'Cart Items'}
+                                </Typography>
+                                <CartItemSkeleton />
+                                <CartItemSkeleton />
+                            </Paper>
+                        ) : cart.length === 0 ? (
                             <Paper
                                 elevation={0}
                                 sx={{
@@ -572,7 +726,12 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                 </Button>
                             </Box>
 
-                            {addresses.length === 0 ? (
+                            {isAddressesLoading ? (
+                                <>
+                                    <AddressSkeleton />
+                                    <AddressSkeleton />
+                                </>
+                            ) : addresses.length === 0 ? (
                                 <Box sx={{ textAlign: 'center', py: 3 }}>
                                     <Typography color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ', mb: 2 }}>
                                         No addresses found. Add your first delivery address.
@@ -698,7 +857,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             variant="contained"
                             fullWidth
                             size="large"
-                            disabled={cart.length === 0 || !selectedAddress}
+                            disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading}
                             sx={{
                                 py: 1.5,
                                 bgcolor: '#fe5000',
