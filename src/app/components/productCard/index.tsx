@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Box, Typography, IconButton } from '@mui/material';
+import { Box, Typography, IconButton, CircularProgress } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useEffect, useState, useRef } from 'react';
@@ -18,7 +18,7 @@ export const ProductCard: React.FC<{
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
   const [titleFontSize, setTitleFontSize] = useState('1rem');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const titleRef = useRef<HTMLSpanElement>(null);
   
   // Touch handling refs
@@ -42,31 +42,6 @@ export const ProductCard: React.FC<{
     () => product.images?.map(formatImagePath) || [],
     [product.images]
   );
-
-  // Preload all images when component mounts or when hovered
-  useEffect(() => {
-    if (formattedImages.length <= 1) return;
-
-    const preloadImages = () => {
-      formattedImages.forEach((src, index) => {
-        if (index === 0) return; // First image is already loaded
-        const img = new window.Image();
-        img.src = src;
-        img.onload = () => {
-          
-        };
-      });
-    };
-
-    // Start preloading when user hovers or after a short delay
-    if (isHovered) {
-      preloadImages();
-    } else {
-      // Preload after 2 seconds if not hovered
-      const timer = setTimeout(preloadImages, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [formattedImages, isHovered]);
 
   useEffect(() => {
     if (!user) return;
@@ -152,11 +127,13 @@ export const ProductCard: React.FC<{
     if (Math.abs(swipeDistance) > swipeThreshold) {
       if (swipeDistance > 0 && formattedImages.length > 1) {
         // Swiped left - next image
+        setImageLoading(true);
         setCurrentImageIndex((prev) => 
           prev === formattedImages.length - 1 ? 0 : prev + 1
         );
       } else if (swipeDistance < 0 && formattedImages.length > 1) {
         // Swiped right - previous image
+        setImageLoading(true);
         setCurrentImageIndex((prev) => 
           prev === 0 ? formattedImages.length - 1 : prev - 1
         );
@@ -171,13 +148,11 @@ export const ProductCard: React.FC<{
   return (
     <Box
       onClick={() => router.push(`/preCheckout?id=${encodeURIComponent(product.id)}`)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      
       sx={{
         width: '100%',
         height: { xs: 320, sm: 390, md: 420 },
-        minHeight: 280,
-        maxHeight: 480,
+       maxWidth:'16vw',
         border: '1px solid #ededed',
         borderRadius: 2,
         boxShadow: 1,
@@ -206,35 +181,48 @@ export const ProductCard: React.FC<{
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {/* Loading Spinner */}
+        {imageLoading && (
+          <Box
+            sx={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(255, 255, 255, 0.9)',
+              zIndex: 3,
+            }}
+          >
+            <CircularProgress size={40} />
+          </Box>
+        )}
+
         {formattedImages.length > 0 ? (
           <>
-            {/* Render all images but only show the current one */}
-            {formattedImages.map((image, index) => (
-              <Box
-                key={index}
-                sx={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  opacity: index === currentImageIndex ? 1 : 0,
-                  transition: 'opacity 0.3s ease-in-out',
-                  zIndex: index === currentImageIndex ? 1 : 0,
-                }}
-              >
-                <Image
-                  src={image}
-                  alt={`${product.title} - Image ${index + 1}`}
-                  fill
-                  sizes="(max-width:600px) 90vw, (max-width:900px) 45vw, 20vw"
-                  style={{ objectFit: 'cover' }}
-                  priority={index === 0} // Prioritize first image
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  quality={85} // Slightly reduce quality for faster loading
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-                />
-              </Box>
-            ))}
+            {/* Only render the current image */}
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <Image
+                key={currentImageIndex} // Force remount on index change
+                src={formattedImages[currentImageIndex]}
+                alt={`${product.title} - Image ${currentImageIndex + 1}`}
+                fill
+                sizes="(max-width:600px) 50vw, (max-width:900px) 33vw, 25vw"
+                style={{ objectFit: 'cover' }}
+                quality={75} // Lower quality for faster loading
+                onLoad={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+              />
+            </Box>
           </>
         ) : (
           <Box
@@ -274,6 +262,7 @@ export const ProductCard: React.FC<{
                 key={index}
                 onClick={(e) => {
                   e.stopPropagation();
+                  setImageLoading(true);
                   setCurrentImageIndex(index);
                 }}
                 sx={{
@@ -317,7 +306,7 @@ export const ProductCard: React.FC<{
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'flex-start',
-          px: 2,
+          px: 1,
           py: 1.1,
           height: '15%',
           bgcolor: 'rgba(255,255,255,0.98)',
@@ -330,10 +319,10 @@ export const ProductCard: React.FC<{
           <Box sx={{ width: '100%' }}>
             <Typography
               variant="subtitle1"
-              fontWeight={700}
+              fontWeight={530}
               color="black"
               sx={{
-                fontFamily: '"Montserrat", sans-serif ',
+                fontFamily: 'sans-serif',
                 fontSize: titleFontSize,
                 whiteSpace: 'nowrap',
                 overflow: 'visible',
@@ -348,7 +337,8 @@ export const ProductCard: React.FC<{
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
             <Typography
               variant="subtitle2"
-              fontWeight={700}
+              fontWeight={550}
+              fontSize={20}
               color="black"
               sx={{
                 fontFamily: '"Montserrat", sans-serif ',

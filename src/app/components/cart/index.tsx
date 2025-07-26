@@ -66,18 +66,18 @@ const emptyAddress: Address = {
     phone: '',
 };
 
-const formatINR = (v:number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+const formatINR = (v: number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
 export default function CartPage({ buyNowProductId }: { buyNowProductId?: string | null }) {
     const { user } = useAuth();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    
+
     const [cart, setCart] = useState(DUMMY_CART);
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddress, setSelectedAddress] = useState<string>('');
     const [paymentMode, setPaymentMode] = useState('card');
-    
+
     // Address management state
     const [openAddModal, setOpenAddModal] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
@@ -88,7 +88,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
         supabase.auth.getSession().then(({ data: { session } }) => {
             const headers: Record<string, string> = {};
             if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
-            
+
             // Fetch addresses
             fetch('/api/addresses', { headers })
                 .then(res => res.ok ? res.json() : [])
@@ -98,7 +98,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                         setSelectedAddress(data[0].id);
                     }
                 });
-            
+
             if (buyNowProductId) {
                 // For "Buy Now" - fetch only the specific product
                 fetch(`/api/cart?productId=${buyNowProductId}`, { headers })
@@ -110,10 +110,14 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                 id: data.product.id,
                                 title: data.product.title,
                                 subtitle: data.product.subtitle,
-                                img: data.product.images[0],
+                                img: '/' + data.product.images[0]
+                                    .replace(/\\/g, '/')          // Replace all backslashes with forward slashes
+                                    .replace(/^public\//, '')     // Remove leading 'public/'
+                                    .replace(/\/{2,}/g, '/'),
                                 price: data.product.price_after,
                                 qty: data.quantity,
                             }]);
+
                         } else {
                             // Product not in cart, add it with quantity 1
                             await fetch('/api/cart?buyNow=true', {
@@ -130,10 +134,14 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                     id: cartData.product.id,
                                     title: cartData.product.title,
                                     subtitle: cartData.product.subtitle,
-                                    img: cartData.product.images[0],
+                                    img: '/' + cartData.product.images[0]
+                                        .replace(/\\/g, '/')          // Replace all backslashes with forward slashes
+                                        .replace(/^public\//, '')     // Remove leading 'public/'
+                                        .replace(/\/{2,}/g, '/'),
                                     price: cartData.product.price_after,
                                     qty: cartData.quantity,
                                 }]);
+
                             }
                         }
                     });
@@ -141,14 +149,21 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                 // For regular cart - fetch all cart items
                 fetch('/api/cart', { headers })
                     .then(res => res.ok ? res.json() : [])
-                    .then((data: CartApiItem[]) => setCart(data.map((item) => ({
-                        id: item.product.id,
-                        title: item.product.title,
-                        subtitle: item.product.subtitle,
-                        img: item.product.images[0],
-                        price: item.product.price_after,
-                        qty: item.quantity,
-                    }))))
+                    .then((data: CartApiItem[]) => {
+                        console.log('Cart items fetched:', data); // debugging cart items
+                        setCart(data.map((item) => ({
+                            id: item.product.id,
+                            title: item.product.title,
+                            subtitle: item.product.subtitle,
+                            img: '/' + item.product.images[0]
+                                .replace(/\\/g, '/')          // Replace all backslashes with forward slashes
+                                .replace(/^public\//, '')     // Remove leading 'public/'
+                                .replace(/\/{2,}/g, '/'),     // Replace multiple slashes with single slash
+                            price: item.product.price_after,
+                            qty: item.quantity,
+                        })))
+                    });
+
             }
         });
     }, [user, buyNowProductId, selectedAddress]);
@@ -187,7 +202,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
         const { data: { session } } = await supabase.auth.getSession();
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
-        
+
         if (editId) {
             // Update existing address
             const res = await fetch('/api/addresses', {
@@ -224,7 +239,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
         const { data: { session } } = await supabase.auth.getSession();
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
-        
+
         const res = await fetch('/api/addresses', {
             method: 'DELETE',
             headers,
@@ -239,8 +254,8 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
         }
     }
 
-    const canAdd = newAddr.name.trim() && newAddr.line1.trim() && newAddr.city.trim() && 
-                   newAddr.state.trim() && newAddr.pincode.trim() && newAddr.phone.trim();
+    const canAdd = newAddr.name.trim() && newAddr.line1.trim() && newAddr.city.trim() &&
+        newAddr.state.trim() && newAddr.pincode.trim() && newAddr.phone.trim();
 
     return (
         // 1. FLEX COLUMN LAYOUT - GROWS AS NEEDED
@@ -345,7 +360,9 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                         {buyNowProductId ? 'Product' : `Cart Items (${cart.length})`}
                                     </Typography>
 
-                                    {cart.map((item) => (
+                                    {cart.map((item) => {
+                                        console.log('Cart item:', item);
+                                        return (
                                         <Box
                                             key={item.id}
                                             sx={{
@@ -378,7 +395,13 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                 }}
                                             >
                                                 <Image
-                                                    src={item.img}
+                                                    src={
+                                                        item.img
+                                                            .replace(/\\/g, '/')            // Replace all backslashes with forward slashes
+                                                            .replace(/^\/?public\//, '')    // Remove leading 'public/' or '/public/'
+                                                            .replace(/^\/+/, '/')           // Ensure single leading slash
+                                                            .replace(/\/{2,}/g, '/')        // Replace multiple slashes with a single slash
+                                                    }
                                                     alt={item.title}
                                                     width={120}
                                                     height={120}
@@ -389,6 +412,7 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                         display: 'block',
                                                     }}
                                                 />
+
                                             </Box>
 
                                             <Box sx={{ flex: 1, width: '100%', minWidth: 0 }}>
@@ -454,7 +478,8 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                 </Typography>
                                             </Box>
                                         </Box>
-                                    ))}
+                                    );
+                                    })}
                                 </Paper>
 
                                 {/* Price Summary */}
@@ -563,10 +588,10 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                             ) : (
                                 <Stack spacing={2}>
                                     {addresses.map((addr) => (
-                                        <Card 
-                                            key={addr.id} 
-                                            variant="outlined" 
-                                            sx={{ 
+                                        <Card
+                                            key={addr.id}
+                                            variant="outlined"
+                                            sx={{
                                                 backgroundColor: selectedAddress === addr.id ? 'rgba(254, 80, 0, 0.04)' : '#fff',
                                                 border: selectedAddress === addr.id ? '2px solid #fe5000' : '1px solid #e0e0e0',
                                                 fontFamily: '"Montserrat", sans-serif ',
@@ -579,9 +604,9 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                             onClick={() => setSelectedAddress(addr.id)}
                                         >
                                             <CardContent sx={{ p: 2 }}>
-                                                <Typography 
-                                                    fontWeight={600} 
-                                                    color="black" 
+                                                <Typography
+                                                    fontWeight={600}
+                                                    color="black"
                                                     gutterBottom
                                                     variant={isMobile ? "subtitle1" : "h6"}
                                                     sx={{ fontFamily: '"Montserrat", sans-serif ' }}
@@ -594,14 +619,14 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                                 </Typography>
                                                 <Typography color="black" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Phone: {addr.phone}</Typography>
                                                 <Divider sx={{ my: 1 }} />
-                                                <Stack 
-                                                    direction={{ xs: 'column', sm: 'row' }} 
+                                                <Stack
+                                                    direction={{ xs: 'column', sm: 'row' }}
                                                     spacing={1}
                                                     sx={{ width: { xs: '100%', sm: 'auto' } }}
                                                 >
-                                                    <Button 
-                                                        size="small" 
-                                                        variant="outlined" 
+                                                    <Button
+                                                        size="small"
+                                                        variant="outlined"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleOpenAddressModal(addr);
