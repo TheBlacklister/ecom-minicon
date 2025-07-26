@@ -210,18 +210,20 @@ export const ProductCard: React.FC<{
               }}
             >
               <Image
-                key={currentImageIndex} // Force remount on index change
-                src={formattedImages[currentImageIndex]}
-                alt={`${product.title} - Image ${currentImageIndex + 1}`}
-                fill
-                sizes="(max-width:600px) 50vw, (max-width:900px) 33vw, 25vw"
-                style={{ objectFit: 'cover' }}
-                quality={75} // Lower quality for faster loading
-                onLoad={() => setImageLoading(false)}
-                onError={() => setImageLoading(false)}
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-              />
+  src={formattedImages[currentImageIndex]}
+  alt={`${product.title} - Image ${currentImageIndex + 1}`}
+  fill
+  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+  style={{ objectFit: 'cover' }}
+  quality={60} // You can try 60-70 for PNG sources as they compress better
+  onLoad={() => setImageLoading(false)}
+  onError={() => setImageLoading(false)}
+  placeholder="blur"
+  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+  priority={currentImageIndex === 0}
+  loading={currentImageIndex === 0 ? "eager" : "lazy"}
+/>
+
             </Box>
           </>
         ) : (
