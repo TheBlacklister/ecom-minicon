@@ -3,8 +3,6 @@
 import Image from 'next/image';
 import { Box, Typography, IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
@@ -22,6 +20,11 @@ export const ProductCard: React.FC<{
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const titleRef = useRef<HTMLSpanElement>(null);
+  
+  // Touch handling refs
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
@@ -130,18 +133,39 @@ export const ProductCard: React.FC<{
     }
   };
 
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? formattedImages.length - 1 : prev - 1
-    );
+  // Touch handlers for swipe functionality
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => 
-      prev === formattedImages.length - 1 ? 0 : prev + 1
-    );
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation(); // Prevent card click on swipe
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const swipeThreshold = 50; // Minimum swipe distance
+    const swipeDistance = touchStartX.current - touchEndX.current;
+
+    if (Math.abs(swipeDistance) > swipeThreshold) {
+      if (swipeDistance > 0 && formattedImages.length > 1) {
+        // Swiped left - next image
+        setCurrentImageIndex((prev) => 
+          prev === formattedImages.length - 1 ? 0 : prev + 1
+        );
+      } else if (swipeDistance < 0 && formattedImages.length > 1) {
+        // Swiped right - previous image
+        setCurrentImageIndex((prev) => 
+          prev === 0 ? formattedImages.length - 1 : prev - 1
+        );
+      }
+    }
+
+    // Reset values
+    touchStartX.current = 0;
+    touchEndX.current = 0;
   };
 
   return (
@@ -171,7 +195,17 @@ export const ProductCard: React.FC<{
       }}
     >
       {/* Product Image - 85% height */}
-      <Box sx={{ position: 'relative', height: '85%' }}>
+      <Box 
+        ref={imageContainerRef}
+        sx={{ 
+          position: 'relative', 
+          height: '85%',
+          touchAction: 'pan-y', // Allow vertical scrolling but handle horizontal swipes
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {formattedImages.length > 0 ? (
           <>
             {/* Render all images but only show the current one */}
@@ -218,41 +252,7 @@ export const ProductCard: React.FC<{
           </Box>
         )}
 
-        {/* Carousel Navigation Arrows - Only show on hover and if more than 1 image */}
-        {formattedImages.length > 1 && isHovered && (
-          <>
-            <IconButton
-              onClick={handlePrevImage}
-              sx={{
-                position: 'absolute',
-                left: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                zIndex: 2,
-              }}
-            >
-              <ChevronLeftIcon />
-            </IconButton>
-            <IconButton
-              onClick={handleNextImage}
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                zIndex: 2,
-              }}
-            >
-              <ChevronRightIcon />
-            </IconButton>
-          </>
-        )}
-
-        {/* Image Dots Indicator */}
+        {/* Image Dots Indicator - Always visible when more than 1 image */}
         {formattedImages.length > 1 && (
           <Box
             sx={{
@@ -261,8 +261,12 @@ export const ProductCard: React.FC<{
               left: '50%',
               transform: 'translateX(-50%)',
               display: 'flex',
-              gap: 0.5,
+              gap: 0.75,
               zIndex: 2,
+              padding: '4px 8px',
+              borderRadius: '16px',
+              bgcolor: 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(4px)',
             }}
           >
             {formattedImages.map((_, index) => (
@@ -273,8 +277,8 @@ export const ProductCard: React.FC<{
                   setCurrentImageIndex(index);
                 }}
                 sx={{
-                  width: 8,
-                  height: 8,
+                  width: { xs: 10, sm: 8 },
+                  height: { xs: 10, sm: 8 },
                   borderRadius: '50%',
                   bgcolor: index === currentImageIndex ? 'white' : 'rgba(255, 255, 255, 0.5)',
                   cursor: 'pointer',
