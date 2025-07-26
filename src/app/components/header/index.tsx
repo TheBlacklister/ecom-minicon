@@ -96,7 +96,7 @@ export default function Header() {
   };
 
   const handleProductClick = (productSlug: string) => {
-    router.push(`/product/${productSlug}`);
+    router.push(`/preCheckout?id=${encodeURIComponent(productSlug)}`);
     setSearchDrawerOpen(false);
     setMobileMenuOpen(false);
     setSearch('');
@@ -182,6 +182,7 @@ export default function Header() {
           // Debug image path
           const imagePath = product.images?.[0]?.replace(/\\/g, '/')?.replace(/^public\//, '') || '/placeholder.jpg';
           console.log('SEARCH IMAGE:', {
+            product: product,
             productTitle: product.title,
             originalPath: product.images?.[0],
             formattedPath: imagePath
@@ -190,7 +191,7 @@ export default function Header() {
           return (
             <Card
               key={product.id}
-              onClick={() => handleProductClick(product.slug)}
+              onClick={() => handleProductClick(product.id)}
               sx={{
                 display: 'flex',
                 mb: 2,
