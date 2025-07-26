@@ -1,24 +1,4 @@
-'use client'
-// Custom hook for responsive image sizing
-  const useResponsiveImageSize = () => {
-    const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg'>('md');
-    
-    useEffect(() => {
-      const updateScreenSize = () => {
-        const width = window.innerWidth;
-        if (width < 640) setScreenSize('xs');
-        else if (width < 768) setScreenSize('sm');
-        else if (width < 1024) setScreenSize('md');
-        else setScreenSize('lg');
-      };
-      
-      updateScreenSize();
-      window.addEventListener('resize', updateScreenSize);
-      return () => window.removeEventListener('resize', updateScreenSize);
-    }, []);
-    
-    return screenSize;
-  };
+'use client';
 
 import Image from 'next/image';
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material';
@@ -29,45 +9,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
 import type { Product } from '@/types';
 
-// For PNG sources, we need extremely aggressive optimization
-const getOptimizedQualityForPng = (screenSize: string, imageIndex: number): number => {
-  // PNG to AVIF/WebP conversion allows very aggressive compression
-  const baseQuality = imageIndex === 0 ? 25 : 20; // Ultra-aggressive for PNG
-  
-  switch (screenSize) {
-    case 'xs':
-      return Math.max(15, baseQuality - 5);  // 15-20 quality on mobile
-    case 'sm':
-      return Math.max(18, baseQuality - 2);  // 18-23 quality on tablet
-    default:
-      return baseQuality; // 20-25 quality on desktop
-  }
-};
-
-const getOptimizedSizesForPng = (screenSize: string) => {
-  // Very conservative sizes for PNG sources to ensure <1MB
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-  const maxSize = Math.min(500, 250 * dpr); // Much smaller for PNG
-  
-  switch (screenSize) {
-    case 'xs':
-      return `(max-width: 640px) ${Math.min(maxSize, 250)}px`;
-    case 'sm':
-      return `(max-width: 768px) ${Math.min(maxSize, 220)}px`;
-    case 'md':
-      return `(max-width: 1024px) ${Math.min(maxSize, 200)}px`;
-    default:
-      return `${Math.min(maxSize, 180)}px`;
-  }
-};
-
 export const ProductCard: React.FC<{
   product: Product;
   initialIsWished?: boolean;
 }> = ({ product, initialIsWished }) => {
   const router = useRouter();
   const { user } = useAuth();
-  const screenSize = useResponsiveImageSize();
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
   const [titleFontSize, setTitleFontSize] = useState('1rem');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -95,10 +42,6 @@ export const ProductCard: React.FC<{
     () => product.images?.map(formatImagePath) || [],
     [product.images]
   );
-
-  // Optimized sizes and quality for PNG sources
-  const optimizedSizes = useMemo(() => getOptimizedSizesForPng(screenSize), [screenSize]);
-  const imageQuality = useMemo(() => getOptimizedQualityForPng(screenSize, currentImageIndex), [screenSize, currentImageIndex]);
 
   useEffect(() => {
     if (!user) return;
@@ -267,21 +210,20 @@ export const ProductCard: React.FC<{
               }}
             >
               <Image
-                src={formattedImages[currentImageIndex]}
-                alt={`${product.title} - Image ${currentImageIndex + 1}`}
-                fill
-                sizes={optimizedSizes}
-                style={{ objectFit: 'cover' }}
-                quality={imageQuality}
-                onLoad={() => setImageLoading(false)}
-                onError={() => setImageLoading(false)}
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-                priority={currentImageIndex === 0}
-                loading={currentImageIndex === 0 ? "eager" : "lazy"}
-                // Force format to AVIF/WebP for maximum compression
-                unoptimized={false}
-              />
+  src={formattedImages[currentImageIndex]}
+  alt={`${product.title} - Image ${currentImageIndex + 1}`}
+  fill
+  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+  style={{ objectFit: 'cover' }}
+  quality={60} // You can try 60-70 for PNG sources as they compress better
+  onLoad={() => setImageLoading(false)}
+  onError={() => setImageLoading(false)}
+  placeholder="blur"
+  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+  priority={currentImageIndex === 0}
+  loading={currentImageIndex === 0 ? "eager" : "lazy"}
+/>
+
             </Box>
           </>
         ) : (
