@@ -152,7 +152,7 @@ export const ProductCard: React.FC<{
       sx={{
         width: '100%',
         height: { xs: 320, sm: 390, md: 420 },
-       maxWidth:'16vw',
+        maxWidth: { xs: 'none', sm: 'none', md: '16vw', lg: '16vw', xl: '16vw' },
         border: '1px solid #ededed',
         borderRadius: 2,
         boxShadow: 1,
