@@ -324,7 +324,7 @@ export default function Home() {
                 }
               }}
             >
-              Show More ({products.length - 16} more items)
+              Show More 
             </Button>
           </Box>
         )}
