@@ -28,9 +28,9 @@ const categories: CategoryCardProps[] = [
     route: '/categories/category/oversized-fit'
   },
   { 
-    image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Faith over fear_Printed & Streetwear/1 faith over fear.png', 
-    title: 'Relaxed',
-    route: '/categories/category/oversized-fit'
+    image: '/products/Regular Fit Tshirt/Hedgehog_Printed & Streetwear/1Hedgehog Regular fit.png', 
+    title: 'Regular',
+    route: '/categories/category/regular-fit'
   },
   { 
     image: "/products/Men's Polo T-Shirt/Men's Polo T-Shirt/Black/1Men Black embroidery Polo T-Shirt.png", 
@@ -50,7 +50,7 @@ const categories: CategoryCardProps[] = [
   { 
     image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Faith over fear 2_Printed & Streetear/3 faith over fear.png', 
     title: 'Puff',
-    route: '/categories/category/oversized-fit'
+    route: '/categories/collections/puffed'
   },
   { 
     image: '/products/Oversized Solid/Oversized Solid/Red/4Solid Red Oversized Classic T-Shirt.png', 
