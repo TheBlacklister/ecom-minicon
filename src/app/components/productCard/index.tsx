@@ -366,24 +366,23 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
       <Box
         sx={{
           height: '15%',
-          px: 2,
+          px: 1,
           py: 1.5,
           display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
+          flexDirection: 'column',
           justifyContent: 'space-between',
-          gap: 1,
         }}
       >
+        {/* First Row - Title */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             ref={titleRef}
             variant="body2"
             component="span"
             sx={{
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: titleFontSize,
-              lineHeight: 1.2,
+             
               display: 'block',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -395,13 +394,20 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
           </Typography>
         </Box>
 
-        <Box sx={{ flexShrink: 0, textAlign: 'right' }}>
+        {/* Second Row - Prices */}
+        <Box 
+          sx={{ 
+            display: 'flex',
+            alignItems: 'center',
+                       
+          }}
+        >
           <Typography
             variant="body2"
             sx={{
               fontWeight: 700,
               fontSize: { xs: '0.875rem', sm: '1rem' },
-              color: 'primary.main',
+            mr:1
             }}
           >
             ₹{product.price_after}
