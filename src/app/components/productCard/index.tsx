@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Box, Typography, IconButton, CircularProgress, Skeleton } from '@mui/material';
+import { Box, Typography, IconButton,Skeleton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';

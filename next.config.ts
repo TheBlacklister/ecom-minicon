@@ -28,9 +28,6 @@ const nextConfig: NextConfig = {
   
   compress: true,
   
-  // Optimize builds
-  swcMinify: true,
-  
   // Configure headers for better caching
   async headers() {
     return [
@@ -85,8 +82,6 @@ const nextConfig: NextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    // Enable optimizeCss for production
-    optimizeCss: true,
     // Use the new app directory features
     scrollRestoration: true,
   },
