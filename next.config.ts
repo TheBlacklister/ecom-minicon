@@ -26,7 +26,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
   },
   
-  // Enable compression
   compress: true,
   
   // Optimize builds
