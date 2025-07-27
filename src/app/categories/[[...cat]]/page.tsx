@@ -79,7 +79,6 @@ export default function CataloguePage() {
     }
     fetchProducts();
   }, []);
-  console.log("ALL products", allProducts)
 
   useEffect(() => {
     if (!user) {
@@ -102,21 +101,24 @@ export default function CataloguePage() {
   }, [user]);
 
   const filters = useMemo(() => ({
-    categories: Array.from(new Set(allProducts.flatMap(p => p.category)))
-  .sort()
-  .map(category => ({
-    label: category
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' '),
-    value: category,
-  })),
+    categories: Array.from(new Set(
+      allProducts.flatMap(p =>
+        Array.isArray(p.category) ? p.category : p.category ? [p.category] : []
+      )
+    ))
+      .sort()
+      .map(category => ({
+        label: category
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' '),
+        value: category,
+      })),
 
     size: Array.from(new Set(allProducts.flatMap(p => p.available_sizes))).sort(),
     colors: Array.from(new Set(allProducts.flatMap(p => p.available_colors))).sort(),
   }), [allProducts]);
 
-  console.log("FILTERS",filters)
 
   /* ---------------- Filter products by label / item ----------------------- */
   const filteredProducts = useMemo(() => {
@@ -126,7 +128,6 @@ export default function CataloguePage() {
     const transformedSegment = catSegments.map(seg => seg.replace(/-/g, '_').toLowerCase());
     const transformedSegments = transformedSegment.map(seg => seg.replace(/'/g, ''));
 
-    console.log("Transformed catSegments:", transformedSegments);
 
     if (transformedSegments.length > 0) {
       const [labelSegment, valueSegment] = transformedSegments;
@@ -139,7 +140,6 @@ export default function CataloguePage() {
           const categories = Array.isArray(p.category) ? p.category : (p.category ? [p.category] : []);
           const categoryMatches = categories.some(cat => {
             const match = cat.toLowerCase() === value;
-            console.log(`Comparing product category '${cat.toLowerCase()}' with URL value '${value}':`, match);
             return match;
           });
           return categoryMatches;
@@ -151,7 +151,6 @@ export default function CataloguePage() {
           const collections = Array.isArray(p.collections) ? p.collections : (p.collections ? [p.collections] : []);
           const collectionMatches = collections.some(col => {
             const match = col.toLowerCase() === value;
-            console.log(`Comparing product collection '${col.toLowerCase()}' with URL value '${value}':`, match);
             return match;
           });
           return collectionMatches;
@@ -163,11 +162,9 @@ export default function CataloguePage() {
         if (!isNaN(priceThreshold)) {
           filtered = filtered.filter((p) => {
             const match = p.price_after < priceThreshold;
-            console.log(`Comparing product price_after '${p.price_after}' with threshold '${priceThreshold}':`, match);
             return match;
           });
         } else {
-          console.log(`Invalid price value: ${value}`);
         }
       }
       // Handle material filtering
@@ -179,20 +176,16 @@ export default function CataloguePage() {
             // Convert material to lowercase and replace spaces with underscores for comparison
             const normalizedMaterial = mat.toLowerCase().replace(/\s+/g, '_');
             const match = normalizedMaterial === value;
-            console.log(`Comparing product material '${normalizedMaterial}' with URL value '${value}':`, match);
             return match;
           });
           return materialMatches;
         });
       }
       else if (label === 'shop_by') {
-        console.log("No filtering applied for 'shop_by'");
       }
       else {
-        console.log(`Unknown filter label: ${label}`);
       }
     } else {
-      console.log("No URL filtering segment detected.");
     }
 
     // Apply checkbox filters from sidebar
@@ -214,8 +207,6 @@ export default function CataloguePage() {
       );
     }
 
-    console.log("Final filtered products:", filtered);
-    console.log("SLUG", catSegments);
     return filtered;
   }, [catSegments, allProducts, selectedCategories, selectedSizes, selectedColors]);
 
