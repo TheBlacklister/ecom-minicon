@@ -31,18 +31,23 @@ export async function GET(request: NextRequest) {
     if (dbError) {
       return NextResponse.json({ error: dbError.message }, { status: 500 })
     }
-    return NextResponse.json(data)
+    // Return isWished status for the ProductCard component
+    return NextResponse.json({ isWished: !!data })
   }
 
   const { data, error: dbError } = await supabase
     .from('wishlist')
-    .select('product:products(*)')
+    .select('product_id, product:products(*)')
     .eq('user_id', user.id)
 
   if (dbError) {
     return NextResponse.json({ error: dbError.message }, { status: 500 })
   }
-  return NextResponse.json(data)
+  
+  // Filter out any items where product is null
+  const validWishlistItems = data?.filter(item => item.product !== null) || []
+  
+  return NextResponse.json(validWishlistItems)
 }
 
 export async function POST(request: NextRequest) {
@@ -51,11 +56,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Not authenticated' }, { status: 401 })
   }
 
-  const { product_id } = await request.json()
+  const { productId } = await request.json()
 
   const { data, error: dbError } = await supabase
     .from('wishlist')
-    .insert({ user_id: user.id, product_id })
+    .insert({ user_id: user.id, product_id: productId })
     .select()
     .single()
 
@@ -71,13 +76,13 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Not authenticated' }, { status: 401 })
   }
 
-  const { product_id } = await request.json()
+  const { productId } = await request.json()
 
   const { error: dbError } = await supabase
     .from('wishlist')
     .delete()
     .eq('user_id', user.id)
-    .eq('product_id', product_id)
+    .eq('product_id', productId)
 
   if (dbError) {
     return NextResponse.json({ error: dbError.message }, { status: 500 })

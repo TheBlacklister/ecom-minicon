@@ -8,7 +8,8 @@ import type { Product } from '@/types';
 import { GridLegacy as Grid } from '@mui/material';
 
 interface WishlistApiItem {
-  product: Product;
+  product_id: number;
+  product: Product | null;
 }
 
 export default function WishlistPage() {
@@ -23,7 +24,11 @@ export default function WishlistPage() {
       fetch('/api/wishlist', { headers })
         .then(res => res.ok ? res.json() : [])
         .then((data: WishlistApiItem[]) => {
-          setWishlist(data.map((w) => w.product));
+          // Filter out items with null products and map to Product[]
+          const validProducts = data
+            .filter((item) => item.product !== null)
+            .map((item) => item.product as Product);
+          setWishlist(validProducts);
         })
         .catch((error) => {
           console.error('Error fetching wishlist:', error);
