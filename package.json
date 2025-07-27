@@ -17,7 +17,6 @@
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sharp": "^0.34.3",
     "supabase": "^2.26.9"
   },
   "devDependencies": {
@@ -25,8 +24,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sharp": "^0.32.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "sharp": "^0.34.3",
     "typescript": "^5"
   }
 }

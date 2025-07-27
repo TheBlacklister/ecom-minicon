@@ -1,64 +1,37 @@
-'use client'
-// Custom hook for responsive image sizing
-  const useResponsiveImageSize = () => {
-    const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg'>('md');
-    
-    useEffect(() => {
-      const updateScreenSize = () => {
-        const width = window.innerWidth;
-        if (width < 640) setScreenSize('xs');
-        else if (width < 768) setScreenSize('sm');
-        else if (width < 1024) setScreenSize('md');
-        else setScreenSize('lg');
-      };
-      
-      updateScreenSize();
-      window.addEventListener('resize', updateScreenSize);
-      return () => window.removeEventListener('resize', updateScreenSize);
-    }, []);
-    
-    return screenSize;
-  };
+'use client';
 
 import Image from 'next/image';
-import { Box, Typography, IconButton, CircularProgress } from '@mui/material';
+import { Box, Typography, IconButton, CircularProgress, Skeleton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/navigation';
-import React, { useMemo, useEffect, useState, useRef } from 'react';
+import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
 import type { Product } from '@/types';
 
-// For PNG sources, we need extremely aggressive optimization
-const getOptimizedQualityForPng = (screenSize: string, imageIndex: number): number => {
-  // PNG to AVIF/WebP conversion allows very aggressive compression
-  const baseQuality = imageIndex === 0 ? 25 : 20; // Ultra-aggressive for PNG
+// Custom hook for progressive image loading
+const useProgressiveImage = (src: string, placeholder?: string) => {
+  const [source, setSource] = useState(placeholder || '');
+  const [loading, setLoading] = useState(true);
   
-  switch (screenSize) {
-    case 'xs':
-      return Math.max(15, baseQuality - 5);  // 15-20 quality on mobile
-    case 'sm':
-      return Math.max(18, baseQuality - 2);  // 18-23 quality on tablet
-    default:
-      return baseQuality; // 20-25 quality on desktop
-  }
-};
-
-const getOptimizedSizesForPng = (screenSize: string) => {
-  // Very conservative sizes for PNG sources to ensure <1MB
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-  const maxSize = Math.min(500, 250 * dpr); // Much smaller for PNG
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = src;
+    img.onload = () => {
+      setSource(src);
+      setLoading(false);
+    };
+    img.onerror = () => {
+      setLoading(false);
+    };
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src]);
   
-  switch (screenSize) {
-    case 'xs':
-      return `(max-width: 640px) ${Math.min(maxSize, 250)}px`;
-    case 'sm':
-      return `(max-width: 768px) ${Math.min(maxSize, 220)}px`;
-    case 'md':
-      return `(max-width: 1024px) ${Math.min(maxSize, 200)}px`;
-    default:
-      return `${Math.min(maxSize, 180)}px`;
-  }
+  return { source, loading };
 };
 
 export const ProductCard: React.FC<{
@@ -67,20 +40,23 @@ export const ProductCard: React.FC<{
 }> = ({ product, initialIsWished }) => {
   const router = useRouter();
   const { user } = useAuth();
-  const screenSize = useResponsiveImageSize();
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
   const [titleFontSize, setTitleFontSize] = useState('1rem');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
   const titleRef = useRef<HTMLSpanElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   
   // Touch handling refs
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Format image paths by replacing backslashes with forward slashes
-  const formatImagePath = (path: string): string => {
+  // Cache for loaded images
+  const loadedImagesCache = useRef<Set<string>>(new Set());
+
+  // Format image paths
+  const formatImagePath = useCallback((path: string): string => {
     let formatted = path.replace(/\\/g, '/');
     formatted = formatted.replace(/^public\//i, '/');
     formatted = formatted.replace(/\/+/g, '/');
@@ -88,84 +64,97 @@ export const ProductCard: React.FC<{
       formatted = '/' + formatted;
     }
     return formatted;
-  };
+  }, []);
 
-  // Get formatted images array
+  // Get formatted images array with memoization
   const formattedImages = useMemo(
     () => product.images?.map(formatImagePath) || [],
-    [product.images]
+    [product.images, formatImagePath]
   );
 
-  // Optimized sizes and quality for PNG sources
-  const optimizedSizes = useMemo(() => getOptimizedSizesForPng(screenSize), [screenSize]);
-  const imageQuality = useMemo(() => getOptimizedQualityForPng(screenSize, currentImageIndex), [screenSize, currentImageIndex]);
-
+  // Current image with progressive loading
+  const currentImage = formattedImages[currentImageIndex] || '';
+  const { source: progressiveSource, loading: imageLoading } = useProgressiveImage(
+    currentImage,
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+  );
+console.log("IMAGE PATH",progressiveSource,currentImage)
+  // Preload next image for smoother transitions
   useEffect(() => {
-    if (!user) return;
-    if (initialIsWished !== undefined) return;
+    if (formattedImages.length > 1) {
+      const nextIndex = (currentImageIndex + 1) % formattedImages.length;
+      const nextImage = formattedImages[nextIndex];
+      
+      if (nextImage && !loadedImagesCache.current.has(nextImage)) {
+        const img = new window.Image();
+        img.src = nextImage;
+        img.onload = () => {
+          loadedImagesCache.current.add(nextImage);
+        };
+      }
+    }
+  }, [currentImageIndex, formattedImages]);
+
+  // Wishlist effect
+  useEffect(() => {
+    if (!user || initialIsWished !== undefined) return;
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       const headers: Record<string, string> = {};
       if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+      
       fetch(`/api/wishlist?productId=${product.id}`, { headers })
         .then(res => res.ok ? res.json() : null)
-        .then(data => setIsWished(!!data));
+        .then(data => setIsWished(data?.isWished || false))
+        .catch(console.error);
     });
   }, [user, product.id, initialIsWished]);
 
+  // Font size effect
   useEffect(() => {
-    if (initialIsWished !== undefined) setIsWished(initialIsWished);
-  }, [initialIsWished]);
-
-  // Dynamic font size adjustment for title
-  useEffect(() => {
-    const adjustTitleFontSize = () => {
-      if (!titleRef.current) return;
-      
-      const container = titleRef.current.parentElement;
-      if (!container) return;
-      
-      const containerWidth = container.clientWidth - 16;
-      titleRef.current.style.fontSize = '1rem';
-      titleRef.current.style.whiteSpace = 'nowrap';
-      
-      let fontSize = 16;
-      
-      while (titleRef.current.scrollWidth > containerWidth && fontSize > 10) {
-        fontSize -= 0.5;
-        titleRef.current.style.fontSize = `${fontSize}px`;
+    const updateFontSize = () => {
+      if (titleRef.current) {
+        const containerWidth = titleRef.current.parentElement?.offsetWidth || 0;
+        if (containerWidth < 200) setTitleFontSize('0.875rem');
+        else if (containerWidth < 250) setTitleFontSize('0.9375rem');
+        else setTitleFontSize('1rem');
       }
-      
-      setTitleFontSize(`${fontSize}px`);
     };
-
-    const timer = setTimeout(adjustTitleFontSize, 100);
-    window.addEventListener('resize', adjustTitleFontSize);
     
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', adjustTitleFontSize);
-    };
-  }, [product.title]);
+    updateFontSize();
+    window.addEventListener('resize', updateFontSize);
+    return () => window.removeEventListener('resize', updateFontSize);
+  }, []);
 
-  const handleWishlistToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
       router.push('/login');
       return;
     }
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
-    if (isWished) {
-      await fetch('/api/wishlist', { method: 'DELETE', headers, body: JSON.stringify({ product_id: product.id }) });
-      setIsWished(false);
-    } else {
-      await fetch('/api/wishlist', { method: 'POST', headers, body: JSON.stringify({ product_id: product.id }) });
-      setIsWished(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/wishlist', {
+        method: isWished ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ productId: product.id }),
+      });
+
+      if (response.ok) {
+        setIsWished(!isWished);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
     }
   };
 
-  // Touch handlers for swipe functionality
+  // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -174,38 +163,37 @@ export const ProductCard: React.FC<{
     touchEndX.current = e.touches[0].clientX;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.stopPropagation(); // Prevent card click on swipe
+  const handleTouchEnd = () => {
     if (!touchStartX.current || !touchEndX.current) return;
-
-    const swipeThreshold = 50; // Minimum swipe distance
+    
     const swipeDistance = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
 
-    if (Math.abs(swipeDistance) > swipeThreshold) {
+    if (Math.abs(swipeDistance) > minSwipeDistance) {
       if (swipeDistance > 0 && formattedImages.length > 1) {
         // Swiped left - next image
-        setImageLoading(true);
         setCurrentImageIndex((prev) => 
           prev === formattedImages.length - 1 ? 0 : prev + 1
         );
       } else if (swipeDistance < 0 && formattedImages.length > 1) {
         // Swiped right - previous image
-        setImageLoading(true);
         setCurrentImageIndex((prev) => 
           prev === 0 ? formattedImages.length - 1 : prev - 1
         );
       }
     }
 
-    // Reset values
     touchStartX.current = 0;
     touchEndX.current = 0;
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
   };
 
   return (
     <Box
       onClick={() => router.push(`/preCheckout?id=${encodeURIComponent(product.id)}`)}
-      
       sx={{
         width: '100%',
         height: { xs: 320, sm: 390, md: 420 },
@@ -232,57 +220,65 @@ export const ProductCard: React.FC<{
         sx={{ 
           position: 'relative', 
           height: '85%',
-          touchAction: 'pan-y', // Allow vertical scrolling but handle horizontal swipes
+          touchAction: 'pan-y',
+          bgcolor: '#f5f5f5',
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Loading Spinner */}
-        {imageLoading && (
-          <Box
-            sx={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'rgba(255, 255, 255, 0.9)',
-              zIndex: 3,
-            }}
-          >
-            <CircularProgress size={40} />
-          </Box>
-        )}
-
         {formattedImages.length > 0 ? (
           <>
-            {/* Only render the current image */}
-            <Box
-              sx={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-              }}
-            >
-              <Image
-                src={formattedImages[currentImageIndex]}
-                alt={`${product.title} - Image ${currentImageIndex + 1}`}
-                fill
-                sizes={optimizedSizes}
-                style={{ objectFit: 'cover' }}
-                quality={imageQuality}
-                onLoad={() => setImageLoading(false)}
-                onError={() => setImageLoading(false)}
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-                priority={currentImageIndex === 0}
-                loading={currentImageIndex === 0 ? "eager" : "lazy"}
-                // Force format to AVIF/WebP for maximum compression
-                unoptimized={false}
+            {/* Image skeleton while loading */}
+            {imageLoading && (
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height="100%"
+                animation="wave"
+                sx={{ position: 'absolute', zIndex: 2 }}
               />
-            </Box>
+            )}
+
+            {/* Optimized Image with progressive loading */}
+            <Image
+              ref={imageRef}
+              src={progressiveSource || currentImage}
+              alt={`${product.title} - Image ${currentImageIndex + 1}`}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+              style={{ 
+                objectFit: 'cover',
+                opacity: imageLoading ? 0 : 1,
+                transition: 'opacity 0.3s ease-in-out'
+              }}
+              quality={75}
+              onError={handleImageError}
+              priority={currentImageIndex === 0}
+              loading={currentImageIndex === 0 ? "eager" : "lazy"}
+              // Use staticBlur for better performance
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+            />
+
+            {/* Error state */}
+            {imageError && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: 'grey.200',
+                  color: 'grey.500',
+                  zIndex: 3,
+                }}
+              >
+                <Typography>Failed to load image</Typography>
+              </Box>
+            )}
           </>
         ) : (
           <Box
@@ -300,7 +296,7 @@ export const ProductCard: React.FC<{
           </Box>
         )}
 
-        {/* Image Dots Indicator - Always visible when more than 1 image */}
+        {/* Image Dots Indicator */}
         {formattedImages.length > 1 && (
           <Box
             sx={{
@@ -322,8 +318,9 @@ export const ProductCard: React.FC<{
                 key={index}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setImageLoading(true);
-                  setCurrentImageIndex(index);
+                  if (index !== currentImageIndex) {
+                    setCurrentImageIndex(index);
+                  }
                 }}
                 sx={{
                   width: { xs: 10, sm: 8 },
@@ -350,78 +347,77 @@ export const ProductCard: React.FC<{
             position: 'absolute',
             top: 12,
             right: 12,
-            color: isWished ? 'red' : 'white',
+            color: isWished ? 'error.main' : 'action.disabled',
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(4px)',
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.95)',
+              color: 'error.main',
+            },
+            transition: 'all 0.2s ease',
             zIndex: 2,
-            bgcolor: 'rgba(0, 0, 0, 0.2)',
-            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.35)' }
           }}
         >
-          <FavoriteIcon sx={{ fontSize: '1.7rem' }} />
+          <FavoriteIcon />
         </IconButton>
       </Box>
 
-      {/* Bottom Info Row */}
+      {/* Product Details - 15% height */}
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
-          px: 1,
-          py: 1.1,
           height: '15%',
-          bgcolor: 'rgba(255,255,255,0.98)',
-          borderBottomLeftRadius: 8,
-          borderBottomRightRadius: 8,
+          px: 2,
+          py: 1.5,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1,
         }}
       >
-        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          {/* Title Row */}
-          <Box sx={{ width: '100%' }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            ref={titleRef}
+            variant="body2"
+            component="span"
+            sx={{
+              fontWeight: 600,
+              fontSize: titleFontSize,
+              lineHeight: 1.2,
+              display: 'block',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: 'text.primary',
+            }}
+          >
+            {product.title}
+          </Typography>
+        </Box>
+
+        <Box sx={{ flexShrink: 0, textAlign: 'right' }}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              color: 'primary.main',
+            }}
+          >
+            ₹{product.price_after}
+          </Typography>
+          {product.price_before && product.price_before > product.price_after && (
             <Typography
-              variant="subtitle1"
-              fontWeight={530}
-              color="black"
-              sx={{
-                fontFamily: 'sans-serif',
-                fontSize: titleFontSize,
-                whiteSpace: 'nowrap',
-                overflow: 'visible',
-                textOverflow: 'clip',
-              }}
-            >
-              <span ref={titleRef}>{product.title}</span>
-            </Typography>
-          </Box>
-          
-          {/* Price Row */}
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-            <Typography
-              variant="subtitle2"
-              fontWeight={550}
-              fontSize={20}
-              color="black"
-              sx={{
-                fontFamily: '"Montserrat", sans-serif ',
-                fontSize: { xs: '0.92rem', sm: '1rem' },
-                whiteSpace: 'nowrap',
-              }}
-            >
-              ₹{product.price_after}
-            </Typography>
-            <Typography
-              variant="body2"
-              fontWeight={400}
-              color="text.secondary"
+              variant="caption"
               sx={{
                 textDecoration: 'line-through',
-                fontFamily: '"Montserrat", sans-serif ',
-                fontSize: { xs: '0.7rem', sm: '0.82rem' },
-                whiteSpace: 'nowrap',
+                color: 'text.secondary',
+                fontSize: { xs: '0.75rem', sm: '0.8125rem' },
               }}
             >
-              ₹{product.price_before ?? product.price_after}
+              ₹{product.price_before}
             </Typography>
-          </Box>
+          )}
         </Box>
       </Box>
     </Box>

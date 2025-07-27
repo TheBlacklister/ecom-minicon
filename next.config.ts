@@ -4,42 +4,92 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   
   images: {
-    // CRITICAL: Convert PNG to modern formats - AVIF is essential for PNG compression
-    formats: ['image/avif', 'image/webp'],
+    // CRITICAL: Convert PNG to modern formats
+    formats: ['image/webp', 'image/avif'],
     
-    // Smaller breakpoints for PNG optimization - prevents oversized images
-    deviceSizes: [320, 480, 640, 768, 828, 1440, 1200],
-    imageSizes: [16, 24, 32, 48, 64, 96, 128, 192, 256, 320, 384, 512],
+    // Define responsive breakpoints optimized for your grid
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     
-    // Cache optimized images longer
+    // Increase cache duration for better performance
     minimumCacheTTL: 31536000, // 1 year
     
-    // Ensure optimization is enabled - crucial for PNG conversion
-    unoptimized: false,
-    
-    // Add quality controls
-    dangerouslyAllowSVG: false,
+    // Enable dangerously large image handling
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     
-    // Loader configuration for maximum PNG compression
-    loader: 'default',
+    // Ensure optimization is enabled
+    unoptimized: false,
     
-    // Add domains if using external images
-    remotePatterns: [
-      // Add your domains here if needed
-      // {
-      //   protocol: 'https',
-      //   hostname: 'your-domain.com',
-      // },
-    ],
+    // Add remote patterns if you're using external image sources
+    remotePatterns: [],
   },
   
   // Enable compression
   compress: true,
   
-  // Additional performance optimizations
+  // Optimize builds
+  swcMinify: true,
+  
+  // Configure headers for better caching
+  async headers() {
+    return [
+      {
+        source: '/_next/image(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/images/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  
+  // Webpack configuration for handling large assets
+  webpack: (config, { isServer }) => {
+    // Optimize image loading
+    config.module.rules.push({
+      test: /\.(png|jpg|jpeg|gif|webp|avif)$/i,
+      type: 'asset',
+      parser: {
+        dataUrlCondition: {
+          maxSize: 8 * 1024, // 8kb - inline smaller images
+        },
+      },
+      generator: {
+        filename: 'static/images/[name].[hash][ext]',
+      },
+    });
+    
+    // Increase performance hints threshold for large images
+    if (!isServer) {
+      config.performance = {
+        ...config.performance,
+        maxAssetSize: 512000, // 500kb
+        maxEntrypointSize: 512000,
+      };
+    }
+    
+    return config;
+  },
+  
+  // Experimental features for better performance
   experimental: {
-    optimizePackageImports: ['@mui/material', '@mui/icons-material'],
+    // Enable optimizeCss for production
+    optimizeCss: true,
+    // Use the new app directory features
+    scrollRestoration: true,
   },
 };
 
