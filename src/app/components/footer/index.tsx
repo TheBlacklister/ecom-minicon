@@ -19,9 +19,9 @@ export default function Footer() {
       <Container maxWidth="lg">
         <Box sx={{ px: { xs: 2, sm: 3, md: 3, lg: 3 }, py: { xs: 3, sm: 4, md: 4, lg: 4 } }}>
           <Grid container spacing={4}>
-            {/* Column 1: About Us (Learn More only) */}
+            {/* Column 1: About Us (Learn More only) - Shifted 3vw to the right on desktop */}
             <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-              <Stack spacing={0.5}>
+              <Stack spacing={0.5} sx={{ marginLeft: { md: '6vw', lg: '6vw' } }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: '"Montserrat", sans-serif ' }}>ABOUT US</Typography>
                 <Stack spacing={0.5}>
                   <Link href="/about" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Learn More</Link>
@@ -76,9 +76,9 @@ export default function Footer() {
               </Box>
             </Grid>
 
-            {/* Column 4: Follow Us */}
+            {/* Column 4: Follow Us - Shifted 3vw to the right on desktop */}
             <Grid size={{ xs: 12, sm: 12, md: 3 }}>
-              <Box>
+              <Box sx={{ marginLeft: { md: '3vw', lg: '6vw' } }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1 }}>FOLLOW US</Typography>
                 <Typography variant="body2" sx={{ mb: 1 }}>Stay in touch!</Typography>
                 <Stack direction="row" spacing={1}>

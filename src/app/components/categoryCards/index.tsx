@@ -18,7 +18,7 @@ const categories: CategoryCardProps[] = [
     route: '/categories/price_after/999'
   },
   { 
-    image: '/products/Regular Fit Tshirt/Peace/3Peace.png', 
+    image: '/products/Regular Fit Tshirt/Flourish-N_Asthestic/1Flourish.png', 
     title: 'T-shirts',
     route: '/categories/shop-by/new-arrivals'
   },
@@ -48,12 +48,12 @@ const categories: CategoryCardProps[] = [
     route: "/categories/category/men's-sweatshirts"
   },
   { 
-    image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Faith over fear 2_Printed & Streetear/3 faith over fear.png', 
+    image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Minicon Puff Gray_Minimalist or Puff/1Minicon Puff Gray.png', 
     title: 'Puff',
     route: '/categories/collections/puffed'
   },
   { 
-    image: '/products/Oversized Solid/Oversized Solid/Red/4Solid Red Oversized Classic T-Shirt.png', 
+    image: '/products/Regular fit Solid Supima/Regular fit Solid Supima/supimaThumbNail.jpg', 
     title: 'Supima',
     route: '/categories/material/super_combed_cotton'
   },
