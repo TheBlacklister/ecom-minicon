@@ -76,7 +76,7 @@ export const ProductCard: React.FC<{
   const currentImage = formattedImages[currentImageIndex] || '';
   const { source: progressiveSource, loading: imageLoading } = useProgressiveImage(
     currentImage,
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPceW7zfwAHXAK5c0QjkwAAAABJRU5ErkJggg=='
   );
 console.log("IMAGE PATH",progressiveSource,currentImage)
   // Preload next image for smoother transitions
@@ -343,6 +343,7 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
         <IconButton
           aria-label="add to wishlist"
           onClick={handleWishlistToggle}
+          size="small"
           sx={{
             position: 'absolute',
             top: 12,
@@ -356,6 +357,11 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
             },
             transition: 'all 0.2s ease',
             zIndex: 2,
+            width: 23,
+            height: 23,
+            '& .MuiSvgIcon-root': {
+              fontSize: '1.25rem',
+            },
           }}
         >
           <FavoriteIcon />

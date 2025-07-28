@@ -260,8 +260,8 @@ const PreCheckout = () => {
       sx={{
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        gap: { xs: 2, md: 6 },
-        padding: { xs: "3vh 4vw", md: "5vh 7vw" },
+        gap: { xs: 0, md: 6 },
+        padding: { xs: "0", md: "5vh 7vw" },
         bgcolor: "white",
         minHeight: "100vh",
         width: "100%",
@@ -273,11 +273,14 @@ const PreCheckout = () => {
       {/* Product Image with carousel */}
       <Box
         sx={{
-          width: { xs: '100%', md: '38vw' },
-          minWidth: 220,
+          width: { xs: '100vw', md: '38vw' },
+          minWidth: {  md: 220 },
           flexShrink: 0,
           alignSelf: { md: 'flex-start' },
           mb: { xs: 2, md: 0 },
+          ml: { sm: 0, md: 0 },
+          mr: { sm: 0, md: 0 },
+          px: { xs: 0, md: 0 },
         }}
       >
         {/* Main Image with Navigation */}
@@ -287,7 +290,7 @@ const PreCheckout = () => {
             width: '100%',
             aspectRatio: '4/5',
             bgcolor: 'white',
-            borderRadius: 3,
+            borderRadius: { xs: 0, md: 3 },
             overflow: 'hidden',
             mb: 2,
           }}
@@ -325,8 +328,8 @@ const PreCheckout = () => {
                 src={formattedImages[currentImageIndex]}
                 alt={`${product.title} - Image ${currentImageIndex + 1}`}
                 fill
-                style={{ objectFit: 'contain' }}
-                sizes="(max-width: 600px) 90vw, 40vw"
+                style={{ objectFit: 'cover' }}
+                sizes="(max-width: 600px) 100vw, 40vw"
                 quality={75}
                 onLoad={() => setMainImageLoading(false)}
                 onError={() => setMainImageLoading(false)}
@@ -429,6 +432,7 @@ const PreCheckout = () => {
               gap: 1,
               overflowX: 'auto',
               pb: 1,
+              px: { xs: 2, md: 0 },
               '&::-webkit-scrollbar': {
                 height: 6,
               },
@@ -510,6 +514,8 @@ const PreCheckout = () => {
           gap: 2,
           color: "black",
           pl: { md: 2 },
+          px: { xs: '4vw', md: 0 },
+          pt: { xs: 2, md: 0 },
         }}
       >
         {/* Title with Favorite Icon */}
@@ -563,48 +569,50 @@ const PreCheckout = () => {
         
         {/* Size Buttons */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1" fontWeight={700} mb={1} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
-            Select size
-          </Typography>
-          {product.available_sizes.map((s) => (
-            <Button
-              key={s}
-              onClick={() => setSelectedSize(s)}
-              sx={{
-                border: selectedSize === s ? '2px solid #e53935' : '1px solid',
-                borderRadius: 1,
-                px: 1.5,
-                py: 0.5,
-                fontSize: 14,
-                color: selectedSize === s ? '#e53935' : 'black',
-                margin: '1vh 0.5vw',
-                textTransform: 'none',
-                fontWeight: selectedSize === s ? 700 : 400,
-                fontFamily: '"Montserrat", sans-serif ',
-                bgcolor: selectedSize === s ? '#ffeaea' : 'white',
-                boxShadow: selectedSize === s ? 2 : 0,
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, maxWidth: 'fit-content' }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ fontFamily: '"Montserrat", sans-serif ', mr: 3 }}>
+              Select size
+            </Typography>
+            <Typography 
+              variant="body2" 
+              onClick={handleSizeChartOpen}
+              sx={{ 
+                color: '#1976d2', 
+                fontFamily: '"Montserrat", sans-serif ', 
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                '&:hover': {
+                  color: '#1565c0',
+                }
               }}
             >
-              {s}
-            </Button>
-          ))}
-          <Typography 
-            variant="body2" 
-            onClick={handleSizeChartOpen}
-            sx={{ 
-              ml: 1, 
-              color: '#1976d2', 
-              display: 'inline', 
-              fontFamily: '"Montserrat", sans-serif ', 
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              '&:hover': {
-                color: '#1565c0',
-              }
-            }}
-          >
-            Size Chart
-          </Typography>
+              Size Chart
+            </Typography>
+          </Box>
+          <Box>
+            {product.available_sizes.map((s) => (
+              <Button
+                key={s}
+                onClick={() => setSelectedSize(s)}
+                sx={{
+                  border: selectedSize === s ? '2px solid #e53935' : '1px solid',
+                  borderRadius: 1,
+                  px: 1.5,
+                  py: 0.5,
+                  fontSize: 14,
+                  color: selectedSize === s ? '#e53935' : 'black',
+                  margin: '1vh 0.5vw',
+                  textTransform: 'none',
+                  fontWeight: selectedSize === s ? 700 : 400,
+                  fontFamily: '"Montserrat", sans-serif ',
+                  bgcolor: selectedSize === s ? '#ffeaea' : 'white',
+                  boxShadow: selectedSize === s ? 2 : 0,
+                }}
+              >
+                {s}
+              </Button>
+            ))}
+          </Box>
         </Box>
         
         {/* Action Buttons - Updated to vertical layout */}
@@ -723,6 +731,12 @@ const PreCheckout = () => {
                   </li>
                 ))}
               </ul>
+              <Typography variant="body2" color="black" sx={{ fontFamily: '"Montserrat", sans-serif ', mt: 2 }}>
+                <strong>NOTE:</strong> Please note that due to varying lighting conditions, the colors and textures shown in our product images may differ slightly from the actual garment. We make every effort to ensure accurate representation, but subtle variations may occur.
+              </Typography>
+              <Typography variant="body2" color="black" sx={{ fontFamily: '"Montserrat", sans-serif ', mt: 1 }}>
+                Each Minicon piece is custom-crafted and print placements may vary—enhancing the individuality and uniqueness of your garment. We appreciate your understanding and thank you for celebrating the distinct character of every creation.
+              </Typography>
             </AccordionDetails>
           </Accordion>
 
