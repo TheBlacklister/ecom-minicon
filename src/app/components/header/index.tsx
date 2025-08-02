@@ -268,17 +268,17 @@ export default function Header() {
     <>
       <header className={styles.header}>
         {/* Mobile menu button */}
-        {isMobile && (
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleMobileMenuToggle}
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleMobileMenuToggle}
             sx={{ mr: 2, color: 'white' }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
 
         {/* Center group: logo and menus */}
         <div className={styles.centerGroup}>
@@ -300,8 +300,8 @@ export default function Header() {
 
           {!isMobile && renderMenus()}
 
-          {/* Right actions */}
-          <div className={styles.actions}>
+        {/* Right actions */}
+        <div className={styles.actions}>
             {/* Search Icon - Now functional */}
             {!isMobile && (
               <SearchIcon
@@ -313,13 +313,13 @@ export default function Header() {
             
             <Badge 
               badgeContent={user ? wishlistCount : 0} 
-              color="error"
               sx={{
                 '& .MuiBadge-badge': {
-                  right: -3,
-                  top: 13,
-                  border: '2px solid white',
-                  padding: '0 4px',
+                  right: -5,
+                  top:0,
+                  border: '1px solid white',
+                  backgroundColor: '#000',
+                  color: '#fff',
                 }
               }}
             >
@@ -332,13 +332,13 @@ export default function Header() {
            
             <Badge 
               badgeContent={user ? cartCount : 0} 
-              color="error"
               sx={{
                 '& .MuiBadge-badge': {
-                  right: -3,
-                  top: 13,
-                  border: '2px solid white',
-                  padding: '0 4px',
+                  right: -5,
+                  top: 0,
+                  border: '1px solid white',
+                  backgroundColor: '#000',
+                  color: '#fff',
                 }
               }}
             >
@@ -360,7 +360,7 @@ export default function Header() {
               style={{ cursor: 'pointer' }}
             />
           </div>
-        </div>
+          </div>
 
         {/* Mobile menu drawer */}
         <Drawer
