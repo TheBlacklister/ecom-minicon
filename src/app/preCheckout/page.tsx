@@ -10,7 +10,6 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import Input from '@mui/material/Input';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -19,7 +18,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
 import { useCount } from '../components/CountProvider';
 import { ProductCard } from '../components/productCard';
-import { GridLegacy as Grid } from '@mui/material';
 
 
 const PreCheckout = () => {
@@ -30,9 +28,8 @@ const PreCheckout = () => {
   const id = searchParams.get("id");
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = React.useState('');
-  const [quantity, setQuantity] = React.useState(1);
-  const [pincode, setPincode] = React.useState("");
+  const [selectedSize, setSelectedSize] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [isWished, setIsWished] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
@@ -42,8 +39,6 @@ const PreCheckout = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
-
-  console.log("products",product)
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
     let formatted = path.replace(/\\/g, '/');

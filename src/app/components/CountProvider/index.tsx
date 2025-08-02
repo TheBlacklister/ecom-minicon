@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
 
@@ -23,7 +23,7 @@ export function CountProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   // Fetch cart count from API
-  const updateCartCount = async () => {
+  const updateCartCount = useCallback(async () => {
     if (!user) {
       setCartCount(0);
       return;
@@ -44,10 +44,10 @@ export function CountProvider({ children }: { children: ReactNode }) {
       console.error('Error fetching cart count:', error);
       setCartCount(0);
     }
-  };
+  }, [user]);
 
   // Fetch wishlist count from API
-  const updateWishlistCount = async () => {
+  const updateWishlistCount = useCallback(async () => {
     if (!user) {
       setWishlistCount(0);
       return;
@@ -67,7 +67,7 @@ export function CountProvider({ children }: { children: ReactNode }) {
       console.error('Error fetching wishlist count:', error);
       setWishlistCount(0);
     }
-  };
+  }, [user]);
 
   // Optimistic updates for better UX
   const incrementCartCount = () => setCartCount(prev => prev + 1);
@@ -84,7 +84,7 @@ export function CountProvider({ children }: { children: ReactNode }) {
       setCartCount(0);
       setWishlistCount(0);
     }
-  }, [user]);
+  }, [user, updateCartCount, updateWishlistCount]);
 
   const value = {
     cartCount,
