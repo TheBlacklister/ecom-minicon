@@ -8,6 +8,7 @@ import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '../AuthProvider'
+import { useCount } from '../CountProvider'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@/types'
 
@@ -36,6 +37,7 @@ const convertImagePath = (path: string): string => {
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth()
+  const { updateCartCount } = useCount()
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState<boolean>(false)
@@ -72,6 +74,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
     if (res.ok) {
       const data = await res.json()
       setCart(cart.map(c => c.id === id ? { ...c, qty: data.quantity } : c))
+      updateCartCount() // Update global count
     }
   }
 
@@ -84,11 +87,13 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
     if (item.qty <= 1) {
       await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: id }) })
       setCart(cart.filter(c => c.id !== id))
+      updateCartCount() // Update global count
     } else {
       const res = await fetch('/api/cart', { method: 'PUT', headers, body: JSON.stringify({ product_id: id, quantity: item.qty - 1 }) })
       if (res.ok) {
         const data = await res.json()
         setCart(cart.map(c => c.id === id ? { ...c, qty: data.quantity } : c))
+        updateCartCount() // Update global count
       }
     }
   }
@@ -99,6 +104,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`
     await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: id }) })
     setCart(cart.filter(c => c.id !== id))
+    updateCartCount() // Update global count
   }
 
   return (

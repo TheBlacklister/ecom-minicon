@@ -16,6 +16,16 @@ export default function WishlistPage() {
   const [wishlist, setWishlist] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Handle wishlist changes from ProductCard components
+  const handleWishlistChange = (productId: number, isWished: boolean) => {
+    if (!isWished) {
+      // Remove the product from wishlist when unwishlisted
+      setWishlist(prevWishlist => 
+        prevWishlist.filter(product => product.id !== productId)
+      );
+    }
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const headers: Record<string, string> = {};
@@ -84,7 +94,11 @@ export default function WishlistPage() {
         <Grid container spacing={2} justifyContent="center">
           {wishlist.map((item) => (
             <Grid key={item.id} item xs={12} sm={6} md={4} lg={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <ProductCard product={item} initialIsWished={true} />
+              <ProductCard 
+                product={item} 
+                initialIsWished={true} 
+                onWishlistChange={handleWishlistChange}
+              />
             </Grid>
           ))}
         </Grid>

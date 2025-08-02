@@ -21,15 +21,17 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import styles from './index.module.css';
 import { MENUS } from '@/app/dummyData';
-import { Typography, Divider, InputAdornment, Card, CardContent } from '@mui/material'
+import { Typography, Divider, InputAdornment, Card, CardContent, Badge } from '@mui/material'
 import CartDrawer from '../cartDrawer'
 import { useAuth } from '../AuthProvider'
+import { useCount } from '../CountProvider'
 
 export default function Header() {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAuth();
+  const { cartCount, wishlistCount } = useCount();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [search, setSearch] = useState('');
@@ -309,25 +311,52 @@ export default function Header() {
               />
             )}
             
-            <FavoriteBorderOutlined
-              className={styles.icon}
-              onClick={() => router.push(user ? '/wishlist' : '/login')}
-              style={{ cursor: 'pointer' }}
-            />
+            <Badge 
+              badgeContent={user ? wishlistCount : 0} 
+              color="error"
+              sx={{
+                '& .MuiBadge-badge': {
+                  right: -3,
+                  top: 13,
+                  border: '2px solid white',
+                  padding: '0 4px',
+                }
+              }}
+            >
+              <FavoriteBorderOutlined
+                className={styles.icon}
+                onClick={() => router.push(user ? '/wishlist' : '/login')}
+                style={{ cursor: 'pointer' }}
+              />
+            </Badge>
+           
+            <Badge 
+              badgeContent={user ? cartCount : 0} 
+              color="error"
+              sx={{
+                '& .MuiBadge-badge': {
+                  right: -3,
+                  top: 13,
+                  border: '2px solid white',
+                  padding: '0 4px',
+                }
+              }}
+            >
+              <ShoppingCartIcon
+                className={styles.icon}
+                onClick={() => {
+                  if (!user) {
+                    router.push('/login');
+                  } else {
+                    setCartOpen(true);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
+              />
+            </Badge>
             <AccountCircleIcon
               className={styles.icon}
               onClick={() => router.push(user ? '/account' : '/login')}
-              style={{ cursor: 'pointer' }}
-            />
-            <ShoppingCartIcon
-              className={styles.icon}
-              onClick={() => {
-                if (!user) {
-                  router.push('/login');
-                } else {
-                  setCartOpen(true);
-                }
-              }}
               style={{ cursor: 'pointer' }}
             />
           </div>

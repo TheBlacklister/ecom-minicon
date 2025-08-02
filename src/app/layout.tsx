@@ -3,6 +3,7 @@ import Header from './components/header'
 import Footer from './components/footer'
 import MuiTheme from './components/ThemeProvider'
 import AuthProvider from './components/AuthProvider'
+import { CountProvider } from './components/CountProvider'
 import { Box } from '@mui/material';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -57,17 +58,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       >
         <AuthProvider>
-          {!isAuthPage && <Header />}
-          <main style={{ flex: 1 }}>
-            <MuiTheme>
-              <Box sx={{
-                margin: { xs: '8vh 0 6vh 0', sm: '8vh 0 8vh 0',md: '8vh 0 8vh 0'},
-              }}>
-                {children}
-              </Box>
-            </MuiTheme>
-          </main>
-          {!isAuthPage && <Footer />}
+          <CountProvider>
+            {!isAuthPage && <Header />}
+            <main style={{ flex: 1 }}>
+              <MuiTheme>
+                <Box sx={{
+                  margin: { xs: '8vh 0 6vh 0', sm: '8vh 0 8vh 0',md: '8vh 0 8vh 0'},
+                }}>
+                  {children}
+                </Box>
+              </MuiTheme>
+            </main>
+            {!isAuthPage && <Footer />}
+          </CountProvider>
         </AuthProvider>
       </body>
     </html>

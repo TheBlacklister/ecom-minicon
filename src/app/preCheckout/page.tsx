@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton } from "@mui/material";
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert } from "@mui/material";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -17,11 +17,13 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
+import { useCount } from '../components/CountProvider';
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { incrementCartCount, incrementWishlistCount, decrementWishlistCount } = useCount();
   const id = searchParams.get("id");
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,7 @@ const PreCheckout = () => {
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [mainImageLoading, setMainImageLoading] = useState(true);
   const [thumbnailsLoaded, setThumbnailsLoaded] = useState<boolean[]>([]);
+  const [showNotification, setShowNotification] = useState(false);
 
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
@@ -174,11 +177,17 @@ const PreCheckout = () => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
     if (isWished) {
-      await fetch('/api/wishlist', { method: 'DELETE', headers, body: JSON.stringify({ product_id: product.id }) });
-      setIsWished(false);
+      const response = await fetch('/api/wishlist', { method: 'DELETE', headers, body: JSON.stringify({ productId: product.id }) });
+      if (response.ok) {
+        setIsWished(false);
+        decrementWishlistCount();
+      }
     } else {
-      await fetch('/api/wishlist', { method: 'POST', headers, body: JSON.stringify({ product_id: product.id }) });
-      setIsWished(true);
+      const response = await fetch('/api/wishlist', { method: 'POST', headers, body: JSON.stringify({ productId: product.id }) });
+      if (response.ok) {
+        setIsWished(true);
+        incrementWishlistCount();
+      }
     }
   };
 
@@ -197,6 +206,10 @@ const PreCheckout = () => {
     });
     if (res.ok) {
       await res.json();
+      // Update cart count optimistically
+      incrementCartCount();
+      // Show success notification
+      setShowNotification(true);
     }
   };
 
@@ -209,13 +222,17 @@ const PreCheckout = () => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
     
-    await fetch('/api/cart?buyNow=true', {
+    const response = await fetch('/api/cart?buyNow=true', {
       method: 'POST',
       headers,
       body: JSON.stringify({ product_id: product.id, quantity: quantity })
     });
     
-    router.push(`/cart?buyNow=${product.id}`);
+    if (response.ok) {
+      // Update cart count optimistically
+      incrementCartCount();
+      router.push(`/cart?buyNow=${product.id}`);
+    }
   };
 
   const handlePrevImage = () => {
@@ -857,6 +874,30 @@ const PreCheckout = () => {
             </DialogContent>
           </Box>
         </Dialog>
+
+        {/* Success Notification */}
+        <Snackbar
+          open={showNotification}
+          autoHideDuration={3000}
+          onClose={() => setShowNotification(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          sx={{ mb: 2 }}
+        >
+          <Alert 
+            onClose={() => setShowNotification(false)} 
+            severity="success" 
+            variant="filled"
+            sx={{
+              fontFamily: '"Montserrat", sans-serif',
+              fontWeight: 500,
+              '& .MuiAlert-message': {
+                padding: '4px 0',
+              }
+            }}
+          >
+            Item added to cart successfully
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );
