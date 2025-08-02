@@ -15,7 +15,7 @@ import type { Product } from '@/types'
 interface CartItem {
   id: number
   title: string
-  subtitle: string
+  subtitle: string | null
   img: string
   price: number
   qty: number
