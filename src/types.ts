@@ -1,12 +1,12 @@
 export interface Product {
   id: number;
   title: string;
-  subtitle: string;
+  subtitle: string | null;
   description: string | null;
   price_before: number | null;
   price_after: number;
   discount_percentage: number | null;
-  category: string;
+  category: string[];
   collections: string[];
   material: string | null;
   images: string[];
