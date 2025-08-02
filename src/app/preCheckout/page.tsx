@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert } from "@mui/material";
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container } from "@mui/material";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -18,6 +18,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
 import { useCount } from '../components/CountProvider';
+import { ProductCard } from '../components/productCard';
+import { GridLegacy as Grid } from '@mui/material';
+
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -37,7 +40,10 @@ const PreCheckout = () => {
   const [mainImageLoading, setMainImageLoading] = useState(true);
   const [thumbnailsLoaded, setThumbnailsLoaded] = useState<boolean[]>([]);
   const [showNotification, setShowNotification] = useState(false);
+  const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
+  const [suggestedLoading, setSuggestedLoading] = useState(false);
 
+  console.log("products",product)
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
     let formatted = path.replace(/\\/g, '/');
@@ -84,9 +90,39 @@ const PreCheckout = () => {
       if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
       fetch(`/api/wishlist?productId=${product.id}`, { headers })
         .then(res => res.ok ? res.json() : null)
-        .then(data => setIsWished(!!data));
+        .then(data => setIsWished(data?.isWished || false));
     });
   }, [user, product]);
+
+  // Fetch suggested products based on matching collections
+  useEffect(() => {
+    if (!product) return;
+    
+    setSuggestedLoading(true);
+    fetch('/api/products')
+      .then(res => res.ok ? res.json() : [])
+      .then((allProducts: Product[]) => {
+        // Filter products with matching collections, excluding current product
+        const matchingProducts = allProducts.filter(p => 
+          p.id !== product.id && // Exclude current product
+          p.is_active !== false && // Only active products
+          p.collections && p.collections.length > 0 && // Has collections
+          product.collections && product.collections.length > 0 && // Current product has collections
+          p.collections.some(collection => 
+            product.collections.includes(collection)
+          )
+        ).slice(0, 8); // Limit to 8 products
+        
+        setSuggestedProducts(matchingProducts);
+      })
+      .catch(error => {
+        console.error('Error fetching suggested products:', error);
+        setSuggestedProducts([]);
+      })
+      .finally(() => {
+        setSuggestedLoading(false);
+      });
+  }, [product]);
 
   // Show loading screen while fetching data
   if (loading) {
@@ -273,6 +309,7 @@ const PreCheckout = () => {
   };
 
   return (
+    <>
     <Box
       sx={{
         display: "flex",
@@ -544,8 +581,12 @@ const PreCheckout = () => {
             aria-label="add to wishlist"
             onClick={handleWishlistToggle}
             sx={{ 
-              color: isWished ? 'red' : 'grey.600',
-              padding: 1
+              color: isWished ? 'error.main' : 'action.disabled',
+              padding: 1,
+              '&:hover': {
+                color: 'error.main',
+              },
+              transition: 'all 0.2s ease',
             }}
           >
             <FavoriteIcon sx={{ fontSize: '1.8rem' }} />
@@ -695,18 +736,7 @@ const PreCheckout = () => {
           <InstagramIcon sx={{ color: '#C13584', cursor: 'pointer' }} />
         </Box>
         
-        {/* Delivery Details */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Input
-            placeholder="Enter Pincode"
-            value={pincode}
-            onChange={e => setPincode(e.target.value)}
-            sx={{ fontFamily: '"Montserrat", sans-serif ', fontSize: 15, width: 160 }}
-          />
-          <Button variant="outlined" color="primary" sx={{ fontFamily: '"Montserrat", sans-serif ', fontWeight: 600 }}>
-            CHECK
-          </Button>
-        </Box>
+       
         
         {/* Description Section */}
         <Box sx={{ mt: 2 }}>
@@ -875,6 +905,7 @@ const PreCheckout = () => {
           </Box>
         </Dialog>
 
+
         {/* Success Notification */}
         <Snackbar
           open={showNotification}
@@ -900,6 +931,108 @@ const PreCheckout = () => {
         </Snackbar>
       </Box>
     </Box>
+
+    {/* Suggested Products Section - Full Width at Bottom */}
+    {!loading && product && (suggestedProducts.length > 0 || suggestedLoading) && (
+      <Box sx={{ width: '100%', bgcolor: '#f9f9f9', py: 6 }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontFamily: '"Montserrat", sans-serif', 
+              fontWeight: 700, 
+              textAlign: 'center', 
+              mb: 4,
+              color: '#222'
+            }}
+          >
+            Suggested for you
+          </Typography>
+          
+          {suggestedLoading ? (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                gap: 3, 
+                overflowX: 'auto',
+                pb: 2,
+                '&::-webkit-scrollbar': {
+                  height: 8,
+                },
+                '&::-webkit-scrollbar-track': {
+                  bgcolor: 'grey.200',
+                  borderRadius: 4,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  bgcolor: 'grey.400',
+                  borderRadius: 4,
+                  '&:hover': {
+                    bgcolor: 'grey.500',
+                  },
+                },
+              }}
+            >
+              {[...Array(6)].map((_, index) => (
+                <Box key={index} sx={{ minWidth: { xs: 280, sm: 300, md: 320 }, height: 400 }}>
+                  <Skeleton 
+                    variant="rectangular" 
+                    width="100%" 
+                    height="85%" 
+                    sx={{ borderRadius: 2, mb: 1 }} 
+                  />
+                  <Skeleton variant="text" width="80%" height={24} />
+                  <Skeleton variant="text" width="60%" height={20} />
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                gap: 3, 
+                overflowX: 'auto',
+                pb: 2,
+                '&::-webkit-scrollbar': {
+                  height: 8,
+                },
+                '&::-webkit-scrollbar-track': {
+                  bgcolor: 'grey.200',
+                  borderRadius: 4,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  bgcolor: 'grey.400',
+                  borderRadius: 4,
+                  '&:hover': {
+                    bgcolor: 'grey.500',
+                  },
+                },
+              }}
+            >
+              {suggestedProducts.map((suggestedProduct) => (
+                <Box 
+                  key={suggestedProduct.id}
+                  sx={{ 
+                    minWidth: { xs: 280, sm: 300, md: 320 },
+                    flexShrink: 0
+                  }}
+                >
+                  <ProductCard 
+                    product={suggestedProduct}
+                    onWishlistChange={(productId, isWished) => {
+                      // Update suggested products wishlist state if needed
+                      setSuggestedProducts(prev => 
+                        prev.map(p => p.id === productId ? {...p, isWished} : p)
+                      );
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Container>
+      </Box>
+    )}
+  </>
   );
 };
 
