@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
+import { useCount } from '../CountProvider';
 import type { Product } from '@/types';
 
 // Custom hook for progressive image loading
@@ -37,9 +38,11 @@ const useProgressiveImage = (src: string, placeholder?: string) => {
 export const ProductCard: React.FC<{
   product: Product;
   initialIsWished?: boolean;
-}> = ({ product, initialIsWished }) => {
+  onWishlistChange?: (productId: number, isWished: boolean) => void;
+}> = ({ product, initialIsWished, onWishlistChange }) => {
   const router = useRouter();
   const { user } = useAuth();
+  const { incrementWishlistCount, decrementWishlistCount } = useCount();
   const [isWished, setIsWished] = useState(initialIsWished ?? false);
   const [titleFontSize, setTitleFontSize] = useState('1rem');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -95,9 +98,9 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
     }
   }, [currentImageIndex, formattedImages]);
 
-  // Wishlist effect
+  // Wishlist effect - always sync with server state
   useEffect(() => {
-    if (!user || initialIsWished !== undefined) return;
+    if (!user) return;
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       const headers: Record<string, string> = {};
@@ -105,10 +108,13 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
       
       fetch(`/api/wishlist?productId=${product.id}`, { headers })
         .then(res => res.ok ? res.json() : null)
-        .then(data => setIsWished(data?.isWished || false))
+        .then(data => {
+          const serverIsWished = data?.isWished || false;
+          setIsWished(serverIsWished);
+        })
         .catch(console.error);
     });
-  }, [user, product.id, initialIsWished]);
+  }, [user, product.id]);
 
   // Font size effect
   useEffect(() => {
@@ -147,7 +153,18 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
       });
 
       if (response.ok) {
-        setIsWished(!isWished);
+        const newWishedState = !isWished;
+        setIsWished(newWishedState);
+        
+        // Update global count optimistically
+        if (newWishedState) {
+          incrementWishlistCount();
+        } else {
+          decrementWishlistCount();
+        }
+        
+        // Notify parent component about the wishlist change
+        onWishlistChange?.(product.id, newWishedState);
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
