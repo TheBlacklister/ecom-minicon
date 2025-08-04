@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 const Cart = () => {
   const searchParams = useSearchParams()
   const buyNowProductId = searchParams.get('buyNow')
+  const couponCode = searchParams.get('coupon')
 
   return (
     <div style={{
@@ -14,7 +15,7 @@ const Cart = () => {
       display: 'flex',
       flexDirection: 'column',
     }}>
-      <CartPage buyNowProductId={buyNowProductId} />
+      <CartPage buyNowProductId={buyNowProductId} couponCode={couponCode} />
     </div>
   )
 }

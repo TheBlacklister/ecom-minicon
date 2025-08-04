@@ -36,6 +36,24 @@ const PreCheckout = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
+
+  // Coupon data
+  const availableCoupons = [
+    {
+      code: 'ONLINE100',
+      discount: 100,
+      description: 'Get ₹100 off on online payment',
+      type: 'online_payment'
+    },
+    {
+      code: 'FLAT500',
+      discount: 500,
+      description: 'Get flat ₹500 off on orders above ₹2000',
+      minOrder: 2000,
+      type: 'flat_discount'
+    }
+  ];
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
     let formatted = path.replace(/\\/g, '/');
@@ -253,13 +271,18 @@ const PreCheckout = () => {
     const response = await fetch('/api/cart?buyNow=true', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ product_id: product.id, quantity: quantity })
+      body: JSON.stringify({ 
+        product_id: product.id, 
+        quantity: quantity,
+        coupon: selectedCoupon?.code || null
+      })
     });
     
     if (response.ok) {
       // Update cart count optimistically
       incrementCartCount();
-      router.push(`/cart?buyNow=${product.id}`);
+      const couponParam = selectedCoupon?.code ? `&coupon=${selectedCoupon.code}` : '';
+      router.push(`/cart?buyNow=${product.id}${couponParam}`);
     }
   };
 
@@ -330,6 +353,36 @@ const PreCheckout = () => {
       document.body.removeChild(textArea);
       alert('URL copied to clipboard! You can now paste it in your Instagram story or post.');
     });
+  };
+
+  // Coupon selection handler
+  const handleCouponSelect = (coupon: typeof availableCoupons[0]) => {
+    if (selectedCoupon?.code === coupon.code) {
+      setSelectedCoupon(null); // Deselect if already selected
+    } else {
+      setSelectedCoupon(coupon);
+    }
+  };
+
+  // Calculate discounted price
+  const getDiscountedPrice = () => {
+    if (!selectedCoupon) return product?.price_after || 0;
+    
+    const basePrice = (product?.price_after || 0) * quantity;
+    
+    // Check if minimum order requirement is met
+    if (selectedCoupon.minOrder && basePrice < selectedCoupon.minOrder) {
+      return basePrice;
+    }
+    
+    return Math.max(0, basePrice - selectedCoupon.discount);
+  };
+
+  // Check if coupon is applicable
+  const isCouponApplicable = (coupon: typeof availableCoupons[0]) => {
+    if (!coupon.minOrder) return true;
+    const basePrice = (product?.price_after || 0) * quantity;
+    return basePrice >= coupon.minOrder;
   };
 
   return (
@@ -621,32 +674,74 @@ const PreCheckout = () => {
         </Typography>
         
         {/* Price and Quantity */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: '"Montserrat", sans-serif ', color: '#222' }}>
-            ₹{product.price_after}
-          </Typography>
-          {product.price_before && product.price_before > product.price_after && (
-            <Typography 
-              sx={{ 
-                fontSize: "1.2rem", 
-                textDecoration: 'line-through', 
-                color: 'grey.600',
-                fontFamily: '"Montserrat", sans-serif ' 
-              }}
-            >
-              ₹{product.price_before}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: '"Montserrat", sans-serif ', color: '#222' }}>
+              ₹{product.price_after}
             </Typography>
+            {product.price_before && product.price_before > product.price_after && (
+              <Typography 
+                sx={{ 
+                  fontSize: "1.2rem", 
+                  textDecoration: 'line-through', 
+                  color: 'grey.600',
+                  fontFamily: '"Montserrat", sans-serif ' 
+                }}
+              >
+                ₹{product.price_before}
+              </Typography>
+            )}
+            <Select
+              value={quantity}
+              onChange={e => setQuantity(Number(e.target.value))}
+              size="small"
+              sx={{ minWidth: 60, fontFamily: '"Montserrat", sans-serif ', fontWeight: 500 }}
+            >
+              {[...Array(10)].map((_, i) => (
+                <MenuItem key={i + 1} value={i + 1}>{i + 1}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          
+          {/* Coupon Pricing Display */}
+          {selectedCoupon && (
+            <Box sx={{ 
+              backgroundColor: '#f8f9fa', 
+              border: '1px solid #e0e0e0', 
+              borderRadius: 1, 
+              p: 1.5,
+              mt: 1
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#666' }}>
+                  Subtotal (Qty: {quantity})
+                </Typography>
+                <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#666' }}>
+                  ₹{(product.price_after * quantity).toFixed(2)}
+                </Typography>
+              </Box>
+              
+              {selectedCoupon && isCouponApplicable(selectedCoupon) && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#e53935' }}>
+                    Coupon ({selectedCoupon.code})
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#e53935' }}>
+                    -₹{selectedCoupon.discount}
+                  </Typography>
+                </Box>
+              )}
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5, borderTop: '1px solid #e0e0e0' }}>
+                <Typography variant="body1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif', color: '#222' }}>
+                  Total
+                </Typography>
+                <Typography variant="body1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif', color: '#222' }}>
+                  ₹{getDiscountedPrice().toFixed(2)}
+                </Typography>
+              </Box>
+            </Box>
           )}
-          <Select
-            value={quantity}
-            onChange={e => setQuantity(Number(e.target.value))}
-            size="small"
-            sx={{ minWidth: 60, fontFamily: '"Montserrat", sans-serif ', fontWeight: 500 }}
-          >
-            {[...Array(10)].map((_, i) => (
-              <MenuItem key={i + 1} value={i + 1}>{i + 1}</MenuItem>
-            ))}
-          </Select>
         </Box>
         
         {/* Size Buttons */}
@@ -694,6 +789,121 @@ const PreCheckout = () => {
                 {s}
               </Button>
             ))}
+          </Box>
+        </Box>
+        
+        {/* Coupon Section */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ fontFamily: '"Montserrat", sans-serif', mb: 2 }}>
+            Available Offers
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {availableCoupons.map((coupon) => {
+              const isApplicable = isCouponApplicable(coupon);
+              const isSelected = selectedCoupon?.code === coupon.code;
+              
+              return (
+                <Box
+                  key={coupon.code}
+                  onClick={() => isApplicable && handleCouponSelect(coupon)}
+                  sx={{
+                    border: isSelected ? '2px solid #e53935' : '1px solid #e0e0e0',
+                    borderRadius: 2,
+                    p: 2,
+                    cursor: isApplicable ? 'pointer' : 'not-allowed',
+                    backgroundColor: isSelected ? '#ffeaea' : isApplicable ? 'white' : '#f5f5f5',
+                    opacity: isApplicable ? 1 : 0.6,
+                    transition: 'all 0.3s ease',
+                    '&:hover': isApplicable ? {
+                      borderColor: isSelected ? '#e53935' : '#666',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    } : {},
+                    position: 'relative'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 18,
+                          height: 18,
+                          border: isSelected ? '2px solid #e53935' : '2px solid #ccc',
+                          borderRadius: '50%',
+                          backgroundColor: isSelected ? '#e53935' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        {isSelected && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              backgroundColor: 'white',
+                              borderRadius: '50%'
+                            }}
+                          />
+                        )}
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        sx={{
+                          fontFamily: '"Montserrat", sans-serif',
+                          color: isSelected ? '#e53935' : 'black',
+                          backgroundColor: '#f0f0f0',
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          fontSize: '12px'
+                        }}
+                      >
+                        {coupon.code}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      fontWeight={700}
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        color: '#e53935',
+                        fontSize: '14px'
+                      }}
+                    >
+                      Save ₹{coupon.discount}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: '"Montserrat", sans-serif',
+                      color: isApplicable ? 'black' : '#666',
+                      mb: 0.5,
+                      fontSize: '14px'
+                    }}
+                  >
+                    {coupon.description}
+                  </Typography>
+                  {coupon.minOrder && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        color: '#666',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {isApplicable 
+                        ? `✓ Minimum order requirement met`
+                        : `Minimum order: ₹${coupon.minOrder} (Current: ₹${(product?.price_after || 0) * quantity})`
+                      }
+                    </Typography>
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         </Box>
         

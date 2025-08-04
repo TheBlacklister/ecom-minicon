@@ -162,7 +162,7 @@ const AddressSkeleton = () => (
     </Card>
 );
 
-export default function CartPage({ buyNowProductId }: { buyNowProductId?: string | null }) {
+export default function CartPage({ buyNowProductId, couponCode }: { buyNowProductId?: string | null, couponCode?: string | null }) {
     const { user } = useAuth();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -181,6 +181,26 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
     const [openAddModal, setOpenAddModal] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [newAddr, setNewAddr] = useState(emptyAddress);
+
+    // Coupon state
+    const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
+
+    // Coupon data
+    const availableCoupons = [
+        {
+            code: 'ONLINE100',
+            discount: 100,
+            description: 'Get ₹100 off on online payment',
+            type: 'online_payment'
+        },
+        {
+            code: 'FLAT500',
+            discount: 500,
+            description: 'Get flat ₹500 off on orders above ₹2000',
+            minOrder: 2000,
+            type: 'flat_discount'
+        }
+    ];
 
     useEffect(() => {
         if (!user) {
@@ -291,13 +311,36 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
         loadData();
     }, [user, buyNowProductId, selectedAddress]);
 
+    // Auto-apply coupon from URL params
+    useEffect(() => {
+        if (couponCode && availableCoupons.length > 0) {
+            const matchingCoupon = availableCoupons.find(coupon => coupon.code === couponCode);
+            if (matchingCoupon && !selectedCoupon) {
+                setSelectedCoupon(matchingCoupon);
+            }
+        }
+    }, [couponCode, availableCoupons, selectedCoupon]);
+
     const subtotal = useMemo(
         () => cart.reduce((sum, item) => sum + item.price * item.qty, 0),
         [cart]
     );
     const shipping = 0;
     const taxes = Math.round(subtotal * 0.05);
-    const total = subtotal + shipping + taxes;
+    
+    // Coupon calculation
+    const couponDiscount = useMemo(() => {
+        if (!selectedCoupon) return 0;
+        
+        // Check if minimum order requirement is met
+        if (selectedCoupon.minOrder && subtotal < selectedCoupon.minOrder) {
+            return 0;
+        }
+        
+        return selectedCoupon.discount;
+    }, [selectedCoupon, subtotal]);
+    
+    const total = subtotal + shipping + taxes - couponDiscount;
 
     // Address management functions
     function handleAddrChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -379,6 +422,21 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
 
     const canAdd = newAddr.name.trim() && newAddr.line1.trim() && newAddr.city.trim() &&
         newAddr.state.trim() && newAddr.pincode.trim() && newAddr.phone.trim();
+
+    // Coupon handlers
+    const handleCouponSelect = (coupon: typeof availableCoupons[0]) => {
+        if (selectedCoupon?.code === coupon.code) {
+            setSelectedCoupon(null); // Deselect if already selected
+        } else {
+            setSelectedCoupon(coupon);
+        }
+    };
+
+    // Check if coupon is applicable
+    const isCouponApplicable = (coupon: typeof availableCoupons[0]) => {
+        if (!coupon.minOrder) return true;
+        return subtotal >= coupon.minOrder;
+    };
 
     // Show loading screen while initial data is loading
     if (isLoading) {
@@ -636,6 +694,147 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                     })}
                                 </Paper>
 
+                                {/* Coupon Section */}
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        p: { xs: 1.5, md: 3, lg: 3 },
+                                        bgcolor: 'white',
+                                        borderRadius: 2,
+                                        width: '100%',
+                                        boxSizing: 'border-box',
+                                        mt: 2,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="h6"
+                                        sx={{
+                                            mb: 2,
+                                            color: '#1a1a1a',
+                                            fontWeight: 600,
+                                            fontFamily: '"Montserrat", sans-serif'
+                                        }}
+                                    >
+                                        Available Offers
+                                    </Typography>
+                                    
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                        {availableCoupons.map((coupon) => {
+                                            const isApplicable = isCouponApplicable(coupon);
+                                            const isSelected = selectedCoupon?.code === coupon.code;
+                                            
+                                            return (
+                                                <Box
+                                                    key={coupon.code}
+                                                    onClick={() => isApplicable && handleCouponSelect(coupon)}
+                                                    sx={{
+                                                        border: isSelected ? '2px solid #fe5000' : '1px solid #e0e0e0',
+                                                        borderRadius: 2,
+                                                        p: { xs: 1.5, sm: 2 },
+                                                        cursor: isApplicable ? 'pointer' : 'not-allowed',
+                                                        backgroundColor: isSelected ? '#fff5f5' : isApplicable ? 'white' : '#f5f5f5',
+                                                        opacity: isApplicable ? 1 : 0.6,
+                                                        transition: 'all 0.3s ease',
+                                                        '&:hover': isApplicable ? {
+                                                            borderColor: isSelected ? '#fe5000' : '#666',
+                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        } : {},
+                                                        position: 'relative'
+                                                    }}
+                                                >
+                                                    <Box sx={{ 
+                                                        display: 'flex', 
+                                                        justifyContent: 'space-between', 
+                                                        alignItems: 'flex-start', 
+                                                        mb: 1,
+                                                        flexDirection: { xs: 'column', sm: 'row' },
+                                                        gap: { xs: 1, sm: 0 }
+                                                    }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <Box
+                                                                sx={{
+                                                                    width: 18,
+                                                                    height: 18,
+                                                                    border: isSelected ? '2px solid #fe5000' : '2px solid #ccc',
+                                                                    borderRadius: '50%',
+                                                                    backgroundColor: isSelected ? '#fe5000' : 'transparent',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                            >
+                                                                {isSelected && (
+                                                                    <Box
+                                                                        sx={{
+                                                                            width: 8,
+                                                                            height: 8,
+                                                                            backgroundColor: 'white',
+                                                                            borderRadius: '50%'
+                                                                        }}
+                                                                    />
+                                                                )}
+                                                            </Box>
+                                                            <Typography
+                                                                variant="body2"
+                                                                fontWeight={600}
+                                                                sx={{
+                                                                    fontFamily: '"Montserrat", sans-serif',
+                                                                    color: isSelected ? '#fe5000' : 'black',
+                                                                    backgroundColor: '#f0f0f0',
+                                                                    px: 1,
+                                                                    py: 0.5,
+                                                                    borderRadius: 1,
+                                                                    fontSize: '12px'
+                                                                }}
+                                                            >
+                                                                {coupon.code}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Typography
+                                                            variant="body2"
+                                                            fontWeight={700}
+                                                            sx={{
+                                                                fontFamily: '"Montserrat", sans-serif',
+                                                                color: '#fe5000',
+                                                                fontSize: '14px'
+                                                            }}
+                                                        >
+                                                            Save ₹{coupon.discount}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            fontFamily: '"Montserrat", sans-serif',
+                                                            color: isApplicable ? 'black' : '#666',
+                                                            mb: 0.5,
+                                                            fontSize: { xs: '13px', sm: '14px' }
+                                                        }}
+                                                    >
+                                                        {coupon.description}
+                                                    </Typography>
+                                                    {coupon.minOrder && (
+                                                        <Typography
+                                                            variant="caption"
+                                                            sx={{
+                                                                fontFamily: '"Montserrat", sans-serif',
+                                                                color: '#666',
+                                                                fontSize: '12px'
+                                                            }}
+                                                        >
+                                                            {isApplicable 
+                                                                ? `✓ Minimum order requirement met`
+                                                                : `Minimum order: ₹${coupon.minOrder} (Current: ₹${subtotal})`
+                                                            }
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            );
+                                        })}
+                                    </Box>
+                                </Paper>
+
                                 {/* Price Summary */}
                                 <Paper
                                     elevation={0}
@@ -673,13 +872,44 @@ export default function CartPage({ buyNowProductId }: { buyNowProductId?: string
                                             <Typography color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Taxes & Fees</Typography>
                                             <Typography sx={{ fontFamily: '"Montserrat", sans-serif ' }}>{formatINR(taxes)}</Typography>
                                         </Box>
+                                        {selectedCoupon && couponDiscount > 0 && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', color: '#fe5000' }}>
+                                                    Coupon ({selectedCoupon.code})
+                                                </Typography>
+                                                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', color: '#fe5000' }}>
+                                                    -{formatINR(couponDiscount)}
+                                                </Typography>
+                                            </Box>
+                                        )}
                                         <Divider sx={{ my: 1 }} />
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <Typography variant="subtitle1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Total</Typography>
                                             <Typography variant="subtitle1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif ' }}>
-                                                {formatINR(total)}
+                                                {formatINR(Math.max(0, total))}
                                             </Typography>
                                         </Box>
+                                        {selectedCoupon && couponDiscount > 0 && (
+                                            <Box sx={{ 
+                                                backgroundColor: '#fff5f5', 
+                                                border: '1px solid #fe5000', 
+                                                borderRadius: 1, 
+                                                p: 1,
+                                                mt: 1
+                                            }}>
+                                                <Typography 
+                                                    variant="body2" 
+                                                    sx={{ 
+                                                        fontFamily: '"Montserrat", sans-serif', 
+                                                        color: '#fe5000',
+                                                        textAlign: 'center',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
+                                                    🎉 You saved {formatINR(couponDiscount)} with {selectedCoupon.code}!
+                                                </Typography>
+                                            </Box>
+                                        )}
                                     </Stack>
                                 </Paper>
                             </>
