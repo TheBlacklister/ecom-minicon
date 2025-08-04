@@ -3,10 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container } from "@mui/material";
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container} from "@mui/material";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -18,7 +15,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
 import { useCount } from '../components/CountProvider';
 import { ProductCard } from '../components/productCard';
-
+import { GridLegacy as Grid } from '@mui/material';
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -39,6 +36,24 @@ const PreCheckout = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
+
+  // Coupon data
+  const availableCoupons = [
+    {
+      code: 'ONLINE100',
+      discount: 100,
+      description: 'Get ₹100 off on online payment',
+      type: 'online_payment'
+    },
+    {
+      code: 'FLAT500',
+      discount: 500,
+      description: 'Get flat ₹500 off on orders above ₹2000',
+      minOrder: 2000,
+      type: 'flat_discount'
+    }
+  ];
   // Format image paths by replacing backslashes with forward slashes
   const formatImagePath = (path: string): string => {
     let formatted = path.replace(/\\/g, '/');
@@ -256,13 +271,18 @@ const PreCheckout = () => {
     const response = await fetch('/api/cart?buyNow=true', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ product_id: product.id, quantity: quantity })
+      body: JSON.stringify({ 
+        product_id: product.id, 
+        quantity: quantity,
+        coupon: selectedCoupon?.code || null
+      })
     });
     
     if (response.ok) {
       // Update cart count optimistically
       incrementCartCount();
-      router.push(`/cart?buyNow=${product.id}`);
+      const couponParam = selectedCoupon?.code ? `&coupon=${selectedCoupon.code}` : '';
+      router.push(`/cart?buyNow=${product.id}${couponParam}`);
     }
   };
 
@@ -301,6 +321,68 @@ const PreCheckout = () => {
       newState[index] = true;
       return newState;
     });
+  };
+
+  // Social sharing handlers
+  const handleWhatsAppShare = () => {
+    const currentUrl = window.location.href;
+    const message = `Check out this product: ${product?.title || 'Amazing Product'}\n\n${currentUrl}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleFacebookShare = () => {
+    const currentUrl = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+    window.open(facebookUrl, '_blank');
+  };
+
+  const handleInstagramShare = () => {
+    // Instagram doesn't have direct URL sharing like WhatsApp/Facebook
+    // This will copy the URL to clipboard for the user to paste
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl).then(() => {
+      alert('URL copied to clipboard! You can now paste it in your Instagram story or post.');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = currentUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('URL copied to clipboard! You can now paste it in your Instagram story or post.');
+    });
+  };
+
+  // Coupon selection handler
+  const handleCouponSelect = (coupon: typeof availableCoupons[0]) => {
+    if (selectedCoupon?.code === coupon.code) {
+      setSelectedCoupon(null); // Deselect if already selected
+    } else {
+      setSelectedCoupon(coupon);
+    }
+  };
+
+  // Calculate discounted price
+  const getDiscountedPrice = () => {
+    if (!selectedCoupon) return product?.price_after || 0;
+    
+    const basePrice = (product?.price_after || 0) * quantity;
+    
+    // Check if minimum order requirement is met
+    if (selectedCoupon.minOrder && basePrice < selectedCoupon.minOrder) {
+      return basePrice;
+    }
+    
+    return Math.max(0, basePrice - selectedCoupon.discount);
+  };
+
+  // Check if coupon is applicable
+  const isCouponApplicable = (coupon: typeof availableCoupons[0]) => {
+    if (!coupon.minOrder) return true;
+    const basePrice = (product?.price_after || 0) * quantity;
+    return basePrice >= coupon.minOrder;
   };
 
   return (
@@ -592,32 +674,74 @@ const PreCheckout = () => {
         </Typography>
         
         {/* Price and Quantity */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: '"Montserrat", sans-serif ', color: '#222' }}>
-            ₹{product.price_after}
-          </Typography>
-          {product.price_before && product.price_before > product.price_after && (
-            <Typography 
-              sx={{ 
-                fontSize: "1.2rem", 
-                textDecoration: 'line-through', 
-                color: 'grey.600',
-                fontFamily: '"Montserrat", sans-serif ' 
-              }}
-            >
-              ₹{product.price_before}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography sx={{ fontSize: "1.6rem", fontWeight: 600, fontFamily: '"Montserrat", sans-serif ', color: '#222' }}>
+              ₹{product.price_after}
             </Typography>
+            {product.price_before && product.price_before > product.price_after && (
+              <Typography 
+                sx={{ 
+                  fontSize: "1.2rem", 
+                  textDecoration: 'line-through', 
+                  color: 'grey.600',
+                  fontFamily: '"Montserrat", sans-serif ' 
+                }}
+              >
+                ₹{product.price_before}
+              </Typography>
+            )}
+            <Select
+              value={quantity}
+              onChange={e => setQuantity(Number(e.target.value))}
+              size="small"
+              sx={{ minWidth: 60, fontFamily: '"Montserrat", sans-serif ', fontWeight: 500 }}
+            >
+              {[...Array(10)].map((_, i) => (
+                <MenuItem key={i + 1} value={i + 1}>{i + 1}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          
+          {/* Coupon Pricing Display */}
+          {selectedCoupon && (
+            <Box sx={{ 
+              backgroundColor: '#f8f9fa', 
+              border: '1px solid #e0e0e0', 
+              borderRadius: 1, 
+              p: 1.5,
+              mt: 1
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#666' }}>
+                  Subtotal (Qty: {quantity})
+                </Typography>
+                <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#666' }}>
+                  ₹{(product.price_after * quantity).toFixed(2)}
+                </Typography>
+              </Box>
+              
+              {selectedCoupon && isCouponApplicable(selectedCoupon) && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#e53935' }}>
+                    Coupon ({selectedCoupon.code})
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#e53935' }}>
+                    -₹{selectedCoupon.discount}
+                  </Typography>
+                </Box>
+              )}
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5, borderTop: '1px solid #e0e0e0' }}>
+                <Typography variant="body1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif', color: '#222' }}>
+                  Total
+                </Typography>
+                <Typography variant="body1" fontWeight={600} sx={{ fontFamily: '"Montserrat", sans-serif', color: '#222' }}>
+                  ₹{getDiscountedPrice().toFixed(2)}
+                </Typography>
+              </Box>
+            </Box>
           )}
-          <Select
-            value={quantity}
-            onChange={e => setQuantity(Number(e.target.value))}
-            size="small"
-            sx={{ minWidth: 60, fontFamily: '"Montserrat", sans-serif ', fontWeight: 500 }}
-          >
-            {[...Array(10)].map((_, i) => (
-              <MenuItem key={i + 1} value={i + 1}>{i + 1}</MenuItem>
-            ))}
-          </Select>
         </Box>
         
         {/* Size Buttons */}
@@ -665,6 +789,121 @@ const PreCheckout = () => {
                 {s}
               </Button>
             ))}
+          </Box>
+        </Box>
+        
+        {/* Coupon Section */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ fontFamily: '"Montserrat", sans-serif', mb: 2 }}>
+            Available Offers
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {availableCoupons.map((coupon) => {
+              const isApplicable = isCouponApplicable(coupon);
+              const isSelected = selectedCoupon?.code === coupon.code;
+              
+              return (
+                <Box
+                  key={coupon.code}
+                  onClick={() => isApplicable && handleCouponSelect(coupon)}
+                  sx={{
+                    border: isSelected ? '2px solid #e53935' : '1px solid #e0e0e0',
+                    borderRadius: 2,
+                    p: 2,
+                    cursor: isApplicable ? 'pointer' : 'not-allowed',
+                    backgroundColor: isSelected ? '#ffeaea' : isApplicable ? 'white' : '#f5f5f5',
+                    opacity: isApplicable ? 1 : 0.6,
+                    transition: 'all 0.3s ease',
+                    '&:hover': isApplicable ? {
+                      borderColor: isSelected ? '#e53935' : '#666',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    } : {},
+                    position: 'relative'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 18,
+                          height: 18,
+                          border: isSelected ? '2px solid #e53935' : '2px solid #ccc',
+                          borderRadius: '50%',
+                          backgroundColor: isSelected ? '#e53935' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        {isSelected && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              backgroundColor: 'white',
+                              borderRadius: '50%'
+                            }}
+                          />
+                        )}
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        sx={{
+                          fontFamily: '"Montserrat", sans-serif',
+                          color: isSelected ? '#e53935' : 'black',
+                          backgroundColor: '#f0f0f0',
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          fontSize: '12px'
+                        }}
+                      >
+                        {coupon.code}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      fontWeight={700}
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        color: '#e53935',
+                        fontSize: '14px'
+                      }}
+                    >
+                      Save ₹{coupon.discount}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: '"Montserrat", sans-serif',
+                      color: isApplicable ? 'black' : '#666',
+                      mb: 0.5,
+                      fontSize: '14px'
+                    }}
+                  >
+                    {coupon.description}
+                  </Typography>
+                  {coupon.minOrder && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        color: '#666',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {isApplicable 
+                        ? `✓ Minimum order requirement met`
+                        : `Minimum order: ₹${coupon.minOrder} (Current: ₹${(product?.price_after || 0) * quantity})`
+                      }
+                    </Typography>
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         </Box>
         
@@ -726,9 +965,57 @@ const PreCheckout = () => {
         {/* Social Share Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif ', color: '#888' }}>Share</Typography>
-          <WhatsAppIcon sx={{ color: '#25D366', cursor: 'pointer' }} />
-          <FacebookIcon sx={{ color: '#4267B2', cursor: 'pointer' }} />
-          <InstagramIcon sx={{ color: '#C13584', cursor: 'pointer' }} />
+          <Box 
+            onClick={handleWhatsAppShare}
+            sx={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              '&:hover': { opacity: 0.8 }
+            }}
+          >
+            <Image
+              src="/images/blackwhatsapp.png" // You can update this src later
+              alt="Share on WhatsApp"
+              width={24}
+              height={24}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
+          <Box 
+            onClick={handleFacebookShare}
+            sx={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              '&:hover': { opacity: 0.8 }
+            }}
+          >
+            <Image
+              src="/images/blackfacebook.png" // You can update this src later
+              alt="Share on Facebook"
+              width={24}
+              height={24}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
+          <Box 
+            onClick={handleInstagramShare}
+            sx={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              '&:hover': { opacity: 0.8 }
+            }}
+          >
+            <Image
+              src="/images/blackig.png" // You can update this src later
+              alt="Share on Instagram"
+              width={24}
+              height={24}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
         </Box>
         
        
@@ -945,84 +1232,137 @@ const PreCheckout = () => {
           </Typography>
           
           {suggestedLoading ? (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                gap: 3, 
-                overflowX: 'auto',
-                pb: 2,
-                '&::-webkit-scrollbar': {
-                  height: 8,
-                },
-                '&::-webkit-scrollbar-track': {
-                  bgcolor: 'grey.200',
-                  borderRadius: 4,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  bgcolor: 'grey.400',
-                  borderRadius: 4,
-                  '&:hover': {
-                    bgcolor: 'grey.500',
+            <>
+              {/* Mobile and Small Screens - Grid Layout Skeleton */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'block', md: 'none' }
+                }}
+              >
+                <Grid container spacing={{ xs: 0.5, sm: 1 }} justifyContent="center">
+                  {[...Array(6)].map((_, index) => (
+                    <Grid item xs={6} sm={6} key={index}>
+                      <Box sx={{ width: '100%', height: 400 }}>
+                        <Skeleton 
+                          variant="rectangular" 
+                          width="100%" 
+                          height="85%" 
+                          sx={{ borderRadius: 2, mb: 1 }} 
+                        />
+                        <Skeleton variant="text" width="80%" height={24} />
+                        <Skeleton variant="text" width="60%" height={20} />
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+
+              {/* Desktop and Laptop Screens - Horizontal Scroll Skeleton */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'none', md: 'flex' }, 
+                  gap: 0, 
+                  overflowX: 'auto',
+                  pb: 2,
+                  '&::-webkit-scrollbar': {
+                    height: 8,
                   },
-                },
-              }}
-            >
-              {[...Array(6)].map((_, index) => (
-                <Box key={index} sx={{ minWidth: { xs: 280, sm: 300, md: 320 }, height: 400 }}>
-                  <Skeleton 
-                    variant="rectangular" 
-                    width="100%" 
-                    height="85%" 
-                    sx={{ borderRadius: 2, mb: 1 }} 
-                  />
-                  <Skeleton variant="text" width="80%" height={24} />
-                  <Skeleton variant="text" width="60%" height={20} />
-                </Box>
-              ))}
-            </Box>
+                  '&::-webkit-scrollbar-track': {
+                    bgcolor: 'grey.200',
+                    borderRadius: 4,
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: 'grey.400',
+                    borderRadius: 4,
+                    '&:hover': {
+                      bgcolor: 'grey.500',
+                    },
+                  },
+                }}
+              >
+                {[...Array(6)].map((_, index) => (
+                  <Box key={index} sx={{ minWidth: { md: 280 }, height: 400, flexShrink: 0 }}>
+                    <Skeleton 
+                      variant="rectangular" 
+                      width="100%" 
+                      height="85%" 
+                      sx={{ borderRadius: 2, mb: 1 }} 
+                    />
+                    <Skeleton variant="text" width="80%" height={24} />
+                    <Skeleton variant="text" width="60%" height={20} />
+                  </Box>
+                ))}
+              </Box>
+            </>
           ) : (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                gap: 3, 
-                overflowX: 'auto',
-                pb: 2,
-                '&::-webkit-scrollbar': {
-                  height: 8,
-                },
-                '&::-webkit-scrollbar-track': {
-                  bgcolor: 'grey.200',
-                  borderRadius: 4,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  bgcolor: 'grey.400',
-                  borderRadius: 4,
-                  '&:hover': {
-                    bgcolor: 'grey.500',
+            <>
+              {/* Mobile and Small Screens - Grid Layout */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'block', md: 'none' }
+                }}
+              >
+                <Grid container spacing={{ xs: 0.5, sm: 1 }} justifyContent="center">
+                  {suggestedProducts.map((suggestedProduct) => (
+                    <Grid item xs={6} sm={6} key={suggestedProduct.id}>
+                      <ProductCard 
+                        product={suggestedProduct}
+                        onWishlistChange={(productId, isWished) => {
+                          // Update suggested products wishlist state if needed
+                          setSuggestedProducts(prev => 
+                            prev.map(p => p.id === productId ? {...p, isWished} : p)
+                          );
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+
+              {/* Desktop and Laptop Screens - Horizontal Scroll with Minimal Gap */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'none', md: 'flex' }, 
+                  gap: 0, 
+                  overflowX: 'auto',
+                  pb: 2,
+                  '&::-webkit-scrollbar': {
+                    height: 8,
                   },
-                },
-              }}
-            >
-              {suggestedProducts.map((suggestedProduct) => (
-                <Box 
-                  key={suggestedProduct.id}
-                  sx={{ 
-                    minWidth: { xs: 280, sm: 300, md: 320 },
-                    flexShrink: 0
-                  }}
-                >
-                  <ProductCard 
-                    product={suggestedProduct}
-                    onWishlistChange={(productId, isWished) => {
-                      // Update suggested products wishlist state if needed
-                      setSuggestedProducts(prev => 
-                        prev.map(p => p.id === productId ? {...p, isWished} : p)
-                      );
+                  '&::-webkit-scrollbar-track': {
+                    bgcolor: 'grey.200',
+                    borderRadius: 4,
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: 'grey.400',
+                    borderRadius: 4,
+                    '&:hover': {
+                      bgcolor: 'grey.500',
+                    },
+                  },
+                }}
+              >
+                {suggestedProducts.map((suggestedProduct) => (
+                  <Box 
+                    key={suggestedProduct.id}
+                    sx={{ 
+                      minWidth: { md: 280 },
+                      flexShrink: 0
                     }}
-                  />
-                </Box>
-              ))}
-            </Box>
+                  >
+                    <ProductCard 
+                      product={suggestedProduct}
+                      onWishlistChange={(productId, isWished) => {
+                        // Update suggested products wishlist state if needed
+                        setSuggestedProducts(prev => 
+                          prev.map(p => p.id === productId ? {...p, isWished} : p)
+                        );
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </>
           )}
         </Container>
       </Box>

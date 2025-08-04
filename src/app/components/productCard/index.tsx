@@ -224,7 +224,7 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
         position: 'relative',
         cursor: 'pointer',
         overflow: 'hidden',
-        m: { xs: 1, sm: 1.5, md: 2 },
+      
         transition: 'box-shadow 0.3s ease',
         '&:hover': {
           boxShadow: 3,

@@ -134,7 +134,8 @@ export default function Home() {
         }}
       >
         <video
-          src={isMobile ? "/gifs/BannerMobile.mp4" : "/gifs/Banner.mp4"}
+       // src={isMobile ? "/gifs/BannerMobile.mp4" : "/gifs/Banner.mp4"}
+          src={isMobile ? "/gifs/BannerMobile.mp4" : "/gifs/Banner 2.0 (DESKTOP Video).mp4"}
           autoPlay
           loop
           muted

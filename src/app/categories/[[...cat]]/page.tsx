@@ -755,9 +755,9 @@ export default function CataloguePage() {
         )}
 
         {/* Product cards */}
-        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
+        <Grid container spacing={{ xs: 0.5, sm: 0.5, md: 0.5 }}>
           {products.map((p) => (
-            <Grid item xs={6} sm={4} md={3} key={p.id}>
+            <Grid item xs={6} sm={4} md={2.4} key={p.id}>
               <ProductCard
                 product={p}
                 initialIsWished={wishedIds.has(p.id)}
