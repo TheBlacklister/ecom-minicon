@@ -3,10 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container } from "@mui/material";
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container} from "@mui/material";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -18,7 +15,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../components/AuthProvider';
 import { useCount } from '../components/CountProvider';
 import { ProductCard } from '../components/productCard';
-
+import { GridLegacy as Grid } from '@mui/material';
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -300,6 +297,38 @@ const PreCheckout = () => {
       const newState = [...prev];
       newState[index] = true;
       return newState;
+    });
+  };
+
+  // Social sharing handlers
+  const handleWhatsAppShare = () => {
+    const currentUrl = window.location.href;
+    const message = `Check out this product: ${product?.title || 'Amazing Product'}\n\n${currentUrl}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleFacebookShare = () => {
+    const currentUrl = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+    window.open(facebookUrl, '_blank');
+  };
+
+  const handleInstagramShare = () => {
+    // Instagram doesn't have direct URL sharing like WhatsApp/Facebook
+    // This will copy the URL to clipboard for the user to paste
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl).then(() => {
+      alert('URL copied to clipboard! You can now paste it in your Instagram story or post.');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = currentUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('URL copied to clipboard! You can now paste it in your Instagram story or post.');
     });
   };
 
@@ -726,9 +755,57 @@ const PreCheckout = () => {
         {/* Social Share Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif ', color: '#888' }}>Share</Typography>
-          <WhatsAppIcon sx={{ color: '#25D366', cursor: 'pointer' }} />
-          <FacebookIcon sx={{ color: '#4267B2', cursor: 'pointer' }} />
-          <InstagramIcon sx={{ color: '#C13584', cursor: 'pointer' }} />
+          <Box 
+            onClick={handleWhatsAppShare}
+            sx={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              '&:hover': { opacity: 0.8 }
+            }}
+          >
+            <Image
+              src="/images/blackwhatsapp.png" // You can update this src later
+              alt="Share on WhatsApp"
+              width={24}
+              height={24}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
+          <Box 
+            onClick={handleFacebookShare}
+            sx={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              '&:hover': { opacity: 0.8 }
+            }}
+          >
+            <Image
+              src="/images/blackfacebook.png" // You can update this src later
+              alt="Share on Facebook"
+              width={24}
+              height={24}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
+          <Box 
+            onClick={handleInstagramShare}
+            sx={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              '&:hover': { opacity: 0.8 }
+            }}
+          >
+            <Image
+              src="/images/blackig.png" // You can update this src later
+              alt="Share on Instagram"
+              width={24}
+              height={24}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
         </Box>
         
        
@@ -945,84 +1022,137 @@ const PreCheckout = () => {
           </Typography>
           
           {suggestedLoading ? (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                gap: 3, 
-                overflowX: 'auto',
-                pb: 2,
-                '&::-webkit-scrollbar': {
-                  height: 8,
-                },
-                '&::-webkit-scrollbar-track': {
-                  bgcolor: 'grey.200',
-                  borderRadius: 4,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  bgcolor: 'grey.400',
-                  borderRadius: 4,
-                  '&:hover': {
-                    bgcolor: 'grey.500',
+            <>
+              {/* Mobile and Small Screens - Grid Layout Skeleton */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'block', md: 'none' }
+                }}
+              >
+                <Grid container spacing={{ xs: 0.5, sm: 1 }} justifyContent="center">
+                  {[...Array(6)].map((_, index) => (
+                    <Grid item xs={6} sm={6} key={index}>
+                      <Box sx={{ width: '100%', height: 400 }}>
+                        <Skeleton 
+                          variant="rectangular" 
+                          width="100%" 
+                          height="85%" 
+                          sx={{ borderRadius: 2, mb: 1 }} 
+                        />
+                        <Skeleton variant="text" width="80%" height={24} />
+                        <Skeleton variant="text" width="60%" height={20} />
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+
+              {/* Desktop and Laptop Screens - Horizontal Scroll Skeleton */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'none', md: 'flex' }, 
+                  gap: 0, 
+                  overflowX: 'auto',
+                  pb: 2,
+                  '&::-webkit-scrollbar': {
+                    height: 8,
                   },
-                },
-              }}
-            >
-              {[...Array(6)].map((_, index) => (
-                <Box key={index} sx={{ minWidth: { xs: 280, sm: 300, md: 320 }, height: 400 }}>
-                  <Skeleton 
-                    variant="rectangular" 
-                    width="100%" 
-                    height="85%" 
-                    sx={{ borderRadius: 2, mb: 1 }} 
-                  />
-                  <Skeleton variant="text" width="80%" height={24} />
-                  <Skeleton variant="text" width="60%" height={20} />
-                </Box>
-              ))}
-            </Box>
+                  '&::-webkit-scrollbar-track': {
+                    bgcolor: 'grey.200',
+                    borderRadius: 4,
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: 'grey.400',
+                    borderRadius: 4,
+                    '&:hover': {
+                      bgcolor: 'grey.500',
+                    },
+                  },
+                }}
+              >
+                {[...Array(6)].map((_, index) => (
+                  <Box key={index} sx={{ minWidth: { md: 280 }, height: 400, flexShrink: 0 }}>
+                    <Skeleton 
+                      variant="rectangular" 
+                      width="100%" 
+                      height="85%" 
+                      sx={{ borderRadius: 2, mb: 1 }} 
+                    />
+                    <Skeleton variant="text" width="80%" height={24} />
+                    <Skeleton variant="text" width="60%" height={20} />
+                  </Box>
+                ))}
+              </Box>
+            </>
           ) : (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                gap: 3, 
-                overflowX: 'auto',
-                pb: 2,
-                '&::-webkit-scrollbar': {
-                  height: 8,
-                },
-                '&::-webkit-scrollbar-track': {
-                  bgcolor: 'grey.200',
-                  borderRadius: 4,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  bgcolor: 'grey.400',
-                  borderRadius: 4,
-                  '&:hover': {
-                    bgcolor: 'grey.500',
+            <>
+              {/* Mobile and Small Screens - Grid Layout */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'block', md: 'none' }
+                }}
+              >
+                <Grid container spacing={{ xs: 0.5, sm: 1 }} justifyContent="center">
+                  {suggestedProducts.map((suggestedProduct) => (
+                    <Grid item xs={6} sm={6} key={suggestedProduct.id}>
+                      <ProductCard 
+                        product={suggestedProduct}
+                        onWishlistChange={(productId, isWished) => {
+                          // Update suggested products wishlist state if needed
+                          setSuggestedProducts(prev => 
+                            prev.map(p => p.id === productId ? {...p, isWished} : p)
+                          );
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+
+              {/* Desktop and Laptop Screens - Horizontal Scroll with Minimal Gap */}
+              <Box 
+                sx={{ 
+                  display: { xs: 'none', md: 'flex' }, 
+                  gap: 0, 
+                  overflowX: 'auto',
+                  pb: 2,
+                  '&::-webkit-scrollbar': {
+                    height: 8,
                   },
-                },
-              }}
-            >
-              {suggestedProducts.map((suggestedProduct) => (
-                <Box 
-                  key={suggestedProduct.id}
-                  sx={{ 
-                    minWidth: { xs: 280, sm: 300, md: 320 },
-                    flexShrink: 0
-                  }}
-                >
-                  <ProductCard 
-                    product={suggestedProduct}
-                    onWishlistChange={(productId, isWished) => {
-                      // Update suggested products wishlist state if needed
-                      setSuggestedProducts(prev => 
-                        prev.map(p => p.id === productId ? {...p, isWished} : p)
-                      );
+                  '&::-webkit-scrollbar-track': {
+                    bgcolor: 'grey.200',
+                    borderRadius: 4,
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: 'grey.400',
+                    borderRadius: 4,
+                    '&:hover': {
+                      bgcolor: 'grey.500',
+                    },
+                  },
+                }}
+              >
+                {suggestedProducts.map((suggestedProduct) => (
+                  <Box 
+                    key={suggestedProduct.id}
+                    sx={{ 
+                      minWidth: { md: 280 },
+                      flexShrink: 0
                     }}
-                  />
-                </Box>
-              ))}
-            </Box>
+                  >
+                    <ProductCard 
+                      product={suggestedProduct}
+                      onWishlistChange={(productId, isWished) => {
+                        // Update suggested products wishlist state if needed
+                        setSuggestedProducts(prev => 
+                          prev.map(p => p.id === productId ? {...p, isWished} : p)
+                        );
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </>
           )}
         </Container>
       </Box>
