@@ -1456,35 +1456,57 @@ const PreCheckout = () => {
           <Box 
             sx={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
-              gap: 2, 
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: { xs: 2, sm: 3, md: 4 }, 
               mt: 3, 
               mb: 2,
-              px: { xs: 1, md: 0 }
+              px: { xs: 3, sm: 4, md: 0 }
             }}
           >
             <Image
               src="/images/premiumQuality.png"
               alt="Premium Quality"
-              width={120}
-              height={120}
-              style={{ objectFit: 'contain' }}
+              width={80}
+              height={80}
+              style={{ 
+                objectFit: 'contain',
+                width: 'auto',
+                height: 'auto',
+                maxWidth: '80px',
+                maxHeight: '80px'
+              }}
+              sizes="(max-width: 600px) 80px, (max-width: 900px) 100px, 120px"
             />
             
             <Image
               src="/images/originalBrand.png"
               alt="Original Brand"
-              width={120}
-              height={120}
-              style={{ objectFit: 'contain' }}
+              width={80}
+              height={80}
+              style={{ 
+                objectFit: 'contain',
+                width: 'auto',
+                height: 'auto',
+                maxWidth: '80px',
+                maxHeight: '80px'
+              }}
+              sizes="(max-width: 600px) 80px, (max-width: 900px) 100px, 120px"
             />
             
             <Image
               src="/images/satisGuarentee.png"
               alt="Satisfaction Guarantee"
-              width={120}
-              height={120}
-              style={{ objectFit: 'contain' }}
+              width={80}
+              height={80}
+              style={{ 
+                objectFit: 'contain',
+                width: 'auto',
+                height: 'auto',
+                maxWidth: '80px',
+                maxHeight: '80px'
+              }}
+              sizes="(max-width: 600px) 80px, (max-width: 900px) 100px, 120px"
             />
           </Box>
 
@@ -1675,40 +1697,90 @@ const PreCheckout = () => {
                       key={review.id}
                       elevation={0}
                       sx={{
-                        p: 3,
+                        p: { xs: 2, md: 3 },
                         mb: 2,
                         border: '1px solid #e0e0e0',
                         borderRadius: 2,
                         backgroundColor: review.user_id === user?.id ? '#f8f9fa' : 'white'
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600 }}>
+                      {/* Mobile layout for xs and sm screens */}
+                      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                        {/* First row: user name and star rating */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: review.comment ? 1 : 0.5 }}>
+                          <Typography variant="subtitle2" sx={{ 
+                            fontFamily: '"Montserrat", sans-serif', 
+                            fontWeight: 600,
+                            fontSize: '0.9rem'
+                          }}>
                             {review.user_name}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                            <StarRating rating={review.rating} readOnly size="small" />
-                            <Typography variant="caption" sx={{ color: '#666' }}>
-                              {formatDate(review.created_at)}
-                            </Typography>
-                          </Box>
+                          <StarRating rating={review.rating} readOnly size="small" />
+                          {review.user_id === user?.id && (
+                            <Chip
+                              label="Your Review"
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                              sx={{ fontSize: '0.7rem', height: '20px', ml: 'auto' }}
+                            />
+                          )}
                         </Box>
-                        {review.user_id === user?.id && (
-                          <Chip
-                            label="Your Review"
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                            sx={{ fontSize: '0.75rem' }}
-                          />
+                        
+                        {/* Second row: comment on left, date on right */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                          <Box sx={{ flex: 1, mr: 1 }}>
+                            {review.comment && (
+                              <Typography variant="body2" sx={{ 
+                                fontFamily: '"Montserrat", sans-serif', 
+                                color: '#333',
+                                fontSize: '0.85rem',
+                                lineHeight: 1.3
+                              }}>
+                                {review.comment}
+                              </Typography>
+                            )}
+                          </Box>
+                          <Typography variant="caption" sx={{ 
+                            color: '#666',
+                            fontSize: '0.75rem',
+                            flexShrink: 0
+                          }}>
+                            {formatDate(review.created_at)}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Desktop layout for md and larger screens */}
+                      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600 }}>
+                              {review.user_name}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                              <StarRating rating={review.rating} readOnly size="small" />
+                              <Typography variant="caption" sx={{ color: '#666' }}>
+                                {formatDate(review.created_at)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          {review.user_id === user?.id && (
+                            <Chip
+                              label="Your Review"
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                              sx={{ fontSize: '0.75rem' }}
+                            />
+                          )}
+                        </Box>
+                        {review.comment && (
+                          <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#333' }}>
+                            {review.comment}
+                          </Typography>
                         )}
                       </Box>
-                      {review.comment && (
-                        <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#333' }}>
-                          {review.comment}
-                        </Typography>
-                      )}
                     </Paper>
                   ))}
                 </Box>
