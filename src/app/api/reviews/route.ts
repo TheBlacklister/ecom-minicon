@@ -53,15 +53,56 @@ export async function GET(request: NextRequest) {
     let userProfiles: any = {};
     
     if (userIds.length > 0) {
-      const { data: profiles } = await supabaseClient
+      // Use service role client for admin access to bypass RLS
+      const serviceRoleClient = createSupabaseServerClient(process.env.SUPABASE_SERVICE_KEY!);
+      
+      // Try to get profiles data first
+      const { data: profiles, error: profileError } = await serviceRoleClient
         .from('profiles')
-        .select('user_id, name')
+        .select('user_id, name, email')
         .in('user_id', userIds);
       
-      userProfiles = profiles?.reduce((acc: any, profile: any) => {
-        acc[profile.user_id] = profile.name || 'Anonymous';
-        return acc;
-      }, {}) || {};
+      console.log('Debug - User IDs:', userIds);
+      console.log('Debug - Profiles query result:', { profiles, profileError });
+      
+      // If no profiles found or error, create a map with user emails from auth
+      if (!profiles || profiles.length === 0 || profileError) {
+        console.log('Debug - No profiles found, trying alternative approach');
+        
+        // Fallback: create display names based on user IDs
+        userProfiles = userIds.reduce((acc: any, userId: string) => {
+          acc[userId] = 'User ' + userId.slice(-4); // Use last 4 chars of UUID
+          return acc;
+        }, {});
+      } else {
+        // Process profiles normally
+        userProfiles = profiles.reduce((acc: any, profile: any) => {
+          let displayName = 'Anonymous User';
+          
+          console.log('Debug - Processing profile:', profile);
+          
+          if (profile.name && profile.name.trim()) {
+            displayName = profile.name.trim();
+            console.log('Debug - Using name:', displayName);
+          } else if (profile.email && profile.email.trim()) {
+            const emailPrefix = profile.email.split('@')[0];
+            displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+            console.log('Debug - Using email prefix:', displayName);
+          }
+          
+          acc[profile.user_id] = displayName;
+          return acc;
+        }, {});
+        
+        // Add any missing users
+        userIds.forEach(userId => {
+          if (!userProfiles[userId]) {
+            userProfiles[userId] = 'User ' + userId.slice(-4);
+          }
+        });
+      }
+      
+      console.log('Debug - Final userProfiles:', userProfiles);
     }
 
     // Format the response to include user name
@@ -71,7 +112,7 @@ export async function GET(request: NextRequest) {
       comment: review.comment,
       created_at: review.created_at,
       updated_at: review.updated_at,
-      user_name: userProfiles[review.user_id] || 'Anonymous',
+      user_name: userProfiles[review.user_id] || 'Anonymous User',
       user_id: review.user_id
     })) || [];
 
@@ -145,9 +186,18 @@ export async function POST(request: NextRequest) {
     // Get user name
     const { data: userProfile } = await supabase
       .from('profiles')
-      .select('name')
+      .select('name, email')
       .eq('user_id', user.id)
       .single();
+
+    // Generate display name with same logic as GET
+    let displayName = 'Anonymous User';
+    if (userProfile?.name && userProfile.name.trim()) {
+      displayName = userProfile.name.trim();
+    } else if (userProfile?.email && userProfile.email.trim()) {
+      const emailPrefix = userProfile.email.split('@')[0];
+      displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+    }
 
     const formattedReview = {
       id: review.id,
@@ -155,7 +205,7 @@ export async function POST(request: NextRequest) {
       comment: review.comment,
       created_at: review.created_at,
       updated_at: review.updated_at,
-      user_name: userProfile?.name || 'Anonymous',
+      user_name: displayName,
       user_id: user.id
     };
 
@@ -216,9 +266,18 @@ export async function PUT(request: NextRequest) {
     // Get user name
     const { data: userProfile } = await supabase
       .from('profiles')
-      .select('name')
+      .select('name, email')
       .eq('user_id', user.id)
       .single();
+
+    // Generate display name with same logic as GET
+    let displayName = 'Anonymous User';
+    if (userProfile?.name && userProfile.name.trim()) {
+      displayName = userProfile.name.trim();
+    } else if (userProfile?.email && userProfile.email.trim()) {
+      const emailPrefix = userProfile.email.split('@')[0];
+      displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+    }
 
     const formattedReview = {
       id: review.id,
@@ -226,7 +285,7 @@ export async function PUT(request: NextRequest) {
       comment: review.comment,
       created_at: review.created_at,
       updated_at: review.updated_at,
-      user_name: userProfile?.name || 'Anonymous',
+      user_name: displayName,
       user_id: user.id
     };
 
