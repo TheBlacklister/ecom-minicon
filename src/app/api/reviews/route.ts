@@ -52,45 +52,76 @@ export async function GET(request: NextRequest) {
     const userIds = [...new Set(reviews?.map(r => r.user_id) || [])];
     let userProfiles: any = {};
     
+    console.log('=== DEBUG START: Profile fetching ===');
+    console.log('Environment check:');
+    console.log('- NODE_ENV:', process.env.NODE_ENV);
+    console.log('- NEXT_PUBLIC_SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('- SUPABASE_SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_KEY);
+    console.log('- SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log('- User IDs to fetch:', userIds);
+    
     if (userIds.length > 0) {
       try {
         // Use service role client for admin access to bypass RLS
         const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        console.log('Service key found:', !!serviceKey);
+        console.log('Service key length:', serviceKey ? serviceKey.length : 0);
+        console.log('Service key prefix:', serviceKey ? serviceKey.substring(0, 20) + '...' : 'none');
+        
         if (!serviceKey) {
-          console.error('No service key found in environment variables');
+          console.error('❌ CRITICAL: No service key found in environment variables');
+          console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
           throw new Error('Service key not configured');
         }
         
+        console.log('✅ Creating service role client...');
         const serviceRoleClient = createSupabaseServerClient(serviceKey);
         
+        console.log('📋 Querying profiles table...');
         // Try to get profiles data first
         const { data: profiles, error: profileError } = await serviceRoleClient
           .from('profiles')
           .select('user_id, name, email')
           .in('user_id', userIds);
         
-        console.log('Debug - User IDs:', userIds);
-        console.log('Debug - Profiles query result:', { profiles, profileError });
+        console.log('📊 Profiles query completed:');
+        console.log('- Error:', profileError);
+        console.log('- Profiles found:', profiles ? profiles.length : 0);
+        console.log('- Profiles data:', profiles);
         
         if (profileError) {
-          console.error('Profile query error:', profileError);
+          console.error('❌ Profile query error details:', {
+            message: profileError.message,
+            details: profileError.details,
+            hint: profileError.hint,
+            code: profileError.code
+          });
           throw profileError;
         }
         
         if (profiles && profiles.length > 0) {
+          console.log('✅ Processing profiles normally...');
           // Process profiles normally
           userProfiles = profiles.reduce((acc: any, profile: any) => {
             let displayName = 'Anonymous User';
             
-            console.log('Debug - Processing profile:', profile);
+            console.log('👤 Processing profile:', {
+              user_id: profile.user_id,
+              name: profile.name,
+              email: profile.email,
+              hasName: !!(profile.name && profile.name.trim()),
+              hasEmail: !!(profile.email && profile.email.trim())
+            });
             
             if (profile.name && profile.name.trim()) {
               displayName = profile.name.trim();
-              console.log('Debug - Using name:', displayName);
+              console.log('✅ Using name for', profile.user_id, ':', displayName);
             } else if (profile.email && profile.email.trim()) {
               const emailPrefix = profile.email.split('@')[0];
               displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
-              console.log('Debug - Using email prefix:', displayName);
+              console.log('📧 Using email prefix for', profile.user_id, ':', displayName);
+            } else {
+              console.log('⚠️ No name or email found for', profile.user_id, ', using Anonymous User');
             }
             
             acc[profile.user_id] = displayName;
@@ -100,10 +131,12 @@ export async function GET(request: NextRequest) {
           // Add any missing users with fallback
           userIds.forEach(userId => {
             if (!userProfiles[userId]) {
+              console.log('⚠️ Missing profile for user', userId, ', adding Anonymous User');
               userProfiles[userId] = 'Anonymous User';
             }
           });
         } else {
+          console.log('⚠️ No profiles found in database - all users will be Anonymous');
           // No profiles found - set all to Anonymous User
           userProfiles = userIds.reduce((acc: any, userId: string) => {
             acc[userId] = 'Anonymous User';
@@ -111,7 +144,10 @@ export async function GET(request: NextRequest) {
           }, {});
         }
       } catch (error) {
-        console.error('Error fetching user profiles:', error);
+        console.error('❌ CRITICAL ERROR fetching user profiles:', {
+          error: error instanceof Error ? error.message : error,
+          stack: error instanceof Error ? error.stack : undefined
+        });
         // Fallback: set all users to Anonymous User
         userProfiles = userIds.reduce((acc: any, userId: string) => {
           acc[userId] = 'Anonymous User';
@@ -119,7 +155,10 @@ export async function GET(request: NextRequest) {
         }, {});
       }
       
-      console.log('Debug - Final userProfiles:', userProfiles);
+      console.log('🏁 Final userProfiles mapping:', userProfiles);
+      console.log('=== DEBUG END: Profile fetching ===');
+    } else {
+      console.log('ℹ️ No user IDs found, skipping profile fetch');
     }
 
     // Format the response to include user name
@@ -201,19 +240,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user name
-    const { data: userProfile } = await supabase
+    console.log('=== DEBUG: POST - Fetching user profile for', user.id, '===');
+    const { data: userProfile, error: profileFetchError } = await supabase
       .from('profiles')
       .select('name, email')
       .eq('user_id', user.id)
       .single();
 
+    console.log('POST Profile fetch result:', { userProfile, profileFetchError });
+
     // Generate display name with same logic as GET
     let displayName = 'Anonymous User';
     if (userProfile?.name && userProfile.name.trim()) {
       displayName = userProfile.name.trim();
+      console.log('✅ POST: Using name:', displayName);
     } else if (userProfile?.email && userProfile.email.trim()) {
       const emailPrefix = userProfile.email.split('@')[0];
       displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+      console.log('📧 POST: Using email prefix:', displayName);
+    } else {
+      console.log('⚠️ POST: No name or email found, using Anonymous User');
     }
 
     const formattedReview = {
@@ -281,19 +327,26 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get user name
-    const { data: userProfile } = await supabase
+    console.log('=== DEBUG: PUT - Fetching user profile for', user.id, '===');
+    const { data: userProfile, error: profileFetchError } = await supabase
       .from('profiles')
       .select('name, email')
       .eq('user_id', user.id)
       .single();
 
+    console.log('PUT Profile fetch result:', { userProfile, profileFetchError });
+
     // Generate display name with same logic as GET
     let displayName = 'Anonymous User';
     if (userProfile?.name && userProfile.name.trim()) {
       displayName = userProfile.name.trim();
+      console.log('✅ PUT: Using name:', displayName);
     } else if (userProfile?.email && userProfile.email.trim()) {
       const emailPrefix = userProfile.email.split('@')[0];
       displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+      console.log('📧 PUT: Using email prefix:', displayName);
+    } else {
+      console.log('⚠️ PUT: No name or email found, using Anonymous User');
     }
 
     const formattedReview = {

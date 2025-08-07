@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
-import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container} from "@mui/material";
+import { Typography, Button, Box, Accordion, AccordionSummary, AccordionDetails, IconButton, Dialog, DialogContent, CircularProgress, Skeleton, Snackbar, Alert, Container, TextField, Paper, Chip} from "@mui/material";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -17,7 +17,6 @@ import { useCount } from '../components/CountProvider';
 import { ProductCard } from '../components/productCard';
 import { GridLegacy as Grid } from '@mui/material';
 import { StarRating } from '../components/StarRating';
-import { ReviewModal } from '../components/ReviewModal';
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -39,7 +38,14 @@ const PreCheckout = () => {
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewSuccess, setReviewSuccess] = useState('');
+  const [userExistingReview, setUserExistingReview] = useState<any>(null);
+  const [userReviewRating, setUserReviewRating] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
   const [userRating, setUserRating] = useState(0);
@@ -174,37 +180,44 @@ const PreCheckout = () => {
       });
   }, [product, user]);
 
-  // Refresh rating data when review modal is closed
-  useEffect(() => {
-    if (!reviewModalOpen && product) {
-      // Modal just closed, refresh the rating data
-      fetch(`/api/reviews?productId=${product.id}`)
-        .then(res => res.ok ? res.json() : { reviews: [] })
-        .then(data => {
-          const reviews = data.reviews || [];
-          setReviewCount(reviews.length);
-          if (reviews.length > 0) {
-            const avgRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
-            setAverageRating(Math.round(avgRating * 10) / 10);
-          } else {
-            setAverageRating(0);
+  // Fetch detailed reviews for the review section
+  const fetchDetailedReviews = async () => {
+    if (!product) return;
+    
+    try {
+      setReviewsLoading(true);
+      const response = await fetch(`/api/reviews?productId=${product.id}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setReviews(data.reviews || []);
+        
+        // Check if current user has already reviewed this product
+        if (user) {
+          const existingReview = data.reviews?.find((review: any) => review.user_id === user.id);
+          setUserExistingReview(existingReview || null);
+          if (existingReview) {
+            setUserReviewRating(existingReview.rating);
+            setReviewComment(existingReview.comment || '');
           }
-          
-          // Update user's rating if they have one
-          if (user) {
-            const existingUserReview = reviews.find((review: any) => review.user_id === user.id);
-            if (existingUserReview) {
-              setUserRating(existingUserReview.rating);
-            } else {
-              setUserRating(0);
-            }
-          }
-        })
-        .catch(error => {
-          console.error('Error refreshing reviews after modal close:', error);
-        });
+        }
+      } else {
+        setReviewError(data.error || 'Failed to load reviews');
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+      setReviewError('Failed to load reviews');
+    } finally {
+      setReviewsLoading(false);
     }
-  }, [reviewModalOpen, product, user]);
+  };
+
+  // Load reviews when product is available
+  useEffect(() => {
+    if (product) {
+      fetchDetailedReviews();
+    }
+  }, [product, user]);
 
   // Show loading screen while fetching data
   if (loading) {
@@ -532,6 +545,148 @@ const PreCheckout = () => {
     }
   };
 
+  // Handle review submission
+  const handleSubmitReview = async () => {
+    if (!user) {
+      setReviewError('Please login to submit a review');
+      return;
+    }
+
+    if (userReviewRating === 0) {
+      setReviewError('Please select a rating');
+      return;
+    }
+
+    try {
+      setReviewSubmitting(true);
+      setReviewError('');
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`
+      };
+
+      const method = userExistingReview ? 'PUT' : 'POST';
+      const body = userExistingReview 
+        ? { reviewId: userExistingReview.id, rating: userReviewRating, comment: reviewComment }
+        : { productId: product?.id, rating: userReviewRating, comment: reviewComment };
+
+      const response = await fetch('/api/reviews', {
+        method,
+        headers,
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setReviewSuccess(userExistingReview ? 'Review updated successfully!' : 'Review submitted successfully!');
+        setUserReviewRating(0);
+        setReviewComment('');
+        fetchDetailedReviews(); // Refresh reviews
+        
+        // Also refresh the rating data in the header
+        fetch(`/api/reviews?productId=${product?.id}`)
+          .then(res => res.ok ? res.json() : { reviews: [] })
+          .then(data => {
+            const reviews = data.reviews || [];
+            setReviewCount(reviews.length);
+            if (reviews.length > 0) {
+              const avgRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
+              setAverageRating(Math.round(avgRating * 10) / 10);
+            } else {
+              setAverageRating(0);
+            }
+            
+            // Update user's rating if they have one
+            if (user) {
+              const existingUserReview = reviews.find((review: any) => review.user_id === user.id);
+              if (existingUserReview) {
+                setUserRating(existingUserReview.rating);
+              } else {
+                setUserRating(0);
+              }
+            }
+          });
+      } else {
+        setReviewError(data.error || 'Failed to submit review');
+      }
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      setReviewError('Failed to submit review');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!userExistingReview || !user) return;
+
+    try {
+      setReviewSubmitting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session?.access_token}`
+      };
+
+      const response = await fetch(`/api/reviews?reviewId=${userExistingReview.id}`, {
+        method: 'DELETE',
+        headers
+      });
+
+      if (response.ok) {
+        setReviewSuccess('Review deleted successfully!');
+        setUserReviewRating(0);
+        setReviewComment('');
+        setUserExistingReview(null);
+        fetchDetailedReviews(); // Refresh reviews
+        
+        // Also refresh the rating data in the header
+        fetch(`/api/reviews?productId=${product?.id}`)
+          .then(res => res.ok ? res.json() : { reviews: [] })
+          .then(data => {
+            const reviews = data.reviews || [];
+            setReviewCount(reviews.length);
+            if (reviews.length > 0) {
+              const avgRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
+              setAverageRating(Math.round(avgRating * 10) / 10);
+            } else {
+              setAverageRating(0);
+            }
+            
+            // Update user's rating if they have one
+            if (user) {
+              const existingUserReview = reviews.find((review: any) => review.user_id === user.id);
+              if (existingUserReview) {
+                setUserRating(existingUserReview.rating);
+              } else {
+                setUserRating(0);
+              }
+            }
+          });
+      } else {
+        const data = await response.json();
+        setReviewError(data.error || 'Failed to delete review');
+      }
+    } catch (err) {
+      console.error('Error deleting review:', err);
+      setReviewError('Failed to delete review');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <>
     <Box
@@ -834,7 +989,13 @@ const PreCheckout = () => {
           )}
           <Button
             variant="text"
-            onClick={() => setReviewModalOpen(true)}
+            onClick={() => {
+              const reviewSection = document.getElementById('review-section');
+              if (reviewSection) {
+                reviewSection.scrollIntoView({ behavior: 'smooth' });
+                // Reviews are already loaded automatically, no need to fetch again
+              }
+            }}
             sx={{
               fontFamily: '"Montserrat", sans-serif',
               textTransform: 'none',
@@ -1291,6 +1452,42 @@ const PreCheckout = () => {
             </AccordionDetails>
           </Accordion>
 
+          {/* Product Feature Images - Added between wash care and made in india */}
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              gap: 2, 
+              mt: 3, 
+              mb: 2,
+              px: { xs: 1, md: 0 }
+            }}
+          >
+            <Image
+              src="/images/premiumQuality.png"
+              alt="Premium Quality"
+              width={120}
+              height={120}
+              style={{ objectFit: 'contain' }}
+            />
+            
+            <Image
+              src="/images/originalBrand.png"
+              alt="Original Brand"
+              width={120}
+              height={120}
+              style={{ objectFit: 'contain' }}
+            />
+            
+            <Image
+              src="/images/satisGuarentee.png"
+              alt="Satisfaction Guarantee"
+              width={120}
+              height={120}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
+
           {/* Made in India - Added below wash care */}
           <Typography 
             variant="body1" 
@@ -1304,6 +1501,220 @@ const PreCheckout = () => {
           >
             Made in India
           </Typography>
+
+          {/* Reviews Section */}
+          <Box 
+            id="review-section"
+            sx={{ 
+              mt: 4,
+              border: '1px solid #e0e0e0',
+              borderRadius: 2,
+              overflow: 'hidden'
+            }}
+          >
+            {/* Review Header */}
+            <Box sx={{ 
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              p: 3,
+              borderBottom: '1px solid #e0e0e0',
+              bgcolor: '#f9f9f9'
+            }}>
+              <Box>
+                <Typography variant="h6" sx={{ 
+                  fontFamily: '"Montserrat", sans-serif', 
+                  fontWeight: 600,
+                  mb: 1
+                }}>
+                  Reviews for {product.title}
+                </Typography>
+                {reviewCount > 0 && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <StarRating rating={Math.round(averageRating)} readOnly size="small" />
+                    <Typography variant="body2" sx={{ color: '#666', fontFamily: '"Montserrat", sans-serif' }}>
+                      {averageRating.toFixed(1)} ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+
+            {/* Add/Edit Review Section - First Row */}
+            <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
+              <Typography variant="h6" sx={{ 
+                fontFamily: '"Montserrat", sans-serif', 
+                fontWeight: 600,
+                mb: 3
+              }}>
+                {userExistingReview ? 'Edit Your Review' : 'Add Your Review'}
+              </Typography>
+              
+              {!user ? (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Please login to submit a review
+                </Alert>
+              ) : (
+                <>
+                  {userExistingReview && (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      You have already reviewed this product. You can edit your review below.
+                    </Alert>
+                  )}
+                  
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontFamily: '"Montserrat", sans-serif' }}>
+                      Rate this product *
+                    </Typography>
+                    <StarRating
+                      rating={userReviewRating}
+                      onRatingChange={setUserReviewRating}
+                      size="large"
+                    />
+                  </Box>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontFamily: '"Montserrat", sans-serif' }}>
+                      Write a review (optional)
+                    </Typography>
+                    <TextField
+                      multiline
+                      rows={4}
+                      fullWidth
+                      placeholder="Share your thoughts about this product..."
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          fontFamily: '"Montserrat", sans-serif'
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  {reviewError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {reviewError}
+                    </Alert>
+                  )}
+
+                  {reviewSuccess && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      {reviewSuccess}
+                    </Alert>
+                  )}
+
+                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                    {userExistingReview && (
+                      <Button
+                        onClick={handleDeleteReview}
+                        disabled={reviewSubmitting}
+                        color="error"
+                        variant="outlined"
+                        sx={{
+                          fontFamily: '"Montserrat", sans-serif',
+                          textTransform: 'none'
+                        }}
+                      >
+                        Delete Review
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleSubmitReview}
+                      disabled={reviewSubmitting || userReviewRating === 0}
+                      variant="contained"
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        textTransform: 'none'
+                      }}
+                    >
+                      {reviewSubmitting ? (
+                        <CircularProgress size={20} color="inherit" />
+                      ) : userExistingReview ? (
+                        'Update Review'
+                      ) : (
+                        'Submit Review'
+                      )}
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </Box>
+
+            {/* View Reviews Section - Second Row */}
+            <Box sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ 
+                fontFamily: '"Montserrat", sans-serif', 
+                fontWeight: 600,
+                mb: 3
+              }}>
+                All Reviews ({reviewCount})
+              </Typography>
+              
+              {reviewsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : reviews.length === 0 ? (
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    textAlign: 'center', 
+                    py: 4, 
+                    color: '#666',
+                    fontFamily: '"Montserrat", sans-serif'
+                  }}
+                >
+                  No reviews yet. Be the first to review this product!
+                </Typography>
+              ) : (
+                <Box sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {reviews.map((review: any) => (
+                    <Paper
+                      key={review.id}
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        mb: 2,
+                        border: '1px solid #e0e0e0',
+                        borderRadius: 2,
+                        backgroundColor: review.user_id === user?.id ? '#f8f9fa' : 'white'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600 }}>
+                            {review.user_name}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                            <StarRating rating={review.rating} readOnly size="small" />
+                            <Typography variant="caption" sx={{ color: '#666' }}>
+                              {formatDate(review.created_at)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        {review.user_id === user?.id && (
+                          <Chip
+                            label="Your Review"
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontSize: '0.75rem' }}
+                          />
+                        )}
+                      </Box>
+                      {review.comment && (
+                        <Typography variant="body2" sx={{ fontFamily: '"Montserrat", sans-serif', color: '#333' }}>
+                          {review.comment}
+                        </Typography>
+                      )}
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          </Box>
         </Box>
 
         {/* Size Chart Modal */}
@@ -1547,13 +1958,6 @@ const PreCheckout = () => {
       </Box>
     )}
 
-    {/* Review Modal */}
-    <ReviewModal
-      open={reviewModalOpen}
-      onClose={() => setReviewModalOpen(false)}
-      productId={product?.id || 0}
-      productTitle={product?.title || ''}
-    />
   </>
   );
 };
