@@ -711,8 +711,8 @@ const PreCheckout = () => {
           flexShrink: 0,
           alignSelf: { md: 'flex-start' },
           mb: { xs: 2, md: 0 },
-          ml: { sm: 0, md: 0 },
-          mr: { sm: 0, md: 0 },
+          ml: { xs: 'calc(-50vw + 50%)', sm: 'calc(-50vw + 50%)', md: 0 },
+          mr: { xs: 'calc(-50vw + 50%)', sm: 'calc(-50vw + 50%)', md: 0 },
           px: { xs: 0, md: 0 },
         }}
       >
@@ -721,7 +721,10 @@ const PreCheckout = () => {
           sx={{
             position: 'relative',
             width: '100%',
-            aspectRatio: '4/5',
+            // On mobile: let height be auto to maintain aspect ratio, on desktop: fixed 4/5 ratio
+            aspectRatio: { xs: 'unset', md: '4/5' },
+            minHeight: { xs: '70vh', md: 'auto' },
+            maxHeight: { xs: '90vh', md: 'none' },
             bgcolor: 'white',
             borderRadius: { xs: 0, md: 3 },
             overflow: 'hidden',
@@ -761,7 +764,10 @@ const PreCheckout = () => {
                 src={formattedImages[currentImageIndex]}
                 alt={`${product.title} - Image ${currentImageIndex + 1}`}
                 fill
-                style={{ objectFit: 'cover' }}
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center top'
+                }}
                 sizes="(max-width: 600px) 100vw, 40vw"
                 quality={75}
                 onLoad={() => setMainImageLoading(false)}
