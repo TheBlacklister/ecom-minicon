@@ -53,53 +53,70 @@ export async function GET(request: NextRequest) {
     let userProfiles: any = {};
     
     if (userIds.length > 0) {
-      // Use service role client for admin access to bypass RLS
-      const serviceRoleClient = createSupabaseServerClient(process.env.SUPABASE_SERVICE_KEY!);
-      
-      // Try to get profiles data first
-      const { data: profiles, error: profileError } = await serviceRoleClient
-        .from('profiles')
-        .select('user_id, name, email')
-        .in('user_id', userIds);
-      
-      console.log('Debug - User IDs:', userIds);
-      console.log('Debug - Profiles query result:', { profiles, profileError });
-      
-      // If no profiles found or error, create a map with user emails from auth
-      if (!profiles || profiles.length === 0 || profileError) {
-        console.log('Debug - No profiles found, trying alternative approach');
+      try {
+        // Use service role client for admin access to bypass RLS
+        const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!serviceKey) {
+          console.error('No service key found in environment variables');
+          throw new Error('Service key not configured');
+        }
         
-        // Fallback: create display names based on user IDs
+        const serviceRoleClient = createSupabaseServerClient(serviceKey);
+        
+        // Try to get profiles data first
+        const { data: profiles, error: profileError } = await serviceRoleClient
+          .from('profiles')
+          .select('user_id, name, email')
+          .in('user_id', userIds);
+        
+        console.log('Debug - User IDs:', userIds);
+        console.log('Debug - Profiles query result:', { profiles, profileError });
+        
+        if (profileError) {
+          console.error('Profile query error:', profileError);
+          throw profileError;
+        }
+        
+        if (profiles && profiles.length > 0) {
+          // Process profiles normally
+          userProfiles = profiles.reduce((acc: any, profile: any) => {
+            let displayName = 'Anonymous User';
+            
+            console.log('Debug - Processing profile:', profile);
+            
+            if (profile.name && profile.name.trim()) {
+              displayName = profile.name.trim();
+              console.log('Debug - Using name:', displayName);
+            } else if (profile.email && profile.email.trim()) {
+              const emailPrefix = profile.email.split('@')[0];
+              displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+              console.log('Debug - Using email prefix:', displayName);
+            }
+            
+            acc[profile.user_id] = displayName;
+            return acc;
+          }, {});
+          
+          // Add any missing users with fallback
+          userIds.forEach(userId => {
+            if (!userProfiles[userId]) {
+              userProfiles[userId] = 'Anonymous User';
+            }
+          });
+        } else {
+          // No profiles found - set all to Anonymous User
+          userProfiles = userIds.reduce((acc: any, userId: string) => {
+            acc[userId] = 'Anonymous User';
+            return acc;
+          }, {});
+        }
+      } catch (error) {
+        console.error('Error fetching user profiles:', error);
+        // Fallback: set all users to Anonymous User
         userProfiles = userIds.reduce((acc: any, userId: string) => {
-          acc[userId] = 'User ' + userId.slice(-4); // Use last 4 chars of UUID
+          acc[userId] = 'Anonymous User';
           return acc;
         }, {});
-      } else {
-        // Process profiles normally
-        userProfiles = profiles.reduce((acc: any, profile: any) => {
-          let displayName = 'Anonymous User';
-          
-          console.log('Debug - Processing profile:', profile);
-          
-          if (profile.name && profile.name.trim()) {
-            displayName = profile.name.trim();
-            console.log('Debug - Using name:', displayName);
-          } else if (profile.email && profile.email.trim()) {
-            const emailPrefix = profile.email.split('@')[0];
-            displayName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
-            console.log('Debug - Using email prefix:', displayName);
-          }
-          
-          acc[profile.user_id] = displayName;
-          return acc;
-        }, {});
-        
-        // Add any missing users
-        userIds.forEach(userId => {
-          if (!userProfiles[userId]) {
-            userProfiles[userId] = 'User ' + userId.slice(-4);
-          }
-        });
       }
       
       console.log('Debug - Final userProfiles:', userProfiles);
