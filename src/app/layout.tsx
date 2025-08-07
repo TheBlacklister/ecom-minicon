@@ -37,16 +37,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <link
           rel="icon"
-          type="image/svg+xml"
-          href="/images/FaviconLightMode.svg"
+          type="image/png"
+          href="/images/black.png"
           media="(prefers-color-scheme: light)"
         />
         <link
           rel="icon"
-          type="image/svg+xml"
+          type="image/png"
           href="/images/white.png"
           media="(prefers-color-scheme: dark)"
         />
+        <link rel="icon" href="/images/favicon.ico" />
       </head>
       <body
         style={{
