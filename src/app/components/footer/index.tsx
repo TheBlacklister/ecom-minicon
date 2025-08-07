@@ -25,6 +25,8 @@ export default function Footer() {
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: '"Montserrat", sans-serif ' }}>ABOUT US</Typography>
                 <Stack spacing={0.5}>
                   <Link href="/about" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Learn More</Link>
+                  <Link href="/disclaimer" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Disclaimer</Link>
+                  <Link href="/contact" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Contact Us</Link>
                 </Stack>
               </Stack>
             </Grid>
@@ -38,8 +40,6 @@ export default function Footer() {
                   <Link href="/shipping" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Shipping Policy</Link>
                   <Link href="/cancelRefund" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Cancel and refund</Link>
                   <Link href="/privacy" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Privacy Policy</Link>
-                  <Link href="/disclaimer" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Disclaimer</Link>
-                  <Link href="/contact" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Contact Us</Link>
                 </Stack>
               </Box>
             </Grid>
