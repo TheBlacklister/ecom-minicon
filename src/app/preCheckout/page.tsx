@@ -16,6 +16,8 @@ import { useAuth } from '../components/AuthProvider';
 import { useCount } from '../components/CountProvider';
 import { ProductCard } from '../components/productCard';
 import { GridLegacy as Grid } from '@mui/material';
+import { StarRating } from '../components/StarRating';
+import { ReviewModal } from '../components/ReviewModal';
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -37,6 +39,10 @@ const PreCheckout = () => {
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [userRating, setUserRating] = useState(0);
 
   // Coupon data
   const availableCoupons = [
@@ -133,6 +139,72 @@ const PreCheckout = () => {
         setSuggestedLoading(false);
       });
   }, [product]);
+
+  // Fetch review data
+  useEffect(() => {
+    if (!product) return;
+    
+    fetch(`/api/reviews?productId=${product.id}`)
+      .then(res => res.ok ? res.json() : { reviews: [] })
+      .then(data => {
+        const reviews = data.reviews || [];
+        setReviewCount(reviews.length);
+        if (reviews.length > 0) {
+          const avgRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
+          setAverageRating(Math.round(avgRating * 10) / 10); // Round to 1 decimal
+        } else {
+          setAverageRating(0);
+        }
+        
+        // Check if current user has already rated this product
+        if (user) {
+          const existingUserReview = reviews.find((review: any) => review.user_id === user.id);
+          if (existingUserReview) {
+            setUserRating(existingUserReview.rating);
+          } else {
+            setUserRating(0);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching reviews:', error);
+        setAverageRating(0);
+        setReviewCount(0);
+        setUserRating(0);
+      });
+  }, [product, user]);
+
+  // Refresh rating data when review modal is closed
+  useEffect(() => {
+    if (!reviewModalOpen && product) {
+      // Modal just closed, refresh the rating data
+      fetch(`/api/reviews?productId=${product.id}`)
+        .then(res => res.ok ? res.json() : { reviews: [] })
+        .then(data => {
+          const reviews = data.reviews || [];
+          setReviewCount(reviews.length);
+          if (reviews.length > 0) {
+            const avgRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
+            setAverageRating(Math.round(avgRating * 10) / 10);
+          } else {
+            setAverageRating(0);
+          }
+          
+          // Update user's rating if they have one
+          if (user) {
+            const existingUserReview = reviews.find((review: any) => review.user_id === user.id);
+            if (existingUserReview) {
+              setUserRating(existingUserReview.rating);
+            } else {
+              setUserRating(0);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error refreshing reviews after modal close:', error);
+        });
+    }
+  }, [reviewModalOpen, product, user]);
 
   // Show loading screen while fetching data
   if (loading) {
@@ -383,6 +455,81 @@ const PreCheckout = () => {
     if (!coupon.minOrder) return true;
     const basePrice = (product?.price_after || 0) * quantity;
     return basePrice >= coupon.minOrder;
+  };
+
+  // Handle user rating change
+  const handleUserRatingChange = async (newRating: number) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (!product) return;
+
+    const previousRating = userRating;
+    setUserRating(newRating);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`
+      };
+
+      // Check if user already has a review by fetching current reviews
+      const reviewsResponse = await fetch(`/api/reviews?productId=${product.id}`);
+      const reviewsData = await reviewsResponse.json();
+      const existingUserReview = reviewsData.reviews?.find((review: any) => review.user_id === user.id);
+
+      let response;
+      if (existingUserReview) {
+        // Update existing review
+        response = await fetch('/api/reviews', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ 
+            reviewId: existingUserReview.id,
+            rating: newRating, 
+            comment: existingUserReview.comment || '' 
+          })
+        });
+      } else {
+        // Create new review
+        response = await fetch('/api/reviews', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ 
+            productId: product.id, 
+            rating: newRating, 
+            comment: '' 
+          })
+        });
+      }
+
+      if (response.ok) {
+        // Refresh review data to update average rating
+        fetch(`/api/reviews?productId=${product.id}`)
+          .then(res => res.ok ? res.json() : { reviews: [] })
+          .then(data => {
+            const reviews = data.reviews || [];
+            setReviewCount(reviews.length);
+            if (reviews.length > 0) {
+              const avgRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
+              setAverageRating(Math.round(avgRating * 10) / 10);
+            } else {
+              setAverageRating(0);
+            }
+          });
+      } else {
+        // Revert rating on error
+        setUserRating(previousRating);
+        console.error('Error saving rating:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error saving rating:', error);
+      // Revert rating on error
+      setUserRating(previousRating);
+    }
   };
 
   return (
@@ -672,6 +819,38 @@ const PreCheckout = () => {
         <Typography sx={{ fontSize: "1.2rem", mb: 1, fontFamily: '"Montserrat", sans-serif ', color: '#555' }}>
           {product.subtitle}
         </Typography>
+        
+        {/* Star Rating and Review Button */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <StarRating 
+            rating={userRating || Math.round(averageRating)} 
+            onRatingChange={handleUserRatingChange}
+            size="medium" 
+          />
+          {reviewCount > 0 && (
+            <Typography variant="body2" sx={{ color: '#666', fontFamily: '"Montserrat", sans-serif' }}>
+              {averageRating.toFixed(1)} ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
+            </Typography>
+          )}
+          <Button
+            variant="text"
+            onClick={() => setReviewModalOpen(true)}
+            sx={{
+              fontFamily: '"Montserrat", sans-serif',
+              textTransform: 'none',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              color: '#1976d2',
+              padding: '4px 8px',
+              minWidth: 'auto',
+              '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.04)'
+              }
+            }}
+          >
+            Review
+          </Button>
+        </Box>
         
         {/* Price and Quantity */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
@@ -1367,6 +1546,14 @@ const PreCheckout = () => {
         </Container>
       </Box>
     )}
+
+    {/* Review Modal */}
+    <ReviewModal
+      open={reviewModalOpen}
+      onClose={() => setReviewModalOpen(false)}
+      productId={product?.id || 0}
+      productTitle={product?.title || ''}
+    />
   </>
   );
 };

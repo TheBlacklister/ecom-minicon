@@ -86,6 +86,19 @@ CREATE TABLE public.order_items (
     created_at timestamp with time zone DEFAULT current_timestamp
 );
 
+-- Reviews table
+CREATE TABLE public.reviews (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id uuid NOT NULL,
+    product_id bigint NOT NULL,
+    rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment text,
+    created_at timestamp with time zone DEFAULT current_timestamp,
+    updated_at timestamp with time zone DEFAULT current_timestamp,
+    FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE
+);
+
 -- Backup tables (from your existing database)
 CREATE TABLE public.products_backup_before_redesign (
     id numeric,
@@ -128,6 +141,12 @@ ALTER TABLE ONLY public.order_items
 ALTER TABLE ONLY public.order_items
     ADD CONSTRAINT order_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id);
 
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
 -- Functions
 CREATE OR REPLACE FUNCTION public.generate_slug(title text)
 RETURNS text
@@ -145,6 +164,7 @@ ALTER TABLE public.cart ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (these would be set up separately in your Supabase dashboard)
 -- Products table remains publicly readable (no RLS needed)
