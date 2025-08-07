@@ -20,3 +20,13 @@ export interface Product {
   created_at: string | null;
   updated_at: string | null;
 }
+
+export interface Review {
+  id: number;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+  user_name: string;
+  user_id: string;
+}
