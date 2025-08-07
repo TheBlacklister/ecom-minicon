@@ -1452,6 +1452,42 @@ const PreCheckout = () => {
             </AccordionDetails>
           </Accordion>
 
+          {/* Product Feature Images - Added between wash care and made in india */}
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              gap: 2, 
+              mt: 3, 
+              mb: 2,
+              px: { xs: 1, md: 0 }
+            }}
+          >
+            <Image
+              src="/images/premiumQuality.png"
+              alt="Premium Quality"
+              width={120}
+              height={120}
+              style={{ objectFit: 'contain' }}
+            />
+            
+            <Image
+              src="/images/originalBrand.png"
+              alt="Original Brand"
+              width={120}
+              height={120}
+              style={{ objectFit: 'contain' }}
+            />
+            
+            <Image
+              src="/images/satisGuarentee.png"
+              alt="Satisfaction Guarantee"
+              width={120}
+              height={120}
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
+
           {/* Made in India - Added below wash care */}
           <Typography 
             variant="body1" 
