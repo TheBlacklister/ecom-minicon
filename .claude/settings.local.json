@@ -6,7 +6,10 @@
       "Bash(git commit:*)",
       "Bash(npm run lint)",
       "Bash(npm run lint:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(rm:*)",
+      "Bash(npm install)"
     ],
     "deny": []
   }

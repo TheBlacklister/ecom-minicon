@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Product } from '@/types';
 import Image from "next/image";
@@ -181,7 +181,7 @@ const PreCheckout = () => {
   }, [product, user]);
 
   // Fetch detailed reviews for the review section
-  const fetchDetailedReviews = async () => {
+  const fetchDetailedReviews = useCallback(async () => {
     if (!product) return;
     
     try {
@@ -210,14 +210,14 @@ const PreCheckout = () => {
     } finally {
       setReviewsLoading(false);
     }
-  };
+  }, [product, user]);
 
   // Load reviews when product is available
   useEffect(() => {
     if (product) {
       fetchDetailedReviews();
     }
-  }, [product, user]);
+  }, [product, user, fetchDetailedReviews]);
 
   // Show loading screen while fetching data
   if (loading) {
