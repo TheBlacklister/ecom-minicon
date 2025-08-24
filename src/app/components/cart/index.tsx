@@ -186,7 +186,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
 
     // Coupon data
-    const availableCoupons = [
+    const availableCoupons = useMemo(() => [
         {
             code: 'ONLINE100',
             discount: 100,
@@ -200,7 +200,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
             minOrder: 2000,
             type: 'flat_discount'
         }
-    ];
+    ], []);
 
     useEffect(() => {
         if (!user) {
