@@ -1471,7 +1471,7 @@ const PreCheckout = () => {
             }}
           >
             <Image
-              src="/images/premiumQuality.png"
+              src="/images/trust1.png"
               alt="Premium Quality"
               width={80}
               height={80}
@@ -1479,14 +1479,13 @@ const PreCheckout = () => {
                 objectFit: 'contain',
                 width: 'auto',
                 height: 'auto',
-                maxWidth: '80px',
-                maxHeight: '80px'
+              
               }}
               sizes="(max-width: 600px) 80px, (max-width: 900px) 100px, 120px"
             />
             
             <Image
-              src="/images/originalBrand.png"
+              src="/images/trust2.png"
               alt="Original Brand"
               width={80}
               height={80}
@@ -1494,14 +1493,13 @@ const PreCheckout = () => {
                 objectFit: 'contain',
                 width: 'auto',
                 height: 'auto',
-                maxWidth: '80px',
-                maxHeight: '80px'
+              
               }}
               sizes="(max-width: 600px) 80px, (max-width: 900px) 100px, 120px"
             />
             
             <Image
-              src="/images/satisGuarentee.png"
+              src="/images/trust3.png"
               alt="Satisfaction Guarantee"
               width={80}
               height={80}
@@ -1509,8 +1507,7 @@ const PreCheckout = () => {
                 objectFit: 'contain',
                 width: 'auto',
                 height: 'auto',
-                maxWidth: '80px',
-                maxHeight: '80px'
+               
               }}
               sizes="(max-width: 600px) 80px, (max-width: 900px) 100px, 120px"
             />
