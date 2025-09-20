@@ -170,6 +170,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const [cart, setCart] = useState(DUMMY_CART);
+    const [cartWithProductDetails, setCartWithProductDetails] = useState<CartApiItem[]>([]);
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddress, setSelectedAddress] = useState<string>('');
     const [paymentMode, setPaymentMode] = useState('card');
@@ -245,6 +246,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                         const cartData = await cartRes.value.json();
                         if (cartData) {
                             // Product is already in cart, use the existing quantity
+                            setCartWithProductDetails([cartData]);
                             setCart([{
                                 id: cartData.product.id,
                                 title: cartData.product.title,
@@ -269,6 +271,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                             const newCartRes = await fetch(`/api/cart?productId=${buyNowProductId}`, { headers });
                             const newCartData = await newCartRes.json();
                             if (newCartData) {
+                                setCartWithProductDetails([newCartData]);
                                 setCart([{
                                     id: newCartData.product.id,
                                     title: newCartData.product.title,
@@ -288,6 +291,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                         if (cartRes.value.ok) {
                             const cartData = await cartRes.value.json();
                             console.log('Cart items fetched:', cartData);
+                            setCartWithProductDetails(cartData);
                             setCart(cartData.map((item: CartApiItem) => ({
                                 id: item.product.id,
                                 title: item.product.title,
@@ -1101,7 +1105,8 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                             size="large"
                             disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading}
                             onClick={() => {
-                                console.log('Cart items:', cart);
+                                console.log('Cart items with product details:', cartWithProductDetails);
+                                console.log('Simplified cart items:', cart);
                             }}
                             sx={{
                                 py: 1.5,
