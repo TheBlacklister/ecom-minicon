@@ -19,11 +19,13 @@ interface CartItem {
   img: string
   price: number
   qty: number
+  selected_size: string | null
 }
 
 interface CartApiItem {
   product: Product
   quantity: number
+  selected_size: string | null
 }
 
 const formatINR = (v: number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
@@ -59,51 +61,48 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           img: convertImagePath(item.product.images[0]),
           price: item.product.price_after,
           qty: item.quantity,
+          selected_size: item.selected_size,
         })))).finally(() => setLoading(false))
     })
   }, [open, user])
 
   const subtotal = useMemo(() => cart.reduce((sum, i) => sum + i.price * i.qty, 0), [cart])
-  const handleIncrease = async (id:number) => {
-    const item = cart.find(i => i.id === id)
-    if (!item) return
+  const handleIncrease = async (item: CartItem) => {
     const { data: { session } } = await supabase.auth.getSession()
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`
-    const res = await fetch('/api/cart', { method: 'POST', headers, body: JSON.stringify({ product_id: id, quantity: 1 }) })
+    const res = await fetch('/api/cart', { method: 'POST', headers, body: JSON.stringify({ product_id: item.id, quantity: 1, selected_size: item.selected_size }) })
     if (res.ok) {
       const data = await res.json()
-      setCart(cart.map(c => c.id === id ? { ...c, qty: data.quantity } : c))
+      setCart(cart.map(c => (c.id === item.id && c.selected_size === item.selected_size) ? { ...c, qty: data.quantity } : c))
       updateCartCount() // Update global count
     }
   }
 
-  const handleDecrease = async (id:number) => {
-    const item = cart.find(i => i.id === id)
-    if (!item) return
+  const handleDecrease = async (item: CartItem) => {
     const { data: { session } } = await supabase.auth.getSession()
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`
     if (item.qty <= 1) {
-      await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: id }) })
-      setCart(cart.filter(c => c.id !== id))
+      await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) })
+      setCart(cart.filter(c => !(c.id === item.id && c.selected_size === item.selected_size)))
       updateCartCount() // Update global count
     } else {
-      const res = await fetch('/api/cart', { method: 'PUT', headers, body: JSON.stringify({ product_id: id, quantity: item.qty - 1 }) })
+      const res = await fetch('/api/cart', { method: 'PUT', headers, body: JSON.stringify({ product_id: item.id, quantity: item.qty - 1 }) })
       if (res.ok) {
         const data = await res.json()
-        setCart(cart.map(c => c.id === id ? { ...c, qty: data.quantity } : c))
+        setCart(cart.map(c => (c.id === item.id && c.selected_size === item.selected_size) ? { ...c, qty: data.quantity } : c))
         updateCartCount() // Update global count
       }
     }
   }
 
-  const handleDelete = async (id:number) => {
+  const handleDelete = async (item: CartItem) => {
     const { data: { session } } = await supabase.auth.getSession()
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`
-    await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: id }) })
-    setCart(cart.filter(c => c.id !== id))
+    await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) })
+    setCart(cart.filter(c => !(c.id === item.id && c.selected_size === item.selected_size)))
     updateCartCount() // Update global count
   }
 
@@ -123,18 +122,21 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           <>
             <Box sx={{ flex: 1, overflowY: 'auto' }}>
               {cart.map(item => (
-                <Box key={item.id} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
+                <Box key={`${item.id}-${item.selected_size || 'no-size'}`} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
                   <Box sx={{ width: 80, height: 80, bgcolor: '#f5f5f5', borderRadius: 1, overflow: 'hidden', mr: 1 }}>
                     <Image src={item.img} alt={item.title} width={80} height={80} style={{ objectFit: 'contain' }} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>{item.title}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif' }}>{item.subtitle}</Typography>
+                    {item.selected_size && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontFamily: '"Montserrat", sans-serif' }}>Size: {item.selected_size}</Typography>
+                    )}
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                      <IconButton size="small" onClick={() => handleDecrease(item.id)}><RemoveIcon fontSize="inherit" /></IconButton>
+                      <IconButton size="small" onClick={() => handleDecrease(item)}><RemoveIcon fontSize="inherit" /></IconButton>
                       <Typography sx={{ mx: 0.5, fontFamily: '"Montserrat", sans-serif' }}>{item.qty}</Typography>
-                      <IconButton size="small" onClick={() => handleIncrease(item.id)}><AddIcon fontSize="inherit" /></IconButton>
-                      <IconButton onClick={() => handleDelete(item.id)} sx={{ ml: 'auto' }}><DeleteOutlineIcon /></IconButton>
+                      <IconButton size="small" onClick={() => handleIncrease(item)}><AddIcon fontSize="inherit" /></IconButton>
+                      <IconButton onClick={() => handleDelete(item)} sx={{ ml: 'auto' }}><DeleteOutlineIcon /></IconButton>
                     </Box>
                   </Box>
                 </Box>

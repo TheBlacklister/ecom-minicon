@@ -39,11 +39,13 @@ interface CartItem {
     img: string;
     price: number;
     qty: number;
+    selected_size: string | null;
 }
 
 interface CartApiItem {
     product: Product;
     quantity: number;
+    selected_size: string | null;
 }
 
 interface Address {
@@ -253,6 +255,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                     .replace(/\/{2,}/g, '/'),
                                 price: cartData.product.price_after,
                                 qty: cartData.quantity,
+                                selected_size: cartData.selected_size,
                             }]);
                         } else {
                             // Product not in cart, add it with quantity 1
@@ -276,6 +279,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                         .replace(/\/{2,}/g, '/'),
                                     price: newCartData.product.price_after,
                                     qty: newCartData.quantity,
+                                    selected_size: newCartData.selected_size,
                                 }]);
                             }
                         }
@@ -294,6 +298,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                     .replace(/\/{2,}/g, '/'),
                                 price: item.product.price_after,
                                 qty: item.quantity,
+                                selected_size: item.selected_size,
                             })));
                         }
                     }
@@ -658,6 +663,13 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                                             color="text.secondary"
                                                             sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                                                         >
+                                                            Size: {item.selected_size || 'N/A'}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="body2"
+                                                            color="text.secondary"
+                                                            sx={{ fontFamily: '"Montserrat", sans-serif ' }}
+                                                        >
                                                             Qty: {item.qty}
                                                         </Typography>
                                                     </Box>
@@ -666,8 +678,8 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                                             const { data: { session } } = await supabase.auth.getSession();
                                                             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
                                                             if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
-                                                            await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id }) });
-                                                            setCart(cart.filter((i) => i.id !== item.id));
+                                                            await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) });
+                                                            setCart(cart.filter((i) => !(i.id === item.id && i.selected_size === item.selected_size)));
                                                         }}
                                                         sx={{
                                                             color: '#666',
@@ -1088,6 +1100,9 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                             fullWidth
                             size="large"
                             disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading}
+                            onClick={() => {
+                                console.log('Cart items:', cart);
+                            }}
                             sx={{
                                 py: 1.5,
                                 bgcolor: '#fe5000',

@@ -53,7 +53,7 @@ export async function POST() {
             "search_from_my_products": 0, 
             "quantity": "1",
             "print_type_id":1,
-            "price":"1",
+            "price":"420",
             "sku": "USuRnHs-Lv-S",
             
         }

@@ -136,13 +136,16 @@ export default function CataloguePage() {
 
       // Handle category filtering
       if (label === 'category' && value) {
+        
         filtered = filtered.filter((p) => {
           const categories = Array.isArray(p.category) ? p.category : (p.category ? [p.category] : []);
           const categoryMatches = categories.some(cat => {
             const match = cat.toLowerCase() === value;
+            console.log("sweatshirt", categories, value, match)
             return match;
           });
           return categoryMatches;
+          
         });
       }
       // Handle collections filtering

@@ -58,6 +58,7 @@ CREATE TABLE public.cart (
     user_id uuid,
     product_id bigint,
     quantity numeric DEFAULT 1,
+    selected_size text,
     created_at timestamp with time zone DEFAULT current_timestamp
 );
 

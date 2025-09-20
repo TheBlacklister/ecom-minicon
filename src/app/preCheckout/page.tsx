@@ -333,7 +333,7 @@ const PreCheckout = () => {
     const res = await fetch('/api/cart', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ product_id: product.id, quantity: quantity })
+      body: JSON.stringify({ product_id: product.id, quantity: quantity, selected_size: selectedSize })
     });
     if (res.ok) {
       await res.json();
@@ -356,9 +356,10 @@ const PreCheckout = () => {
     const response = await fetch('/api/cart?buyNow=true', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ 
-        product_id: product.id, 
+      body: JSON.stringify({
+        product_id: product.id,
         quantity: quantity,
+        selected_size: selectedSize,
         coupon: selectedCoupon?.code || null
       })
     });

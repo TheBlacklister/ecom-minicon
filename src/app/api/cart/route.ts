@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   if (productId) {
     const { data, error: dbError } = await supabase
       .from('cart')
-      .select('id, quantity, product:products(*)')
+      .select('id, quantity, selected_size, product:products(*)')
       .eq('user_id', user.id)
       .eq('product_id', Number(productId))
       .maybeSingle()
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error: dbError } = await supabase
     .from('cart')
-    .select('quantity, product:products(*)')
+    .select('quantity, selected_size, product:products(*)')
     .eq('user_id', user.id)
 
   if (dbError) {
@@ -51,14 +51,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Not authenticated' }, { status: 401 })
   }
 
-  const { product_id, quantity = 1 } = await request.json()
+  const { product_id, quantity = 1, selected_size } = await request.json()
   const buyNow = request.nextUrl.searchParams.get('buyNow') === 'true'
 
   const { data: existing, error: fetchError } = await supabase
     .from('cart')
-    .select('id, quantity')
+    .select('id, quantity, selected_size')
     .eq('user_id', user.id)
     .eq('product_id', product_id)
+    .eq('selected_size', selected_size || null)
     .maybeSingle()
 
   if (fetchError) {
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
   } else {
     ;({ data, error: dbError } = await supabase
       .from('cart')
-      .insert({ user_id: user.id, product_id, quantity })
+      .insert({ user_id: user.id, product_id, quantity, selected_size })
       .select()
       .single())
   }
@@ -126,13 +127,20 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Not authenticated' }, { status: 401 })
   }
 
-  const { product_id } = await request.json()
+  const { product_id, selected_size } = await request.json()
 
-  const { error: dbError } = await supabase
+  let deleteQuery = supabase
     .from('cart')
     .delete()
     .eq('user_id', user.id)
     .eq('product_id', product_id)
+
+  // If selected_size is provided, include it in the delete condition
+  if (selected_size !== undefined) {
+    deleteQuery = deleteQuery.eq('selected_size', selected_size)
+  }
+
+  const { error: dbError } = await deleteQuery
 
   if (dbError) {
     return NextResponse.json({ error: dbError.message }, { status: 500 })
