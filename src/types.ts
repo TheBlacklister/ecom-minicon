@@ -19,6 +19,7 @@ export interface Product {
   slug: string | null;
   created_at: string | null;
   updated_at: string | null;
+  sku: Record<string, string> | null; // Size -> SKU mapping
 }
 
 export interface Review {
@@ -29,4 +30,10 @@ export interface Review {
   updated_at: string;
   user_name: string;
   user_id: string;
+}
+
+export interface CartItem {
+  quantity: number;
+  selected_size: string;
+  product: Product;
 }

@@ -173,7 +173,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     const [cartWithProductDetails, setCartWithProductDetails] = useState<CartApiItem[]>([]);
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddress, setSelectedAddress] = useState<string>('');
-    const [paymentMode, setPaymentMode] = useState('card');
+    const [paymentMode, setPaymentMode] = useState('cod');
 
     // Loading states
     const [isLoading, setIsLoading] = useState(true);
@@ -447,6 +447,101 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
         return subtotal >= coupon.minOrder;
     };
 
+    // Handle proceed to payment
+    const handleProceedToPayment = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+
+            const selectedAddressData = addresses.find(addr => addr.id === selectedAddress);
+console.log('cartWithProductDetails',cartWithProductDetails)
+            const payload = {
+                orderId: `${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                cartItems: cartWithProductDetails,
+                selectedAddress: selectedAddressData,
+                paymentMode,
+                subtotal,
+                shipping,
+                taxes,
+                couponDiscount,
+                total: Math.max(0, total),
+                selectedCoupon,
+                userEmail: user?.email
+            };
+
+            console.log('Calling generateToken API with payload:', payload);
+
+            const response = await fetch('/api/generateToken', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('generateToken API response:', result);
+
+                // If order was created successfully, save it to our database
+                if (result.success && result.order && result.order.order_id) {
+                    try {
+                        const orderPayload = {
+                            qikink_order_id: result.order.order_id,
+                            order_number: payload.orderId,
+                            payment_mode: paymentMode,
+                            total_amount: payload.total,
+                            subtotal: payload.subtotal,
+                            shipping: payload.shipping,
+                            taxes: payload.taxes,
+                            coupon_discount: payload.couponDiscount,
+                            coupon_code: selectedCoupon?.code || null,
+                            shipping_address: selectedAddressData,
+                            cart_items: cartWithProductDetails
+                        };
+
+                        const orderResponse = await fetch('/api/orders', {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(orderPayload)
+                        });
+
+                        if (orderResponse.ok) {
+                            const orderResult = await orderResponse.json();
+                            console.log('Order saved to database:', orderResult);
+
+                            // Clear the cart after successful order placement
+                            if (!buyNowProductId) {
+                                // For regular cart, clear all items
+                                const clearCartResponse = await fetch('/api/cart', {
+                                    method: 'DELETE',
+                                    headers,
+                                    body: JSON.stringify({ clear_all: true })
+                                });
+
+                                if (clearCartResponse.ok) {
+                                    setCart([]);
+                                    setCartWithProductDetails([]);
+                                }
+                            }
+
+                            // Show success message or redirect to order confirmation
+                            alert(`Order placed successfully! Order ID: ${result.order.order_id}`);
+
+                        } else {
+                            console.error('Failed to save order to database:', await orderResponse.text());
+                        }
+                    } catch (error) {
+                        console.error('Error saving order to database:', error);
+                    }
+                }
+            } else {
+                console.error('generateToken API failed:', await response.text());
+            }
+        } catch (error) {
+            console.error('Error calling generateToken API:', error);
+        }
+    };
+
     // Show loading screen while initial data is loading
     if (isLoading) {
         return <LoadingScreen />;
@@ -545,7 +640,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                 </Typography>
                                 <Button
                                     variant="contained"
-                                    href="/products"
+                                    href="/categories/shop-by/new-arrivals"
                                     sx={{
                                         mt: 2,
                                         bgcolor: '#fe5000',
@@ -1104,10 +1199,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                             fullWidth
                             size="large"
                             disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading}
-                            onClick={() => {
-                                console.log('Cart items with product details:', cartWithProductDetails);
-                                console.log('Simplified cart items:', cart);
-                            }}
+                            onClick={handleProceedToPayment}
                             sx={{
                                 py: 1.5,
                                 bgcolor: '#fe5000',
@@ -1119,7 +1211,8 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                 fontFamily: '"Montserrat", sans-serif '
                             }}
                         >
-                            Proceed to Payment ({formatINR(total)})
+                            {/* Proceed to Payment ({formatINR(total)}) */}
+                            Place order
                         </Button>
                     </Box>
                 </Stack>

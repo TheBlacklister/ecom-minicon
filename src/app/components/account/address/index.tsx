@@ -80,7 +80,15 @@ export default function AddressesSection() {
 
   // Form change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // For phone field, only allow digits and limit to 10 characters
+    if (name === 'phone') {
+      const numericValue = value.replace(/\D/g, '').slice(0, 10);
+      setForm({ ...form, [name]: numericValue });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   // Add or update address
@@ -267,13 +275,21 @@ export default function AddressesSection() {
               <TextField
                 label="Phone"
                 name="phone"
+                type="tel"
                 value={form.phone}
                 onChange={handleChange}
                 required
                 fullWidth
-                sx={{ 
+                inputProps={{
+                  maxLength: 10,
+                  pattern: '[0-9]{10}',
+                  inputMode: 'numeric'
+                }}
+                helperText="Enter 10-digit phone number"
+                sx={{
                   '& .MuiInputBase-root': { fontFamily: '"Montserrat", sans-serif' },
-                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' }
+                  '& .MuiInputLabel-root': { fontFamily: '"Montserrat", sans-serif' },
+                  '& .MuiFormHelperText-root': { fontFamily: '"Montserrat", sans-serif' }
                 }}
               />
             </Stack>
