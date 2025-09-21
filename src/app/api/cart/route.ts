@@ -105,13 +105,14 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Not authenticated' }, { status: 401 })
   }
 
-  const { product_id, quantity } = await request.json()
+  const { product_id, quantity, selected_size } = await request.json()
 
   const { data, error: dbError } = await supabase
     .from('cart')
     .update({ quantity })
     .eq('user_id', user.id)
     .eq('product_id', product_id)
+    .eq('selected_size', selected_size || null)
     .select()
     .single()
 
@@ -127,17 +128,24 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Not authenticated' }, { status: 401 })
   }
 
-  const { product_id, selected_size } = await request.json()
+  const { product_id, selected_size, clear_all } = await request.json()
 
   let deleteQuery = supabase
     .from('cart')
     .delete()
     .eq('user_id', user.id)
-    .eq('product_id', product_id)
 
-  // If selected_size is provided, include it in the delete condition
-  if (selected_size !== undefined) {
-    deleteQuery = deleteQuery.eq('selected_size', selected_size)
+  // If clear_all is true, delete all cart items for the user
+  if (clear_all) {
+    // No additional conditions needed, will delete all cart items for the user
+  } else {
+    // Delete specific item
+    deleteQuery = deleteQuery.eq('product_id', product_id)
+
+    // If selected_size is provided, include it in the delete condition
+    if (selected_size !== undefined) {
+      deleteQuery = deleteQuery.eq('selected_size', selected_size)
+    }
   }
 
   const { error: dbError } = await deleteQuery

@@ -68,42 +68,66 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
 
   const subtotal = useMemo(() => cart.reduce((sum, i) => sum + i.price * i.qty, 0), [cart])
   const handleIncrease = async (item: CartItem) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session) headers['Authorization'] = `Bearer ${session.access_token}`
-    const res = await fetch('/api/cart', { method: 'POST', headers, body: JSON.stringify({ product_id: item.id, quantity: 1, selected_size: item.selected_size }) })
-    if (res.ok) {
-      const data = await res.json()
-      setCart(cart.map(c => (c.id === item.id && c.selected_size === item.selected_size) ? { ...c, qty: data.quantity } : c))
-      updateCartCount() // Update global count
-    }
-  }
-
-  const handleDecrease = async (item: CartItem) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session) headers['Authorization'] = `Bearer ${session.access_token}`
-    if (item.qty <= 1) {
-      await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) })
-      setCart(cart.filter(c => !(c.id === item.id && c.selected_size === item.selected_size)))
-      updateCartCount() // Update global count
-    } else {
-      const res = await fetch('/api/cart', { method: 'PUT', headers, body: JSON.stringify({ product_id: item.id, quantity: item.qty - 1 }) })
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session) headers['Authorization'] = `Bearer ${session.access_token}`
+      const res = await fetch('/api/cart', { method: 'POST', headers, body: JSON.stringify({ product_id: item.id, quantity: 1, selected_size: item.selected_size }) })
       if (res.ok) {
         const data = await res.json()
         setCart(cart.map(c => (c.id === item.id && c.selected_size === item.selected_size) ? { ...c, qty: data.quantity } : c))
         updateCartCount() // Update global count
+      } else {
+        console.error('Failed to increase item quantity:', await res.text())
       }
+    } catch (error) {
+      console.error('Error increasing item quantity:', error)
+    }
+  }
+
+  const handleDecrease = async (item: CartItem) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session) headers['Authorization'] = `Bearer ${session.access_token}`
+      if (item.qty <= 1) {
+        const res = await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) })
+        if (res.ok) {
+          setCart(cart.filter(c => !(c.id === item.id && c.selected_size === item.selected_size)))
+          updateCartCount() // Update global count
+        } else {
+          console.error('Failed to delete item from cart:', await res.text())
+        }
+      } else {
+        const res = await fetch('/api/cart', { method: 'PUT', headers, body: JSON.stringify({ product_id: item.id, quantity: item.qty - 1, selected_size: item.selected_size }) })
+        if (res.ok) {
+          const data = await res.json()
+          setCart(cart.map(c => (c.id === item.id && c.selected_size === item.selected_size) ? { ...c, qty: data.quantity } : c))
+          updateCartCount() // Update global count
+        } else {
+          console.error('Failed to decrease item quantity:', await res.text())
+        }
+      }
+    } catch (error) {
+      console.error('Error decreasing item quantity:', error)
     }
   }
 
   const handleDelete = async (item: CartItem) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session) headers['Authorization'] = `Bearer ${session.access_token}`
-    await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) })
-    setCart(cart.filter(c => !(c.id === item.id && c.selected_size === item.selected_size)))
-    updateCartCount() // Update global count
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session) headers['Authorization'] = `Bearer ${session.access_token}`
+      const res = await fetch('/api/cart', { method: 'DELETE', headers, body: JSON.stringify({ product_id: item.id, selected_size: item.selected_size }) })
+      if (res.ok) {
+        setCart(cart.filter(c => !(c.id === item.id && c.selected_size === item.selected_size)))
+        updateCartCount() // Update global count
+      } else {
+        console.error('Failed to delete item from cart:', await res.text())
+      }
+    } catch (error) {
+      console.error('Error deleting item from cart:', error)
+    }
   }
 
   return (

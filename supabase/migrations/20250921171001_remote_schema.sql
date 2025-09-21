@@ -626,3 +626,5 @@ using ((auth.uid() = user_id));
 
 
 CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON public.reviews FOR EACH ROW EXECUTE FUNCTION update_reviews_updated_at();
+
+

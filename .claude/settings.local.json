@@ -10,7 +10,9 @@
       "Bash(npm run build:*)",
       "Bash(rm:*)",
       "Bash(npm install)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(curl:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

@@ -1,8 +1,10 @@
 // app/api/qikink/create-order/route.ts
-import {  NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    // Receive and console the payload from cart page
+    const cartPayload = await request.json();
     const clientId = process.env.QIKINK_CLIENT_ID!;
     const clientSecret = process.env.QIKINK_CLIENT_SECRET!;
     const baseUrl = process.env.QIKINK_BASE_URL!;
@@ -38,40 +40,55 @@ export async function POST() {
         { status: 500 }
       );
     }
-    
+    console.log('📦 CART PAYLOAD RECEIVED:', cartPayload);
+
     const tokenData = await tokenResponse.json();
     console.log("TOKEN RESPONSE", tokenData);
+    
+    // Split the name by first whitespace to get first and last name
+    const fullName = cartPayload.selectedAddress.name;
+    const nameParts = fullName.split(' ', 2); // Split by first whitespace, limit to 2 parts
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts[1] || '';
+    // Transform cartItems to line_items format
+    const line_items = cartPayload.cartItems.flatMap((item: any) =>
+        Array.from({ length: item.quantity }, () => ({
+            search_from_my_products: 1,
+            quantity: "1",
+            price: item.product.price_after.toString(),
+            sku: item.product.sku[item.selected_size],
+        }))
+    );
+    console.log('line_items',line_items)
 
     // Create order with proper typing and structure
     const orderPayload ={
-    "order_number": "api2",
+    "order_number": cartPayload.orderId,
     "qikink_shipping": "1",
     "gateway": "COD",
-    "total_order_value": "1",
-    "line_items": [
-        {
-            "search_from_my_products": 0, 
-            "quantity": "1",
-            "print_type_id":1,
-            "price":"420",
-            "sku": "USuRnHs-Lv-S",
-            
-        }
-    ],
+    "total_order_value": cartPayload.total,
+    "line_items": line_items,
+  //   "add_ons":[
+  //     {
+  //         "box_packing":1,
+  //         "gift_wrap":0,
+  //         "rush_order":1,
+  //     }
+  // ],
    
     "shipping_address": {
-        "first_name": "first_name",
-        "last_name": "last_name",
-        "address1": "adrress_1...",
-        "phone":"9876543210",
-        "email": "sample@gmail.com",
-        "city":"coimbatore",
-        "zip":"641004",
-        "province":"ABC",
+        "first_name": firstName,
+        "last_name": lastName,
+        "address1": cartPayload.selectedAddress.line1,
+        "phone":cartPayload.selectedAddress.phone,
+        "email": cartPayload.userEmail,
+        "city":cartPayload.selectedAddress.city,
+        "zip":cartPayload.selectedAddress.pincode,
+        "province":cartPayload.selectedAddress.state,
         "country_code":"IN"
     }}
-
-    const orderResponse = await fetch("https://api.qikink.com/api/order/create", {
+console.log("PAYLOADDDD",orderPayload)
+    const orderResponse = await fetch(`${cleanBaseUrl}/api/order/create`, {
       method: 'POST',
       headers: {
         'ClientId': tokenData.ClientId,
