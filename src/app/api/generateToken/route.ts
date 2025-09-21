@@ -1,6 +1,5 @@
 // app/api/qikink/create-order/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { CartItem } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, Typography, Button, Stack, useTheme, useMediaQuery, Box, CircularProgress, Alert, Chip, Divider } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function OrdersSection() {
@@ -9,6 +9,7 @@ export default function OrdersSection() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [myQikinkOrderIds, setMyQikinkOrderIds] = useState<number[]>([]);
 
   const fetchMyOrders = async () => {
@@ -37,7 +38,7 @@ export default function OrdersSection() {
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -94,11 +95,11 @@ export default function OrdersSection() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const formatDate = (dateString: string) => {
     try {

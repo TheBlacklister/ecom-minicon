@@ -43,15 +43,20 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters for filtering orders
     const { searchParams } = new URL(request.url);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const id = searchParams.get('id');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const fromDate = searchParams.get('from_date');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const toDate = searchParams.get('to_date');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const pageNo = searchParams.get('page_no');
 
     // Build orders API URL with query parameters
     // Start with base URL without any parameters to avoid SQL errors
-    let ordersUrl = `${cleanBaseUrl}/api/order`;
+    const ordersUrl = `${cleanBaseUrl}/api/order`;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const queryParams = [];
 
    
