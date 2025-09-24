@@ -4,6 +4,7 @@ import { Box, Typography } from '@mui/material';
 import Image from 'next/image';
 import { GridLegacy as Grid } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
 
 interface CategoryCardProps {
   image: string;
@@ -95,10 +96,14 @@ export default function CategoryCards() {
               }}
             >
               <Image
-                src={category.image}
+                src={getFormattedOptimizedImageSrc(category.image)}
                 alt={category.title}
                 fill
                 style={{ objectFit: 'cover' }}
+                onError={(e) => {
+                  console.error('Category image failed to load:', category.image);
+                  e.currentTarget.src = '/placeholder.jpg';
+                }}
               />
               {/* Dark to transparent vignette overlay */}
               <Box
