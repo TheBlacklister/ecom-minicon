@@ -1,39 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { Box, Typography, IconButton,Skeleton } from '@mui/material';
+import { Box, Typography, IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/navigation';
-import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
 import { useCount } from '../CountProvider';
 import type { Product } from '@/types';
-
-// Custom hook for progressive image loading
-const useProgressiveImage = (src: string, placeholder?: string) => {
-  const [source, setSource] = useState(placeholder || '');
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    const img = new window.Image();
-    img.src = src;
-    img.onload = () => {
-      setSource(src);
-      setLoading(false);
-    };
-    img.onerror = () => {
-      setLoading(false);
-    };
-    
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [src]);
-  
-  return { source, loading };
-};
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
 
 export const ProductCard: React.FC<{
   product: Product;
@@ -58,30 +34,14 @@ export const ProductCard: React.FC<{
   // Cache for loaded images
   const loadedImagesCache = useRef<Set<string>>(new Set());
 
-  // Format image paths
-  const formatImagePath = useCallback((path: string): string => {
-    let formatted = path.replace(/\\/g, '/');
-    formatted = formatted.replace(/^public\//i, '/');
-    formatted = formatted.replace(/\/+/g, '/');
-    if (!formatted.startsWith('/')) {
-      formatted = '/' + formatted;
-    }
-    return formatted;
-  }, []);
-
-  // Get formatted images array with memoization
+  // Get formatted and optimized images array with memoization
   const formattedImages = useMemo(
-    () => product.images?.map(formatImagePath) || [],
-    [product.images, formatImagePath]
+    () => product.images?.map(getFormattedOptimizedImageSrc) || [],
+    [product.images]
   );
 
-  // Current image with progressive loading
+  // Current optimized image source
   const currentImage = formattedImages[currentImageIndex] || '';
-  const { source: progressiveSource, loading: imageLoading } = useProgressiveImage(
-    currentImage,
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPceW7zfwAHXAK5c0QjkwAAAABJRU5ErkJggg=='
-  );
-console.log("IMAGE PATH",progressiveSource,currentImage)
   // Preload next image for smoother transitions
   useEffect(() => {
     if (formattedImages.length > 1) {
@@ -243,36 +203,23 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
       >
         {formattedImages.length > 0 ? (
           <>
-            {/* Image skeleton while loading */}
-            {imageLoading && (
-              <Skeleton
-                variant="rectangular"
-                width="100%"
-                height="100%"
-                animation="wave"
-                sx={{ position: 'absolute', zIndex: 2 }}
-              />
-            )}
-
-            {/* Optimized Image with progressive loading */}
+            {/* Optimized WebP Image */}
             <Image
               ref={imageRef}
-              src={progressiveSource || currentImage}
+              src={currentImage}
               alt={`${product.title} - Image ${currentImageIndex + 1}`}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-              style={{ 
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+              style={{
                 objectFit: 'cover',
-                opacity: imageLoading ? 0 : 1,
                 transition: 'opacity 0.3s ease-in-out'
               }}
-              quality={75}
+              quality={85}
               onError={handleImageError}
               priority={currentImageIndex === 0}
               loading={currentImageIndex === 0 ? "eager" : "lazy"}
-              // Use staticBlur for better performance
               placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R7sf//Z"
             />
 
             {/* Error state */}

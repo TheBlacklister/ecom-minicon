@@ -11,6 +11,7 @@ import { useAuth } from '../AuthProvider'
 import { useCount } from '../CountProvider'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@/types'
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer'
 
 interface CartItem {
   id: number
@@ -30,12 +31,6 @@ interface CartApiItem {
 
 const formatINR = (v: number) => `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
 
-const convertImagePath = (path: string): string => {
-  return path
-    .replace(/\\/g, '/')
-    .replace(/^public\//, '/')
-    .replace(/\/+/g, '/')
-}
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth()
@@ -58,7 +53,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           id: item.product.id,
           title: item.product.title,
           subtitle: item.product.subtitle,
-          img: convertImagePath(item.product.images[0]),
+          img: getFormattedOptimizedImageSrc(item.product.images[0]),
           price: item.product.price_after,
           qty: item.quantity,
           selected_size: item.selected_size,

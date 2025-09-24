@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "optimize-images": "node scripts/optimize-images.js",
+    "replace-images": "node scripts/replace-with-optimized.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

@@ -17,6 +17,7 @@ import { useCount } from '../components/CountProvider';
 import { ProductCard } from '../components/productCard';
 import { GridLegacy as Grid } from '@mui/material';
 import { StarRating } from '../components/StarRating';
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
 
 const PreCheckout = () => {
   const searchParams = useSearchParams();
@@ -60,17 +61,7 @@ const PreCheckout = () => {
       type: 'flat_discount'
     }
   ];
-  // Format image paths by replacing backslashes with forward slashes
-  const formatImagePath = (path: string): string => {
-    let formatted = path.replace(/\\/g, '/');
-    formatted = formatted.replace(/^public\//i, '/');
-    formatted = formatted.replace(/\/+/g, '/');
-    if (!formatted.startsWith('/')) {
-      formatted = '/' + formatted;
-    }
-    return formatted;
-  };
-
+ 
   useEffect(() => {
     async function fetchProduct() {
       if (!id) {
@@ -289,8 +280,8 @@ const PreCheckout = () => {
     );
   }
 
-  // Get formatted images array
-  const formattedImages = product.images?.map(formatImagePath) || [];
+  // Get formatted and optimized images array
+  const formattedImages = product.images?.map(getFormattedOptimizedImageSrc) || [];
 
   // Handlers
   const handleWishlistToggle = async () => {
@@ -1830,7 +1821,7 @@ const PreCheckout = () => {
                   }}
                 >
                   <Image
-                    src={formatImagePath(product.size_chart_image)}
+                    src={getFormattedOptimizedImageSrc(product.size_chart_image)}
                     alt="Size Chart"
                     width={800}
                     height={600}
