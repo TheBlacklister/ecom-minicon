@@ -37,7 +37,7 @@ const PreCheckout = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
   const [reviewComment, setReviewComment] = useState('');
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -52,12 +52,6 @@ const PreCheckout = () => {
 
   // Coupon data
   const availableCoupons = [
-    {
-      code: 'ONLINE100',
-      discount: 100,
-      description: 'Get ₹100 off on online payment',
-      type: 'online_payment'
-    },
     {
       code: 'FLAT500',
       discount: 500,
