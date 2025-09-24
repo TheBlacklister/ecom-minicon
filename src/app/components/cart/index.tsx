@@ -32,6 +32,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { Product } from '@/types';
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
 
 interface CartItem {
     id: number;
@@ -251,10 +252,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                 id: cartData.product.id,
                                 title: cartData.product.title,
                                 subtitle: cartData.product.subtitle,
-                                img: '/' + cartData.product.images[0]
-                                    .replace(/\\/g, '/')
-                                    .replace(/^public\//, '')
-                                    .replace(/\/{2,}/g, '/'),
+                                img: getFormattedOptimizedImageSrc(cartData.product.images[0]),
                                 price: cartData.product.price_after,
                                 qty: cartData.quantity,
                                 selected_size: cartData.selected_size,
@@ -276,10 +274,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                     id: newCartData.product.id,
                                     title: newCartData.product.title,
                                     subtitle: newCartData.product.subtitle,
-                                    img: '/' + newCartData.product.images[0]
-                                        .replace(/\\/g, '/')
-                                        .replace(/^public\//, '')
-                                        .replace(/\/{2,}/g, '/'),
+                                    img: getFormattedOptimizedImageSrc(newCartData.product.images[0]),
                                     price: newCartData.product.price_after,
                                     qty: newCartData.quantity,
                                     selected_size: newCartData.selected_size,
@@ -296,10 +291,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                 id: item.product.id,
                                 title: item.product.title,
                                 subtitle: item.product.subtitle,
-                                img: '/' + item.product.images[0]
-                                    .replace(/\\/g, '/')
-                                    .replace(/^public\//, '')
-                                    .replace(/\/{2,}/g, '/'),
+                                img: getFormattedOptimizedImageSrc(item.product.images[0]),
                                 price: item.product.price_after,
                                 qty: item.quantity,
                                 selected_size: item.selected_size,

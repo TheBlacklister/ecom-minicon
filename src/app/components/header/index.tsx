@@ -25,6 +25,7 @@ import { Typography, Divider, InputAdornment, Card, CardContent, Badge } from '@
 import CartDrawer from '../cartDrawer'
 import { useAuth } from '../AuthProvider'
 import { useCount } from '../CountProvider'
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer'
 
 export default function Header() {
   const router = useRouter();
@@ -183,21 +184,10 @@ export default function Header() {
           {searchResults.length} {searchResults.length === 1 ? 'product' : 'products'} found
         </Typography>
         {searchResults.map((product) => {
-          // ✅ FIXED: Properly clean the image path
-          let imagePath = '/placeholder.jpg'; // Default fallback
-          
-          if (product.images?.[0]) {
-            imagePath = product.images[0]
-              .replace(/\\\\/g, '/') // Replace double backslashes with single forward slash
-              .replace(/\\/g, '/')   // Replace any remaining backslashes with forward slashes
-              .replace(/^public\//, '/') // Remove 'public/' prefix and ensure leading slash
-              .replace(/\/+/g, '/'); // Replace multiple consecutive slashes with single slash
-          }
-          
-          console.log('CLEANED IMAGE PATH:', {
-            original: product.images?.[0],
-            cleaned: imagePath
-          });
+          // Use unified image optimization system
+          const imagePath = product.images?.[0]
+            ? getFormattedOptimizedImageSrc(product.images[0])
+            : '/placeholder.jpg';
           
           return (
             <Card
@@ -214,16 +204,15 @@ export default function Header() {
                 },
               }}
             >
-              {/* Updated image component with proper error handling */}
+              {/* Optimized WebP image with error handling */}
               <Box sx={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
                 <Image
                   src={imagePath}
                   alt={product.title}
                   fill
                   sizes="80px"
-                  quality={40} // Reduce quality to 40% for thumbnails
+                  quality={40}
                   style={{ objectFit: 'cover' }}
-                  // ✅ Add error handling
                   onError={(e) => {
                     console.error('Image failed to load:', imagePath);
                     e.currentTarget.src = '/placeholder.jpg';

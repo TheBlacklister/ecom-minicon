@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabaseClient';
 import type { Product } from '@/types';
 import CategoryCards from './components/categoryCards';
 import { useRouter } from 'next/navigation';
+import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
 
 // Define types for API responses
 interface WishlistItem {
@@ -31,7 +32,7 @@ const marqueeImages = [
   '/products/Regular Fit Tshirt/AstroBuddy/2 AstroBuddy.png',
   '/products/Regular Fit Tshirt/Hedgehog/2Hedgehog Regular fit.png',
   '/products/Regular Fit Tshirt/Hoot Pepar/3Hoot Pepar.png',
-] as const;
+].map(getFormattedOptimizedImageSrc);
 
 const scroll = keyframes`
   from {
