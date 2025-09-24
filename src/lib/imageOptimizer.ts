@@ -9,8 +9,12 @@ export const getOptimizedImageSrc = (originalPath: string): string => {
 
   // Check if it's a product image path
   if (originalPath.includes('/products/')) {
-    // Convert PNG/JPG to WebP (images are replaced in same location)
-    return originalPath.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+    // Special case: keep JPG files as is (they weren't converted to WebP)
+    if (originalPath.toLowerCase().endsWith('.jpg') || originalPath.toLowerCase().endsWith('.jpeg')) {
+      return originalPath;
+    }
+    // Convert PNG to WebP (images are replaced in same location)
+    return originalPath.replace(/\.(png)$/i, '.webp');
   }
 
   // Return original path for non-product images (like icons, logos)
