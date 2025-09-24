@@ -30,6 +30,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { Product } from '@/types';
 
 interface CartItem {
@@ -179,6 +180,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     const [isLoading, setIsLoading] = useState(true);
     const [isCartLoading, setIsCartLoading] = useState(true);
     const [isAddressesLoading, setIsAddressesLoading] = useState(true);
+    const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
     // Address management state
     const [openAddModal, setOpenAddModal] = useState(false);
@@ -188,14 +190,12 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     // Coupon state
     const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
 
+    // Order success modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [orderDetails, setOrderDetails] = useState<{orderId: string, total: number} | null>(null);
+
     // Coupon data
     const availableCoupons = useMemo(() => [
-        {
-            code: 'ONLINE100',
-            discount: 100,
-            description: 'Get ₹100 off on online payment',
-            type: 'online_payment'
-        },
         {
             code: 'FLAT500',
             discount: 500,
@@ -449,6 +449,9 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
 
     // Handle proceed to payment
     const handleProceedToPayment = async () => {
+        if (isPlacingOrder) return; // Prevent double clicks
+
+        setIsPlacingOrder(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -524,21 +527,33 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                                 }
                             }
 
-                            // Show success message or redirect to order confirmation
-                            alert(`Order placed successfully! Order ID: ${result.order.order_id}`);
+                            // Show success modal instead of alert
+                            setOrderDetails({
+                                orderId: result.order.order_id,
+                                total: payload.total
+                            });
+                            setShowSuccessModal(true);
 
                         } else {
                             console.error('Failed to save order to database:', await orderResponse.text());
+                            alert('Failed to save order. Please try again.');
                         }
                     } catch (error) {
                         console.error('Error saving order to database:', error);
+                        alert('An error occurred while processing your order. Please try again.');
                     }
+                } else {
+                    alert('Failed to place order. Please try again.');
                 }
             } else {
                 console.error('generateToken API failed:', await response.text());
+                alert('Failed to place order. Please try again.');
             }
         } catch (error) {
             console.error('Error calling generateToken API:', error);
+            alert('An error occurred while processing your order. Please try again.');
+        } finally {
+            setIsPlacingOrder(false);
         }
     };
 
@@ -1198,7 +1213,7 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                             variant="contained"
                             fullWidth
                             size="large"
-                            disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading}
+                            disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading || isPlacingOrder}
                             onClick={handleProceedToPayment}
                             sx={{
                                 py: 1.5,
@@ -1208,11 +1223,14 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                                     bgcolor: '#f5f5f5',
                                     color: '#999'
                                 },
-                                fontFamily: '"Montserrat", sans-serif '
+                                fontFamily: '"Montserrat", sans-serif ',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1
                             }}
                         >
-                            {/* Proceed to Payment ({formatINR(total)}) */}
-                            Place order
+                            {isPlacingOrder && <CircularProgress size={20} sx={{ color: 'white' }} />}
+                            {isPlacingOrder ? 'Placing order...' : 'Place order'}
                         </Button>
                     </Box>
                 </Stack>
@@ -1348,6 +1366,140 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                         }}
                     >
                         {editId ? 'Update Address' : 'Add Address'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Order Success Modal */}
+            <Dialog
+                open={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        p: 2,
+                        fontFamily: '"Montserrat", sans-serif',
+                        textAlign: 'center'
+                    }
+                }}
+            >
+                <DialogContent sx={{ py: 4 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Box
+                            sx={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: '50%',
+                                bgcolor: '#4caf50',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mb: 3,
+                                animation: 'scale 0.5s ease-in-out'
+                            }}
+                        >
+                            <CheckCircleIcon sx={{ fontSize: 50, color: 'white' }} />
+                        </Box>
+
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontWeight: 700,
+                                color: '#1a1a1a',
+                                mb: 2,
+                                fontFamily: '"Montserrat", sans-serif'
+                            }}
+                        >
+                            Order Placed Successfully! 🎉
+                        </Typography>
+
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: '#666',
+                                mb: 3,
+                                fontFamily: '"Montserrat", sans-serif'
+                            }}
+                        >
+                            Thank you for your order. We&apos;ll send you a confirmation email shortly.
+                        </Typography>
+
+                        {orderDetails && (
+                            <Box
+                                sx={{
+                                    bgcolor: '#f8f9fa',
+                                    borderRadius: 2,
+                                    p: 2,
+                                    mb: 3,
+                                    width: '100%'
+                                }}
+                            >
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: '#666',
+                                        fontFamily: '"Montserrat", sans-serif',
+                                        mb: 0.5
+                                    }}
+                                >
+                                    Order ID
+                                </Typography>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: '#1a1a1a',
+                                        fontFamily: '"Montserrat", sans-serif',
+                                        mb: 1
+                                    }}
+                                >
+                                    {orderDetails.orderId}
+                                </Typography>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: '#666',
+                                        fontFamily: '"Montserrat", sans-serif',
+                                        mb: 0.5
+                                    }}
+                                >
+                                    Total Amount
+                                </Typography>
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 700,
+                                        color: '#fe5000',
+                                        fontFamily: '"Montserrat", sans-serif'
+                                    }}
+                                >
+                                    {formatINR(orderDetails.total)}
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
+                </DialogContent>
+
+                <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            setShowSuccessModal(false);
+                            window.location.href = '/categories/shop-by/new-arrivals';
+                        }}
+                        sx={{
+                            px: 4,
+                            py: 1.5,
+                            bgcolor: '#fe5000',
+                            '&:hover': { bgcolor: '#d64500' },
+                            fontFamily: '"Montserrat", sans-serif',
+                            fontWeight: 600,
+                            borderRadius: 2
+                        }}
+                    >
+                        Continue Shopping
                     </Button>
                 </DialogActions>
             </Dialog>

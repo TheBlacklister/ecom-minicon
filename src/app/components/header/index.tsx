@@ -311,49 +311,49 @@ export default function Header() {
               />
             )}
             
-            <Badge 
-              badgeContent={user ? wishlistCount : 0} 
-              sx={{
-                '& .MuiBadge-badge': {
-                  right: -5,
-                  top:0,
-                  border: '1px solid white',
-                  backgroundColor: '#000',
-                  color: '#fff',
-                }
-              }}
-            >
-              <FavoriteBorderOutlined
-                className={styles.icon}
-                onClick={() => router.push(user ? '/wishlist' : '/login')}
-                style={{ cursor: 'pointer' }}
-              />
-            </Badge>
-           
-            <Badge 
-              badgeContent={user ? cartCount : 0} 
-              sx={{
-                '& .MuiBadge-badge': {
-                  right: -5,
-                  top: 0,
-                  border: '1px solid white',
-                  backgroundColor: '#000',
-                  color: '#fff',
-                }
-              }}
-            >
-              <ShoppingCartIcon
-                className={styles.icon}
-                onClick={() => {
-                  if (!user) {
-                    router.push('/login');
-                  } else {
-                    setCartOpen(true);
+            {/* Wishlist Icon - Only show for authenticated users */}
+            {user && (
+              <Badge
+                badgeContent={wishlistCount}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    right: -5,
+                    top:0,
+                    border: '1px solid white',
+                    backgroundColor: '#000',
+                    color: '#fff',
                   }
                 }}
-                style={{ cursor: 'pointer' }}
-              />
-            </Badge>
+              >
+                <FavoriteBorderOutlined
+                  className={styles.icon}
+                  onClick={() => router.push('/wishlist')}
+                  style={{ cursor: 'pointer' }}
+                />
+              </Badge>
+            )}
+
+            {/* Cart Icon - Only show for authenticated users */}
+            {user && (
+              <Badge
+                badgeContent={cartCount}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    right: -5,
+                    top: 0,
+                    border: '1px solid white',
+                    backgroundColor: '#000',
+                    color: '#fff',
+                  }
+                }}
+              >
+                <ShoppingCartIcon
+                  className={styles.icon}
+                  onClick={() => setCartOpen(true)}
+                  style={{ cursor: 'pointer' }}
+                />
+              </Badge>
+            )}
             <AccountCircleIcon
               className={styles.icon}
               onClick={() => router.push(user ? '/account' : '/login')}

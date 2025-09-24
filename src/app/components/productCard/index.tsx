@@ -134,11 +134,8 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
 
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
+    // Since this function is only called when user is authenticated (button only shows for auth users),
+    // we can remove the user check
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -155,14 +152,14 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
       if (response.ok) {
         const newWishedState = !isWished;
         setIsWished(newWishedState);
-        
+
         // Update global count optimistically
         if (newWishedState) {
           incrementWishlistCount();
         } else {
           decrementWishlistCount();
         }
-        
+
         // Notify parent component about the wishlist change
         onWishlistChange?.(product.id, newWishedState);
       }
@@ -356,33 +353,35 @@ console.log("IMAGE PATH",progressiveSource,currentImage)
           </Box>
         )}
 
-        {/* Wishlist Button */}
-        <IconButton
-          aria-label="add to wishlist"
-          onClick={handleWishlistToggle}
-          size="small"
-          sx={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            color: isWished ? 'error.main' : 'action.disabled',
-            bgcolor: 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(4px)',
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
-              color: 'error.main',
-            },
-            transition: 'all 0.2s ease',
-            zIndex: 2,
-            width: 23,
-            height: 23,
-            '& .MuiSvgIcon-root': {
-              fontSize: '1.25rem',
-            },
-          }}
-        >
-          <FavoriteIcon />
-        </IconButton>
+        {/* Wishlist Button - Only show for authenticated users */}
+        {user && (
+          <IconButton
+            aria-label="add to wishlist"
+            onClick={handleWishlistToggle}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              color: isWished ? 'error.main' : 'action.disabled',
+              bgcolor: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(4px)',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.95)',
+                color: 'error.main',
+              },
+              transition: 'all 0.2s ease',
+              zIndex: 2,
+              width: 23,
+              height: 23,
+              '& .MuiSvgIcon-root': {
+                fontSize: '1.25rem',
+              },
+            }}
+          >
+            <FavoriteIcon />
+          </IconButton>
+        )}
       </Box>
 
       {/* Product Details - 15% height */}
