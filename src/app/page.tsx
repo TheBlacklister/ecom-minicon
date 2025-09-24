@@ -32,7 +32,7 @@ const marqueeImages = [
   '/products/Regular Fit Tshirt/AstroBuddy/2 AstroBuddy.png',
   '/products/Regular Fit Tshirt/Hedgehog/2Hedgehog Regular fit.png',
   '/products/Regular Fit Tshirt/Hoot Pepar/3Hoot Pepar.png',
-].map(getFormattedOptimizedImageSrc) as const;
+].map(getFormattedOptimizedImageSrc);
 
 const scroll = keyframes`
   from {
