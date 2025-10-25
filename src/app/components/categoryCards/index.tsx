@@ -34,7 +34,7 @@ const categories: CategoryCardProps[] = [
     route: '/categories/category/regular-fit'
   },
   { 
-    image: "/products/mens-polo-t-shirt/mens-polo-t-shirt/black/1men-black-embroidery-polo-t-Shirt.webp", 
+    image: "/products/mens-polo-t-shirt/mens-polo-t-shirt/black/1men-black-embroidery-polo-t-shirt.webp", 
     title: 'Polo',
     route: "/categories/category/men's-polo"
   },
