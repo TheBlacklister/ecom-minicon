@@ -14,47 +14,47 @@ interface CategoryCardProps {
 
 const categories: CategoryCardProps[] = [
   { 
-    image: '/products/Regular Fit Tshirt/Rabbit/3 rabbit.png', 
+    image: '/products/regular-fit-tshirt/rabbit_asthestic/3-rabbit.webp', 
     title: 'Under 999',
     route: '/categories/price_after/999'
   },
   { 
-    image: '/products/Regular Fit Tshirt/Flourish-N_Asthestic/1Flourish.png', 
+    image: '/products/regular-fit-tshirt/flourish-n_asthestic/1flourish.webp', 
     title: 'T-shirts',
     route: '/categories/shop-by/new-arrivals'
   },
   { 
-    image: '/products/Oversized Solid/Oversized Solid/Yellow Mustard/2Solid yellow Mustard Oversized Classic T-Shirt.png', 
+    image: '/products/oversized-solid/oversized-solid/yellow-mustard/2solid-yellow-mustard-oversized-classic-t-shirt.webp', 
     title: 'Oversized',
     route: '/categories/category/oversized-fit'
   },
   { 
-    image: '/products/Regular Fit Tshirt/Hedgehog_Printed & Streetwear/1Hedgehog Regular fit.png', 
+    image: '/products/regular-fit-tshirt/hedgehog_printed-and-streetwear/1hedgehog-regular-fit.webp', 
     title: 'Regular',
     route: '/categories/category/regular-fit'
   },
   { 
-    image: "/products/Men's Polo T-Shirt/Men's Polo T-Shirt/Black/1Men Black embroidery Polo T-Shirt.png", 
+    image: "/products/mens-polo-t-shirt/mens-polo-t-shirt/black/1men-black-embroidery-polo-t-Shirt.webp", 
     title: 'Polo',
     route: "/categories/category/men's-polo"
   },
   { 
-    image: "/products/Mens Gym vest/Mens Gym vest/Maroon-Printed/3hustle for the muscle.png", 
+    image: "/products/mens-gym-vest/mens-gym-vest/maroon-printed/3hustle-for-the-muscle.webp", 
     title: 'Gym vest',
     route: "/categories/category/men's-gym"
   },
   { 
-    image: '/products/Sweatshirt/Yellow Mustard- aesthetic or minimalist/2Bloom Yellow Mustard Sweatshirt.png', 
+    image: '/products/sweatshirt/yellow-mustard-aesthetic-or-minimalist/2bloom-yellow-mustard-sweatshirt.webp', 
     title: 'Sweatshirts',
     route: "/categories/category/men's-sweatshirts"
   },
   { 
-    image: '/products/Oversized Tshirt (2)/Oversized Tshirt/Minicon Puff Gray_Minimalist or Puff/1Minicon Puff Gray.png', 
+    image: '/products/oversized-tshirt-2/oversized-tshirt/minicon-puff-gray_minimalist-or-puff/1minicon-puff-gray.webp', 
     title: 'Puff',
     route: '/categories/collections/puffed'
   },
   { 
-    image: '/products/Regular fit Solid Supima/Regular fit Solid Supima/supimaThumbNail.jpg', 
+    image: '/products/regular-fit-solid-supima/regular-fit-solid-supima/supimathumbnail.jpg', 
     title: 'Supima',
     route: '/categories/material/super_combed_cotton'
   },
