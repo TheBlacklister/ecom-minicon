@@ -35,13 +35,13 @@ const PreCheckout = () => {
     try { return typeof window !== 'undefined' ? localStorage.getItem('minicon_pincode') ?? '' : ''; } catch { return ''; }
   });
   const [pincodeStatus, setPincodeStatus] = useState<'unknown'|'checking'|'deliverable'|'not_deliverable'>('unknown');
-  const [pincodeError, setPincodeError] = useState<string | null>(null);
+  //const [pincodeError, setPincodeError] = useState<string | null>(null);
   const [openNotDeliverableSnack, setOpenNotDeliverableSnack] = useState(false);
 
   async function checkPincode(pin: string, paymentType: 'any' | 'prepaid' | 'cod' = 'any') {
-    setPincodeError(null);
+    //setPincodeError(null);
     if (!pin || !/^\d{3,6}$/.test(pin)) {
-      setPincodeError('Enter a valid pincode (3–6 digits).');
+      //setPincodeError('Enter a valid pincode (3–6 digits).');
       setPincodeStatus('unknown');
       return { deliverable: false };
     }
@@ -54,7 +54,7 @@ const PreCheckout = () => {
       });
       const json = await res.json();
       if (!res.ok) {
-        setPincodeError(json?.message || 'Failed to check pincode');
+        //setPincodeError(json?.message || 'Failed to check pincode');
         setPincodeStatus('unknown');
         return { deliverable: false };
       }
@@ -66,7 +66,7 @@ const PreCheckout = () => {
     } catch (err) {
       console.error('checkPincode', err);
       setPincodeStatus('unknown');
-      setPincodeError('Network error while checking pincode');
+      //setPincodeError('Network error while checking pincode');
       return { deliverable: false };
     }
   }

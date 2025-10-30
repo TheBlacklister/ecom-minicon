@@ -210,7 +210,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
             setPincodeStatus(ok ? 'deliverable' : 'not_deliverable');
             setPincodeMessage(ok ? `Deliverable to ${json.city ?? ''} ${json.state ?? ''}`.trim() : 'Please try ordering to a different location.');
             if (!ok) setShowPincodeSnack(true);
-            try { localStorage.setItem('minicon_pincode', pin); } catch (e) {}
+            try { localStorage.setItem('minicon_pincode', pin); } catch  {}
             return { deliverable: ok, meta: json };
         } catch (err) {
             console.error('check-pincode error', err);
