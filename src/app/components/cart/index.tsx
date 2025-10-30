@@ -23,6 +23,8 @@ import {
     useMediaQuery,
     CircularProgress,
     Skeleton,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '../AuthProvider';
@@ -184,6 +186,51 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
     // Address management state
+    // Pincode check state
+    const [pincodeStatus, setPincodeStatus] = useState<'unknown'|'checking'|'deliverable'|'not_deliverable'>('unknown');
+    const [pincodeMessage, setPincodeMessage] = useState<string>('');
+    const [showPincodeSnack, setShowPincodeSnack] = useState(false);
+
+    // helper to check pincode using existing API
+    async function checkPincodeForAddress(pin: string) {
+        if (!pin || !/^\d{3,6}$/.test(pin)) {
+            setPincodeStatus('unknown');
+            setPincodeMessage('');
+            return { deliverable: false };
+        }
+        try {
+            setPincodeStatus('checking');
+            const res = await fetch('/api/check-pincode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pincode: pin, paymentType: 'any' })
+            });
+            const json = await res.json();
+            const ok = !!json.deliverable;
+            setPincodeStatus(ok ? 'deliverable' : 'not_deliverable');
+            setPincodeMessage(ok ? `Deliverable to ${json.city ?? ''} ${json.state ?? ''}`.trim() : 'Please try ordering to a different location.');
+            if (!ok) setShowPincodeSnack(true);
+            try { localStorage.setItem('minicon_pincode', pin); } catch (e) {}
+            return { deliverable: ok, meta: json };
+        } catch (err) {
+            console.error('check-pincode error', err);
+            setPincodeStatus('unknown');
+            setPincodeMessage('Unable to verify pincode right now');
+            return { deliverable: false };
+        }
+    }
+
+    // run check when selectedAddress changes
+    useEffect(() => {
+        const addr = addresses.find(a => a.id === selectedAddress);
+        if (addr && addr.pincode) {
+            checkPincodeForAddress(addr.pincode);
+        } else {
+            setPincodeStatus('unknown');
+            setPincodeMessage('');
+        }
+    }, [selectedAddress, addresses]);
+
     const [openAddModal, setOpenAddModal] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [newAddr, setNewAddr] = useState(emptyAddress);
@@ -198,9 +245,9 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     // Coupon data
     const availableCoupons = useMemo(() => [
         {
-            code: 'FLAT500',
-            discount: 500,
-            description: 'Get flat ₹500 off on orders above ₹2000',
+            code: 'FLAT200',
+            discount: 200,
+            description: 'Get flat ₹200 off on orders above ₹2000',
             minOrder: 2000,
             type: 'flat_discount'
         }
@@ -444,6 +491,14 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
         if (isPlacingOrder) return; // Prevent double clicks
 
         setIsPlacingOrder(true);
+            // Prevent placing order if pincode is known to be not deliverable
+            if (pincodeStatus === 'not_deliverable') {
+                setShowPincodeSnack(true);
+                setIsPlacingOrder(false);
+                return;
+            }
+
+
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -1041,6 +1096,48 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                         boxSizing: 'border-box',
                     }}>
                         {/* Address Selection */}
+
+                        {/* Product Deliverable Box */}
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: { xs: 1.5, md: 2, lg: 2 },
+                                mb: 2,
+                                bgcolor: '#fafafa',
+                                borderRadius: 2,
+                                border: '1px solid #e9e9e9'
+                            }}
+                        >
+                            <Typography
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: '1.05rem',
+                                    mb: 0.5,
+                                    fontFamily: '"Montserrat", sans-serif '
+                                }}
+                            >
+                                Product Deliverable
+                            </Typography>
+
+                            {pincodeStatus === 'checking' ? (
+                                <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                                    Checking delivery availability...
+                                </Typography>
+                            ) : pincodeStatus === 'deliverable' ? (
+                                <Typography sx={{ color: 'success.main', fontSize: '0.95rem' }}>
+                                    {pincodeMessage}
+                                </Typography>
+                            ) : pincodeStatus === 'not_deliverable' ? (
+                                <Typography color="error" sx={{ fontSize: '0.95rem' }}>
+                                    Please try ordering to a different location.
+                                </Typography>
+                            ) : (
+                                <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                                    Enter delivery address to check availability.
+                                </Typography>
+                            )}
+                        </Paper>
+
                         <Paper
                             elevation={0}
                             sx={{
@@ -1186,7 +1283,8 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                                 </Typography>
                             </Box>
 
-                            <Select
+                           
+ <Select
                                 value={paymentMode}
                                 onChange={(e) => setPaymentMode(e.target.value)}
                                 fullWidth
@@ -1205,7 +1303,7 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                             variant="contained"
                             fullWidth
                             size="large"
-                            disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading || isPlacingOrder}
+                            disabled={cart.length === 0 || !selectedAddress || isCartLoading || isAddressesLoading || isPlacingOrder || pincodeStatus === 'not_deliverable'}
                             onClick={handleProceedToPayment}
                             sx={{
                                 py: 1.5,
@@ -1495,6 +1593,18 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                     </Button>
                 </DialogActions>
             </Dialog>
+        
+            <Snackbar
+                open={showPincodeSnack}
+                autoHideDuration={4500}
+                onClose={() => setShowPincodeSnack(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setShowPincodeSnack(false)} severity="warning" sx={{ width: '100%' }}>
+                    Please try ordering to a different location.
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }
+

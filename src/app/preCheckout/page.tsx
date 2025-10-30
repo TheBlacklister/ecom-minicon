@@ -29,7 +29,48 @@ const PreCheckout = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [isWished, setIsWished] = useState(false);
+  
+  // --- Pincode Check Feature ---
+  const [pincode, setPincode] = useState(() => {
+    try { return typeof window !== 'undefined' ? localStorage.getItem('minicon_pincode') ?? '' : ''; } catch { return ''; }
+  });
+  const [pincodeStatus, setPincodeStatus] = useState<'unknown'|'checking'|'deliverable'|'not_deliverable'>('unknown');
+  const [pincodeError, setPincodeError] = useState<string | null>(null);
+  const [openNotDeliverableSnack, setOpenNotDeliverableSnack] = useState(false);
+
+  async function checkPincode(pin: string, paymentType: 'any' | 'prepaid' | 'cod' = 'any') {
+    setPincodeError(null);
+    if (!pin || !/^\d{3,6}$/.test(pin)) {
+      setPincodeError('Enter a valid pincode (3–6 digits).');
+      setPincodeStatus('unknown');
+      return { deliverable: false };
+    }
+    try {
+      setPincodeStatus('checking');
+      const res = await fetch('/api/check-pincode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pincode: pin, paymentType }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setPincodeError(json?.message || 'Failed to check pincode');
+        setPincodeStatus('unknown');
+        return { deliverable: false };
+      }
+      const deliverable = !!json.deliverable;
+      setPincodeStatus(deliverable ? 'deliverable' : 'not_deliverable');
+      if (!deliverable) setOpenNotDeliverableSnack(true);
+      try { localStorage.setItem('minicon_pincode', pin); } catch {}
+      return { deliverable, meta: json.row };
+    } catch (err) {
+      console.error('checkPincode', err);
+      setPincodeStatus('unknown');
+      setPincodeError('Network error while checking pincode');
+      return { deliverable: false };
+    }
+  }
+const [isWished, setIsWished] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
@@ -54,9 +95,9 @@ const PreCheckout = () => {
   // Coupon data
   const availableCoupons = [
     {
-      code: 'FLAT500',
-      discount: 500,
-      description: 'Get flat ₹500 off on orders above ₹2000',
+      code: 'FLAT200',
+      discount: 200,
+      description: 'Get flat ₹200 off on orders above ₹2000',
       minOrder: 2000,
       type: 'flat_discount'
     }
@@ -1247,9 +1288,55 @@ const PreCheckout = () => {
           mb: 2,
           maxWidth: { xs: '100%', sm: 320 },
         }}>
-          <Button
+          
+          {/* --- Pincode Check Section (inserted) --- */}
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+            <TextField
+              label="Enter pincode"
+              value={pincode}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, '').slice(0,6);
+                setPincode(v);
+                setPincodeStatus('unknown');
+              }}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') {
+                  await checkPincode(pincode, 'any');
+                }
+              }}
+              variant="outlined"
+              size="small"
+              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+              sx={{ flex: 1 }}
+              //helperText={pincodeError ?? (pincodeStatus === 'deliverable' ? `Deliverable to this pincode` : '')}
+            />
+            <Button
+              onClick={async () => { await checkPincode(pincode, 'any'); }}
+              variant="contained"
+              size="small"
+              disabled={!pincode || pincodeStatus === 'checking'}
+              sx={{ height: 40, minWidth: 92, textTransform: 'none' }}
+            >
+              {pincodeStatus === 'checking' ? <CircularProgress size={20} /> : 'Check'}
+            </Button>
+          </Box>
+
+          <Box sx={{ mb: 0.5 }}>
+            {pincodeStatus === 'deliverable' && (
+              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
+                Deliverable to this pincode.
+              </Typography>
+            )}
+            {pincodeStatus === 'not_deliverable' && (
+              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
+                Not deliverable to this pincode.
+              </Typography>
+            )}
+          </Box>
+<Button
             variant="contained"
             onClick={handleBuyNow}
+            disabled={pincodeStatus === 'not_deliverable' || pincodeStatus === 'checking'}
             sx={{
               width: '100%',
               height: 54,
@@ -1272,6 +1359,7 @@ const PreCheckout = () => {
           <Button
             variant="outlined"
             onClick={handleAddToCart}
+            disabled={pincodeStatus === 'not_deliverable' || pincodeStatus === 'checking'}
             sx={{
               width: '100%',
               height: 54,
@@ -2019,10 +2107,23 @@ const PreCheckout = () => {
       </Box>
     )}
 
+      <Snackbar
+        open={openNotDeliverableSnack}
+        autoHideDuration={4500}
+        onClose={() => setOpenNotDeliverableSnack(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setOpenNotDeliverableSnack(false)} severity="warning" sx={{ width: '100%' }}>
+          Not deliverable to this pincode.
+        </Alert>
+      </Snackbar>
+
   </>
   );
 };
 
+
+      
 export default function PreCheckoutPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
