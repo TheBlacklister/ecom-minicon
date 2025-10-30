@@ -26,12 +26,12 @@ interface CartItem {
 }
 
 const marqueeImages = [
-  '/products/Regular Fit Tshirt/Aesthetics Bloom/2Minicon Asthetic 2.png',
-  '/products/Regular Fit Tshirt/Aesthetic Outgrown/1Minicon Asthetic 3.png',
-  '/products/Regular Fit Tshirt/Aesthetics Royal Blue/5 Minicon Asthetic.png',
-  '/products/Regular Fit Tshirt/AstroBuddy/2 AstroBuddy.png',
-  '/products/Regular Fit Tshirt/Hedgehog/2Hedgehog Regular fit.png',
-  '/products/Regular Fit Tshirt/Hoot Pepar/3Hoot Pepar.png',
+  '/products/regular-fit-tshirt/bloom_asthestic/2minicon-asthetic-2.webp',
+  '/products/regular-fit-tshirt/aesthetic-outgrown_asthestic/1minicon-asthetic-3.webp',
+  '/products/regular-fit-tshirt/royal-blue_asthetic/5-minicon-asthetic.webp',
+  '/products/regular-fit-tshirt/astrobuddy_printed/2-astroBuddy.webp',
+  '/products/regular-fit-tshirt/hedgehog_printed-and-streetwear/2hedgehog-regular-fit.webp',
+  '/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp',
 ].map(getFormattedOptimizedImageSrc);
 
 const scroll = keyframes`
