@@ -28,8 +28,8 @@ interface CartItem {
 const marqueeImages = [
   '/products/regular-fit-tshirt/bloom_asthestic/2minicon-asthetic-2.webp',
   '/products/regular-fit-tshirt/aesthetic-outgrown_asthestic/1minicon-asthetic-3.webp',
-  '/products/regular-fit-tshirt/royal-blue_asthetic/5-minicon-asthetic.webp',
-  '/products/regular-fit-tshirt/astrobuddy_printed/2-astroBuddy.webp',
+  '/products/regular-fit-tshirt/royal-blue_asthestic/5-minicon-asthetic.webp',
+  '/products/regular-fit-tshirt/astrobuddy_printed/2-astrobuddy.webp',
   '/products/regular-fit-tshirt/hedgehog_printed-and-streetwear/2hedgehog-regular-fit.webp',
   '/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp',
 ].map(getFormattedOptimizedImageSrc);
