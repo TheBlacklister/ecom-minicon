@@ -15,7 +15,7 @@ export default function CancelRefundPage() {
     {
       id: 'panel1',
       question: "Can I cancel my order?",
-      answer: "Yes, but only if the cancellation request is made within 12 hours of placing the order.\nAfter 12 hours, your order goes into production and cannot be cancelled.\n📧 To cancel, email us at miniconclothing@gmail.com with your Order ID."
+      answer: "Yes, but only if the cancellation request is made within 12 hours of placing the order.\nAfter 12 hours, your order goes into production and cannot be cancelled.\n📧 To cancel, email us at support@minicon.in with your Order ID."
     },
     {
       id: 'panel2',
@@ -35,7 +35,7 @@ export default function CancelRefundPage() {
     {
       id: 'panel5',
       question: "Can I cancel a COD (Cash on Delivery) order?",
-      answer: "Yes, but only within 12 hours of placing the order.\nAfter that, your order enters production and cannot be cancelled.\nPlease email us at miniconclothing@gmail.com with your Order ID to cancel."
+      answer: "Yes, but only within 12 hours of placing the order.\nAfter that, your order enters production and cannot be cancelled.\nPlease email us at support@minicon.in with your Order ID to cancel."
     },
     {
       id: 'panel6',
@@ -45,7 +45,7 @@ export default function CancelRefundPage() {
     {
       id: 'panel7',
       question: "Can I get a refund on a COD order?",
-      answer: "If your COD order is approved for refund (e.g., damaged or wrong product received), we'll issue a refund via:\n• UPI or bank transfer (as COD cannot be refunded automatically)\n\n📩 You'll need to share your UPI ID or bank details with us at miniconclothing@gmail.com after claim approval."
+      answer: "If your COD order is approved for refund (e.g., damaged or wrong product received), we'll issue a refund via:\n• UPI or bank transfer (as COD cannot be refunded automatically)\n\n📩 You'll need to share your UPI ID or bank details with us at support@minicon.in after claim approval."
     },
     {
       id: 'panel8',
@@ -200,7 +200,7 @@ export default function CancelRefundPage() {
               fontFamily: '"Montserrat", sans-serif'
             }}
           >
-            📩 Email us at: miniconclothing@gmail.com
+            📩 Email us at: support@minicon.in
           </Typography>
         </Box>
 

@@ -117,7 +117,7 @@ const Disclaimer = () => {
             For any questions or concerns related to this Disclaimer, you may contact us at:
           </Typography>
           <Typography sx={{ fontSize: '1rem', color: '#000', lineHeight: 1.7, fontFamily: '"Montserrat", sans-serif ' }}>
-            📧 miniconclothing@gmail.com
+            📧 support@minicon.in
           </Typography>
         </>
       )

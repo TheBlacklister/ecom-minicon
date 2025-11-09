@@ -9,7 +9,7 @@ const About = () => {
       <Stack direction={{ xs: 'column', md: 'row' }} sx={{ height: '100%', width: '100%' }}>
         <Box flex={1} display="flex" alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
           <Image 
-            src="/products/Oversisized_Acid Washed Tshirt/Oversisized_Acid Washed Tshirt/Black/1 Acid Washed Black T-shirt.png" 
+            src="/products/oversisized_acid-washed-tshirt/oversisized_acid-washed-tshirt/black/1-acid-washed-black-t-shirt.webp" 
             alt="About Us Product" 
             width={500}
             height={600}

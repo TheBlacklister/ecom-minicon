@@ -52,8 +52,8 @@ export default function ContactPage() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography sx={{ fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ' }}>
-                <a href="mailto:miniconclothing@gmail.com" style={{ color: 'black', textDecoration: 'none', fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ' }}>
-                  miniconclothing@gmail.com
+                <a href="mailto:support@minicon.in" style={{ color: 'black', textDecoration: 'none', fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", "Montserrat", sans-serif ' }}>
+                  support@minicon.in
                 </a>
               </Typography>
             </AccordionDetails>

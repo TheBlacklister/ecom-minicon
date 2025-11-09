@@ -424,7 +424,7 @@ const Privacy = () => {
       >
         To exercise these rights, please contact us at{' '}
         <a 
-          href="mailto:miniconclothing@gmail.com" 
+          href="mailto:support@minicon.in" 
           style={{ 
             color: '#1976d2', 
             textDecoration: 'none',
@@ -434,7 +434,7 @@ const Privacy = () => {
           onMouseEnter={(e) => (e.target as HTMLElement).style.textDecoration = 'underline'}
           onMouseLeave={(e) => (e.target as HTMLElement).style.textDecoration = 'none'}
         >
-          miniconclothing@gmail.com
+          support@minicon.in
         </a>.
       </Typography>
 
@@ -532,7 +532,7 @@ const Privacy = () => {
       >
         Email:{' '}
         <a 
-          href="mailto:miniconclothing@gmail.com" 
+          href="mailto:support@minicon.in" 
           style={{ 
             color: '#1976d2', 
             textDecoration: 'none',
@@ -542,7 +542,7 @@ const Privacy = () => {
           onMouseEnter={(e) => (e.target as HTMLElement).style.textDecoration = 'underline'}
           onMouseLeave={(e) => (e.target as HTMLElement).style.textDecoration = 'none'}
         >
-          miniconclothing@gmail.com
+          support@minicon.in
         </a>
       </Typography>
     </Box>

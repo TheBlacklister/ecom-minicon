@@ -92,7 +92,7 @@ const ReturnPolicy = () => {
           
           <Box sx={{ bgcolor: '#f5f5f5', p: 3, borderRadius: 1 }}>
             <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#000', fontWeight: 600, fontFamily: '"Montserrat", sans-serif ' }}>
-              📩 Email all documents to: <strong>miniconclothing@gmail.com</strong>
+              📩 Email all documents to: <strong>support@minicon.in</strong>
             </Typography>
           </Box>
         </>
@@ -336,7 +336,7 @@ const ReturnPolicy = () => {
               fontFamily: '"Montserrat", sans-serif '
             }}
           >
-            📧 miniconclothing@gmail.com
+            📧 support@minicon.in
           </Box>
           
           <Typography 

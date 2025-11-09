@@ -40,7 +40,7 @@ export default function ShippingPage() {
     {
       id: 'panel6',
       question: "What should I do if I haven't received my order?",
-      answer: "If it's been more than 7 business days since dispatch and your tracking hasn't updated, reach out to us at:\n📧 miniconclothing@gmail.com"
+      answer: "If it's been more than 7 business days since dispatch and your tracking hasn't updated, reach out to us at:\n📧 support@minicon.in"
     },
     {
       id: 'panel7',
@@ -196,7 +196,7 @@ export default function ShippingPage() {
               fontFamily: '"Montserrat", sans-serif '
             }}
           >
-            📧 miniconclothing@gmail.com
+            📧 support@minicon.in
           </Box>
           
           <Typography 
