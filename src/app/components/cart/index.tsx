@@ -1403,7 +1403,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                 size="small"
                                 sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                             >
-                                <MenuItem value="razorpay" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Online Payment (Razorpay)</MenuItem>
+                                <MenuItem value="razorpay" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Online Payment</MenuItem>
                                 <MenuItem value="cod" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Cash on Delivery</MenuItem>
                             </Select>
                         </Paper>
