@@ -553,10 +553,8 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
                 amount: razorpayOrder.order.amount,
                 currency: razorpayOrder.order.currency,
-                name: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Minicon',
                 description: `Order #${orderDetails.orderId}`,
                 order_id: razorpayOrder.order.id,
-                image: process.env.NEXT_PUBLIC_COMPANY_LOGO || undefined,
                 handler: async (response: {
                     razorpay_payment_id: string;
                     razorpay_order_id: string;
