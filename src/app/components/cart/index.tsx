@@ -35,6 +35,7 @@ import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { Product } from '@/types';
 import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
+import { useRazorpay } from '@/lib/useRazorpay';
 
 interface CartItem {
     id: number;
@@ -172,6 +173,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     const { user } = useAuth();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const { isLoaded: isRazorpayLoaded, createOrder, openPaymentModal, verifyPayment } = useRazorpay();
 
     const [cart, setCart] = useState(DUMMY_CART);
     const [cartWithProductDetails, setCartWithProductDetails] = useState<CartApiItem[]>([]);
@@ -491,41 +493,141 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
         if (isPlacingOrder) return; // Prevent double clicks
 
         setIsPlacingOrder(true);
-            // Prevent placing order if pincode is known to be not deliverable
-            if (pincodeStatus === 'not_deliverable') {
-                setShowPincodeSnack(true);
+
+        // Prevent placing order if pincode is known to be not deliverable
+        if (pincodeStatus === 'not_deliverable') {
+            setShowPincodeSnack(true);
+            setIsPlacingOrder(false);
+            return;
+        }
+
+        const selectedAddressData = addresses.find(addr => addr.id === selectedAddress);
+
+        // Common order details
+        const orderDetails = {
+            orderId: `${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+            cartItems: cartWithProductDetails,
+            selectedAddress: selectedAddressData,
+            paymentMode,
+            subtotal,
+            shipping,
+            taxes,
+            couponDiscount,
+            total: Math.max(0, total),
+            selectedCoupon,
+            userEmail: user?.email
+        };
+
+        try {
+            if (paymentMode === 'razorpay') {
+                await handleRazorpayPayment(orderDetails);
+            } else {
+                // Handle COD and other traditional payments (existing flow)
+                await handleTraditionalPayment(orderDetails);
+            }
+        } catch (error) {
+            console.error('Error processing payment:', error);
+            alert('An error occurred while processing your order. Please try again.');
+            setIsPlacingOrder(false);
+        }
+    };
+
+    // Handle Razorpay payment flow
+    const handleRazorpayPayment = async (orderDetails: any) => {
+        try {
+            if (!isRazorpayLoaded) {
+                alert('Payment gateway is loading. Please try again in a moment.');
                 setIsPlacingOrder(false);
                 return;
             }
 
+            // Create Razorpay order
+            const razorpayOrder = await createOrder(orderDetails.total, orderDetails);
 
+            if (!razorpayOrder.success) {
+                throw new Error('Failed to create payment order');
+            }
+
+            // Open Razorpay checkout
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+                amount: razorpayOrder.order.amount,
+                currency: razorpayOrder.order.currency,
+                name: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Minicon',
+                description: `Order #${orderDetails.orderId}`,
+                order_id: razorpayOrder.order.id,
+                image: process.env.NEXT_PUBLIC_COMPANY_LOGO || undefined,
+                handler: async (response: {
+                    razorpay_payment_id: string;
+                    razorpay_order_id: string;
+                    razorpay_signature: string;
+                }) => {
+                    try {
+                        // Verify payment
+                        const verificationResult = await verifyPayment({
+                            ...response,
+                            orderDetails
+                        });
+
+                        if (verificationResult.success) {
+                            // Clear cart and show success
+                            await clearCartAfterOrder();
+                            setOrderDetails({
+                                orderId: response.razorpay_payment_id,
+                                total: orderDetails.total
+                            });
+                            setShowSuccessModal(true);
+                        } else {
+                            throw new Error('Payment verification failed');
+                        }
+                    } catch (error) {
+                        console.error('Payment verification error:', error);
+                        alert('Payment verification failed. Please contact support if amount was debited.');
+                    } finally {
+                        setIsPlacingOrder(false);
+                    }
+                },
+                prefill: {
+                    name: orderDetails.selectedAddress?.name || '',
+                    email: user?.email || '',
+                    contact: orderDetails.selectedAddress?.phone || ''
+                },
+                notes: {
+                    order_id: orderDetails.orderId,
+                    user_id: user?.id || ''
+                },
+                theme: {
+                    color: '#fe5000'
+                },
+                modal: {
+                    ondismiss: () => {
+                        setIsPlacingOrder(false);
+                    }
+                }
+            };
+
+            openPaymentModal(options);
+
+        } catch (error) {
+            console.error('Razorpay payment error:', error);
+            alert('Failed to process payment. Please try again.');
+            setIsPlacingOrder(false);
+        }
+    };
+
+    // Handle traditional payment flow (COD, existing Qikink flow)
+    const handleTraditionalPayment = async (orderDetails: any) => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
 
-            const selectedAddressData = addresses.find(addr => addr.id === selectedAddress);
-console.log('cartWithProductDetails',cartWithProductDetails)
-            const payload = {
-                orderId: `${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                cartItems: cartWithProductDetails,
-                selectedAddress: selectedAddressData,
-                paymentMode,
-                subtotal,
-                shipping,
-                taxes,
-                couponDiscount,
-                total: Math.max(0, total),
-                selectedCoupon,
-                userEmail: user?.email
-            };
-
-            console.log('Calling generateToken API with payload:', payload);
+            console.log('Calling generateToken API with payload:', orderDetails);
 
             const response = await fetch('/api/generateToken', {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(payload)
+                body: JSON.stringify(orderDetails)
             });
 
             if (response.ok) {
@@ -537,16 +639,16 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                     try {
                         const orderPayload = {
                             qikink_order_id: result.order.order_id,
-                            order_number: payload.orderId,
-                            payment_mode: paymentMode,
-                            total_amount: payload.total,
-                            subtotal: payload.subtotal,
-                            shipping: payload.shipping,
-                            taxes: payload.taxes,
-                            coupon_discount: payload.couponDiscount,
-                            coupon_code: selectedCoupon?.code || null,
-                            shipping_address: selectedAddressData,
-                            cart_items: cartWithProductDetails
+                            order_number: orderDetails.orderId,
+                            payment_mode: orderDetails.paymentMode,
+                            total_amount: orderDetails.total,
+                            subtotal: orderDetails.subtotal,
+                            shipping: orderDetails.shipping,
+                            taxes: orderDetails.taxes,
+                            coupon_discount: orderDetails.couponDiscount,
+                            coupon_code: orderDetails.selectedCoupon?.code || null,
+                            shipping_address: orderDetails.selectedAddress,
+                            cart_items: orderDetails.cartItems
                         };
 
                         const orderResponse = await fetch('/api/orders', {
@@ -559,25 +661,11 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                             const orderResult = await orderResponse.json();
                             console.log('Order saved to database:', orderResult);
 
-                            // Clear the cart after successful order placement
-                            if (!buyNowProductId) {
-                                // For regular cart, clear all items
-                                const clearCartResponse = await fetch('/api/cart', {
-                                    method: 'DELETE',
-                                    headers,
-                                    body: JSON.stringify({ clear_all: true })
-                                });
-
-                                if (clearCartResponse.ok) {
-                                    setCart([]);
-                                    setCartWithProductDetails([]);
-                                }
-                            }
-
-                            // Show success modal instead of alert
+                            // Clear cart and show success
+                            await clearCartAfterOrder();
                             setOrderDetails({
                                 orderId: result.order.order_id,
-                                total: payload.total
+                                total: orderDetails.total
                             });
                             setShowSuccessModal(true);
 
@@ -598,9 +686,33 @@ console.log('cartWithProductDetails',cartWithProductDetails)
             }
         } catch (error) {
             console.error('Error calling generateToken API:', error);
-            alert('An error occurred while processing your order. Please try again.');
+            throw error;
         } finally {
             setIsPlacingOrder(false);
+        }
+    };
+
+    // Helper function to clear cart after successful order
+    const clearCartAfterOrder = async () => {
+        try {
+            if (!buyNowProductId) {
+                const { data: { session } } = await supabase.auth.getSession();
+                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+
+                const clearCartResponse = await fetch('/api/cart', {
+                    method: 'DELETE',
+                    headers,
+                    body: JSON.stringify({ clear_all: true })
+                });
+
+                if (clearCartResponse.ok) {
+                    setCart([]);
+                    setCartWithProductDetails([]);
+                }
+            }
+        } catch (error) {
+            console.error('Error clearing cart:', error);
         }
     };
 
@@ -1291,9 +1403,7 @@ console.log('cartWithProductDetails',cartWithProductDetails)
                                 size="small"
                                 sx={{ fontFamily: '"Montserrat", sans-serif ' }}
                             >
-                                <MenuItem value="card" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Credit/Debit Card</MenuItem>
-                                <MenuItem value="upi" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>UPI</MenuItem>
-                                <MenuItem value="netbanking" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Net Banking</MenuItem>
+                                <MenuItem value="razorpay" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Online Payment (Razorpay)</MenuItem>
                                 <MenuItem value="cod" sx={{ fontFamily: '"Montserrat", sans-serif ' }}>Cash on Delivery</MenuItem>
                             </Select>
                         </Paper>
