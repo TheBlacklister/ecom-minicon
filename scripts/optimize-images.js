@@ -6,7 +6,7 @@ const sharp = require('sharp');
 const fs = require('fs').promises;
 const path = require('path');
 
-const INPUT_DIR = './public/products';
+const INPUT_DIR = './public/products/optimise';
 const OUTPUT_DIR = './public/optimized-products';
 const SIZES = [
   { width: 640, suffix: 'sm' },

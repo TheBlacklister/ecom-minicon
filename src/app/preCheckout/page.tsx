@@ -1536,7 +1536,7 @@ const [isWished, setIsWished] = useState(false);
           <Box 
             sx={{ 
               display: 'flex', 
-              justifyContent: 'center',
+              justifyContent: 'space-evenly',
               alignItems: 'center',
               gap: { xs: 2, sm: 3, md: 4 }, 
               mt: 3, 
@@ -1545,7 +1545,7 @@ const [isWished, setIsWished] = useState(false);
             }}
           >
             <Image
-              src="/images/trust1.png"
+              src="/images/label1.png"
               alt="Premium Quality"
               width={80}
               height={80}
@@ -1559,7 +1559,7 @@ const [isWished, setIsWished] = useState(false);
             />
             
             <Image
-              src="/images/trust2.png"
+              src="/images/label2.png"
               alt="Original Brand"
               width={80}
               height={80}
@@ -1573,7 +1573,7 @@ const [isWished, setIsWished] = useState(false);
             />
             
             <Image
-              src="/images/trust3.png"
+              src="/images/label3.png"
               alt="Satisfaction Guarantee"
               width={80}
               height={80}

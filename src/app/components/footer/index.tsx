@@ -100,6 +100,17 @@ export default function Footer() {
           </Grid>
         </Box>
       </Container>
+      {/* ⬇️ Add this bottom bar */}
+      <Box sx={{  py: 1.5 }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="caption"
+            sx={{ display: 'block', textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}
+          >
+            © {new Date().getFullYear()} Minicon. All rights reserved.
+          </Typography>
+        </Container>
+      </Box>
     </Box>
   );
 }

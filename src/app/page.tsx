@@ -34,6 +34,13 @@ const marqueeImages = [
   '/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp',
 ].map(getFormattedOptimizedImageSrc);
 
+// Put near marqueeImages (reuse your optimizer helper if you like)
+const mobileHeroImages = [
+  '/gifs/Banner1.png',
+  '/gifs/Banner2.png',
+  '/gifs/Banner3.png',
+].map(getFormattedOptimizedImageSrc);
+
 const scroll = keyframes`
   from {
     transform: translateX(0);
@@ -45,12 +52,14 @@ const scroll = keyframes`
 
 export default function Home() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
   const [products, setProducts] = useState<Product[]>([]);
   const { user } = useAuth();
   const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [slide, setSlide] = useState(0);
+
 
   useEffect(() => {
     async function fetchProducts() {
@@ -68,6 +77,14 @@ export default function Home() {
     }
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (!isMobile || mobileHeroImages.length < 2) return;
+    const id = setInterval(() => {
+      setSlide((s) => (s + 1) % mobileHeroImages.length);
+    }, 3000);
+    return () => clearInterval(id);
+  }, [isMobile]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -109,6 +126,10 @@ export default function Home() {
   // Get products to display based on showAllProducts state
   const displayProducts =  products.slice(0, 16);
 
+  const handleError = (src: string) => () =>
+    console.warn('[Hero] image failed to load:', src);
+
+
   return (
     <Box
       sx={{
@@ -122,34 +143,108 @@ export default function Home() {
     >
       {/* Hero section replaced with looping video */}
       <Box
+  sx={{
+    width: '100%',
+    mb: { xs: 4, sm: 1 },
+    display: 'flex',
+    justifyContent: 'center',
+    height: { xs: '100vh', sm: 'auto' },
+  }}
+>
+{isMobile ? (
+        // ===== MOBILE: SLIDESHOW (no crop) =====
+        <Box
+      sx={{
+        position: 'relative',
+        width: '100vw',
+        height: '100svh', // better on mobile than 100vh
+        overflow: 'hidden',
+      }}
+    >
+      {mobileHeroImages.map((src, i) => (
+        <Box
+          key={src}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            opacity: i === slide ? 1 : 0,
+            transition: 'opacity 700ms ease-in-out',
+            willChange: 'opacity',
+          }}
+        >
+          {/* Background fill: same image, full-bleed, blurred (no solid color) */}
+          <Image
+            src={src}
+            alt=""
+            fill
+            priority={i === 0}
+            sizes="100vw"
+            onError={handleError(src)}
+            style={{
+              objectFit: 'cover',
+              filter: 'blur(18px)',
+              transform: 'scale(1.08)', // hides blur edges
+            }}
+          />
+
+          {/* Foreground: full artwork, never-crop */}
+          <Image
+            src={src}
+            alt={`Slide ${i + 1}`}
+            fill
+            sizes="100vw"
+            priority={i === 0}
+            onError={handleError(src)}
+            style={{
+              objectFit: 'contain',       // <— no cropping
+              objectPosition: 'center',
+            }}
+          />
+        </Box>
+      ))}
+
+      {/* Dots */}
+      <Box
         sx={{
-          width: '100%',
-          mb: { xs: 4, sm: 1 },
+          position: 'absolute',
+          bottom: 12,
+          left: 0,
+          right: 0,
           display: 'flex',
           justifyContent: 'center',
-          height: {
-            xs: '100vh',
-            sm: 'auto'
-          }
-          
+          gap: 1,
+          zIndex: 1,
         }}
       >
+        {mobileHeroImages.map((_, i) => (
+          <Box
+            key={i}
+            onClick={() => setSlide(i)}
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              backgroundColor: i === slide ? '#fff' : 'rgba(255,255,255,0.5)',
+              transition: 'background-color 200ms ease',
+            }}
+          />
+        ))}
+      </Box>
+    </Box>
+      ) : (
+        // ===== DESKTOP/TABLET: KEEP VIDEO =====
         <video
-       // src={isMobile ? "/gifs/BannerMobile.mp4" : "/gifs/Banner.mp4"}
-          src={isMobile ? "/gifs/BannerMobile.mp4" : "/gifs/Banner 2.0 (DESKTOP Video).mp4"}
+          src="/gifs/Banner 2.0 (DESKTOP Video).mp4"
           autoPlay
           loop
           muted
           playsInline
-          webkit-playsinline="true" // For older iOS versions
-  x5-playsinline="true" // For some Android browsers
-          style={{
-            width: '100%',
-            height: isMobile ? '100%' : 'auto',
-            objectFit: 'cover'
-          }}
+          style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
         />
-      </Box>
+      )}
+</Box>
+
 
       <Typography variant="h4"
         align="center"
