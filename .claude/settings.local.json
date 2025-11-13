@@ -12,10 +12,7 @@
       "Bash(npm install)",
       "Bash(powershell:*)",
       "Bash(curl:*)",
-      "Bash(node:*)",
-      "WebSearch",
-      "WebFetch(domain:razorpay.com)",
-      "WebFetch(domain:dev.to)"
+      "Bash(node:*)"
     ],
     "deny": []
   }
