@@ -28,7 +28,8 @@ const isPublicRoute = (pathname: string): boolean => {
     '/cancelRefund',
     '/privacy',
     '/login',
-    '/signup'
+    '/signup',
+    '/preCheckout'
   ]
 
   // Check exact matches

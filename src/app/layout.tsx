@@ -8,6 +8,7 @@ import { Box } from '@mui/material';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import Script from 'next/script';
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -73,6 +74,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {!isAuthPage && <Footer />}
           </CountProvider>
         </AuthProvider>
+
+        {/* Razorpay Script */}
+        <Script
+          id="razorpay-checkout-js"
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
