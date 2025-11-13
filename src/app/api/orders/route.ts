@@ -33,46 +33,31 @@ export async function POST(request: NextRequest) {
       coupon_discount,
       coupon_code,
       shipping_address,
-      cart_items,
-      // Razorpay specific fields
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
+      cart_items
     } = await request.json();
 
-    // Validate required fields (qikink_order_id is optional for Razorpay orders)
-    if (!order_number || !total_amount || !cart_items || cart_items.length === 0) {
+    // Validate required fields
+    if (!qikink_order_id || !order_number || !total_amount || !cart_items || cart_items.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Create the order
-    const orderData: any = {
-      user_id: user.id,
-      order_number,
-      status: payment_mode === 'razorpay' ? 'paid' : 'pending',
-      payment_mode,
-      total_amount,
-      subtotal,
-      shipping: shipping || 0,
-      taxes: taxes || 0,
-      coupon_discount: coupon_discount || 0,
-      coupon_code,
-      shipping_address
-    };
-
-    // Add qikink_order_id if provided (for COD orders)
-    if (qikink_order_id) {
-      orderData.qikink_order_id = qikink_order_id;
-    }
-
-    // Add Razorpay fields if provided
-    if (razorpay_order_id) orderData.razorpay_order_id = razorpay_order_id;
-    if (razorpay_payment_id) orderData.razorpay_payment_id = razorpay_payment_id;
-    if (razorpay_signature) orderData.razorpay_signature = razorpay_signature;
-
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert(orderData)
+      .insert({
+        user_id: user.id,
+        qikink_order_id,
+        order_number,
+        status: 'pending',
+        payment_mode,
+        total_amount,
+        subtotal,
+        shipping: shipping || 0,
+        taxes: taxes || 0,
+        coupon_discount: coupon_discount || 0,
+        coupon_code,
+        shipping_address
+      })
       .select()
       .single();
 
