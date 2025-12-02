@@ -1,221 +1,224 @@
 // src/app/api/auth/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
-import { sendMail } from "@/lib/mailer"; // keep your mailer import (used later)
+import { sendMail } from "@/lib/mailer";
 
-// Resolve envs (accepts multiple common names)
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ??
-  process.env.SUPABASE_URL ??
-  "";
+// ------------------------
+// ENV VALIDATION
+// ------------------------
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SERVICE_ROLE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ??
-  process.env.SERVICE_ROLE_KEY ??
-  process.env.SUPABASE_SERVICE_KEY ??
-  "";
+console.log("DEBUG ENV LOADED", {
+  SUPABASE_URL: process.env.SUPABASE_URL,
+  SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+});
 
-// Debug-print what Next sees (useful while developing)
-if (process.env.NODE_ENV === "development") {
-  console.log("ENV DEBUG:", {
-    NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    SUPABASE_URL: !!process.env.SUPABASE_URL,
-    SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-  });
-}
-
-// Early fail with a clear message if required server envs are missing.
-// This prevents obscure 500s later and makes it obvious you must set a server-only key.
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  console.error(
-    "Missing Supabase server env(s). SUPABASE_URL:",
-    Boolean(SUPABASE_URL),
-    "SERVICE_ROLE_KEY found:",
-    Boolean(SERVICE_ROLE_KEY)
-  );
   throw new Error(
-    "Missing Supabase server env(s). Add SUPABASE_SERVICE_KEY (service role key) and SUPABASE_URL to .env.local and restart the dev server."
+    "Missing required env vars: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
   );
 }
-async function adminCreateUser(email: string, password: string, name?: string) {
-  const url = `${SUPABASE_URL}/auth/v1/admin/users`;
-  const body = {
-    email,
-    password,
-    user_metadata: { name },
-    email_confirm: true,
-  };
 
-  const res = await fetch(url, {
+// ------------------------
+// SUPABASE ADMIN HELPERS
+// ------------------------
+
+// 1) Create Auth user via Admin API
+async function adminCreateUser(email: string, password: string, name?: string) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      apikey: SERVICE_ROLE_KEY || "",
-      Authorization: `Bearer ${SERVICE_ROLE_KEY || ""}`,
-    },
-    body: JSON.stringify(body),
+      apikey: SERVICE_ROLE_KEY as string,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}` as string,
+    } as HeadersInit,
+    body: JSON.stringify({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name },
+    }),
   });
 
-  const json = await res.text().then((t) => {
-    try { return JSON.parse(t); } catch { return t; }
-  });
+  const text = await res.text();
+  let json: any = null;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    json = text;
+  }
 
-  return { ok: res.ok, status: res.status, body: json };
+  return { ok: res.ok, status: res.status, data: json };
 }
 
+// 2) Get user by email
 async function adminGetUserByEmail(email: string) {
-  const url = `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}`;
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      apikey: SERVICE_ROLE_KEY || "",
-      Authorization: `Bearer ${SERVICE_ROLE_KEY || ""}`,
-      "Content-Type": "application/json",
-    },
-  });
-  const json = await res.text().then((t) => {
-    try { return JSON.parse(t); } catch { return t; }
-  });
+  const res = await fetch(
+    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
+    {
+      method: "GET",
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      } as HeadersInit,
+    }
+  );
+
+  const text = await res.text();
+  let json: any = null;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    json = text;
+  }
+
+  // Supabase sometimes returns: { users: [...] }
   if (Array.isArray(json)) return json;
-  if (json && Array.isArray((json as any).users)) return (json as any).users;
+  if (json?.users) return json.users;
   return [];
 }
 
+// 3) Upsert into profiles table
 async function upsertProfile(userId: string, email: string, name?: string) {
-  const url = `${SUPABASE_URL}/rest/v1/profiles`;
-  const payload = [{ user_id: userId, email, name }];
-  const res = await fetch(url, {
-    method: "POST", // POST + Prefer: resolution=merge-duplicates -> upsert
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+    method: "POST",
     headers: {
-      apikey: SERVICE_ROLE_KEY || "",
-      Authorization: `Bearer ${SERVICE_ROLE_KEY || ""}`,
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
       "Content-Type": "application/json",
       Prefer: "resolution=merge-duplicates",
-    },
-    body: JSON.stringify(payload),
+    } as HeadersInit,
+    body: JSON.stringify([{ user_id: userId, email, name }]),
   });
 
-  // Some Supabase REST upserts return 204 No Content — handle that gracefully
-  if (res.status === 204) {
-    // success, nothing to parse
-    return [];
-  }
+  if (res.status === 204) return;
 
-  // Try to read body safely (handle empty body)
-  const text = await res.text().catch(() => "");
-  if (!text || text.trim().length === 0) {
-    if (!res.ok) {
-      throw new Error(`Failed to upsert profile: ${res.status} (empty body)`);
-    }
-    return [];
-  }
+  const text = await res.text();
+  if (!text) return;
 
-  // Parse JSON safely
+  let json;
   try {
-    const json = JSON.parse(text);
-    if (!res.ok) {
-      throw new Error(`Failed to upsert profile: ${res.status} ${JSON.stringify(json)}`);
-    }
-    return json;
-  } catch (parseErr) {
-    throw new Error(`Failed to parse profile upsert response: ${parseErr}`);
+    json = JSON.parse(text);
+  } catch {
+    throw new Error("Failed to parse profile upsert response");
   }
+
+  if (!res.ok) throw new Error(JSON.stringify(json));
 }
 
-export async function POST(request: NextRequest) {
+// ------------------------
+// MAIN ROUTE HANDLER
+// ------------------------
+export async function POST(req: NextRequest) {
   try {
-    // Quick env sanity check (very helpful)
-    if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-      const msg = `Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env. SUPABASE_URL=${!!SUPABASE_URL}; SERVICE_ROLE_KEY=${!!SERVICE_ROLE_KEY}`;
-      console.error(msg);
-      return NextResponse.json({ error: msg }, { status: 500 });
-    }
+    const body = await req.json().catch(() => ({}));
 
-    // parse body
-    const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
     const password = body.password;
     const name = body.name ?? null;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "email and password are required" }, { status: 400 });
-    }
+    if (!email || !password)
+      return NextResponse.json(
+        { error: "Email and password are required" },
+        { status: 400 }
+      );
 
-    // Try creating the auth user
-    let userWasCreated = false;
-    let userRecord: any = null;
-    try {
-      const createResp = await adminCreateUser(email, password, name);
-      console.log("adminCreateUser response:", createResp.status, createResp.body);
-      if (createResp.ok) {
-        userRecord = createResp.body;
-        userWasCreated = true;
-      } else {
-        // creation failed — attempt to find existing user
-        console.warn("create user failed, will try to fetch existing user by email", createResp.body);
-        const users = await adminGetUserByEmail(email);
-        if (users && users.length > 0) {
+    // ------------------------
+    // 1) Attempt to create user
+    // ------------------------
+    const create = await adminCreateUser(email, password, name);
+
+    let userRecord = null;
+    let isNewUser = false;
+
+    if (create.ok) {
+      userRecord = create.data;
+      isNewUser = true;
+    } else {
+      // Handle "email_exists"
+      if (
+        create.status === 422 &&
+        create.data?.error_code === "email_exists"
+      ) {
+        const existing = await adminGetUserByEmail(email);
+
+        if (existing.length === 0) {
           return NextResponse.json(
-            { error: "User already exists" },
-            { status: 409 }
+            { error: "Unexpected Supabase error: user not found after email_exists" },
+            { status: 500 }
           );
         }
-      }
-    } catch (eCreate) {
-      console.error("Exception while creating user via admin API:", eCreate);
-      // attempt to fetch existing user
-      try {
-        const users = await adminGetUserByEmail(email);
-        if (users && users.length > 0) {
-          userRecord = users[0];
-        } else {
-          throw eCreate; // rethrow to outer catch
-        }
-      } catch (fetchErr) {
-        console.error("Also failed fetching user after create error:", fetchErr);
-        throw fetchErr;
+
+        userRecord = existing[0];
+        isNewUser = false;
+      } else {
+        return NextResponse.json(
+          { error: "Failed to create user", details: create.data },
+          { status: create.status }
+        );
       }
     }
 
-    // derive user id
-    const userId = userRecord?.id ?? userRecord?.user?.id ?? userRecord?.sub ?? null;
+    // Normalizing response structure
+    const userId =
+      userRecord?.id ||
+      userRecord?.user?.id ||
+      userRecord?.sub ||
+      null;
+
     if (!userId) {
-      console.error("Could not find user id in userRecord:", userRecord);
-      return NextResponse.json({ error: "Could not find user id in Supabase response", raw: userRecord }, { status: 500 });
+      return NextResponse.json(
+        { error: "Could not extract user id", raw: userRecord },
+        { status: 500 }
+      );
     }
 
-    // Upsert profile (non-fatal)
+    // ------------------------
+    // 2) UPSERT profile
+    // ------------------------
     try {
       await upsertProfile(userId, email, name ?? undefined);
-      console.log("Profile upsert successful for user:", userId);
-    } catch (upsertErr) {
-      console.error("Profile upsert error:", upsertErr);
-      // continue (do not abort); include message in response for debugging
+    } catch (err) {
+      console.error("Profile upsert error:", err);
     }
 
-    // Send welcome mail only if created now
-    try {
-      if (userWasCreated) {
+    // ------------------------
+    // 3) SEND welcome email only for new users
+    // ------------------------
+    if (isNewUser) {
+      try {
         await sendMail({
           to: email,
-          subject: `Welcome to MINICON`,
+          subject: "Welcome to MINICON",
           template: "welcome",
-          templateData: { name: name ?? email, email, siteName: "MINICON" },
+          templateData: {
+            name: name ?? email,
+            email,
+            siteName: "MINICON",
+          },
         });
-        console.log("Welcome mail queued/sent to", email);
-      } else {
-        console.log("Skipping welcome mail because user was not newly created");
+      } catch (err) {
+        console.warn("Failed to send welcome email:", err);
       }
-    } catch (mailErr) {
-      console.error("Failed to send welcome email:", mailErr);
-      // non-fatal
     }
 
-    return NextResponse.json({ success: true, user: { id: userId, email, created: userWasCreated } });
+    // ------------------------
+    // SUCCESS RESPONSE
+    // ------------------------
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: userId,
+        email,
+        created: isNewUser,
+      },
+    });
   } catch (err: any) {
-    console.error("Unhandled error in /api/auth POST:", err);
-    // return full error details while developing
-    const message = err?.message ?? String(err);
-    const stack = err?.stack ?? null;
-    return NextResponse.json({ error: message, stack }, { status: 500 });
+    console.error("Unhandled error in /api/auth:", err);
+    return NextResponse.json(
+      { error: err.message ?? "Server error", stack: err.stack },
+      { status: 500 }
+    );
   }
 }

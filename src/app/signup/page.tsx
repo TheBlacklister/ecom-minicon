@@ -1,41 +1,49 @@
-'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { TextField, Button, Box, Typography, IconButton, InputAdornment, Snackbar, Alert } from '@mui/material'
-import { Visibility, VisibilityOff } from '@mui/icons-material'
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { TextField, Button, Box, Typography, IconButton, InputAdornment, Snackbar, Alert } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 export default function SignUpPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [alert, setAlert] = useState({ open: false, type: 'info', msg: '' })
-  const showAlert = (type: any, msg: string) => setAlert({ open: true, type, msg })
+  const [alert, setAlert] = useState({ open: false, type: 'info', msg: '' });
+  const showAlert = (type: any, msg: string) => setAlert({ open: true, type, msg });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
+    // 🚨 Quick frontend validation
+    if (!email || !password || !name) {
+      showAlert('error', 'All fields are required');
+      return;
+    }
+
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name })
+      body: JSON.stringify({ email, password, name }),
     });
-  
+
     const data = await res.json();
-  
+
+    // ❗ Your /api/auth route returns 409 if user exists
     if (!res.ok) {
       if (res.status === 409) {
         showAlert('info', 'User already exists! Redirecting to login...');
         setTimeout(() => router.push('/login'), 1500);
         return;
       }
-  
+
       showAlert('error', data.error || 'Signup failed');
       return;
     }
-  
+
+    // ✔ Signup successful
     showAlert('success', 'Account created! Redirecting...');
     setTimeout(() => router.push('/login'), 1500);
   };
@@ -77,5 +85,5 @@ export default function SignUpPage() {
         <Alert severity={alert.type as any}>{alert.msg}</Alert>
       </Snackbar>
     </Box>
-  )
+  );
 }
