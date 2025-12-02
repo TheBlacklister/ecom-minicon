@@ -1,0 +1,31 @@
+{{> _header}}
+
+<div style="max-width:600px;margin:0 auto;font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#222">
+  <div style="padding:24px;background:#ffffff;border-radius:8px;">
+    <h1 style="font-size:20px;margin:0 0 8px;color:#111">Update on your order #{{id}}</h1>
+
+    <p style="margin:0 0 16px;color:#555">
+      Hi {{customerName}},<br/>
+      The status of your order <strong>#{{id}}</strong> has been updated to:
+      <span style="display:inline-block;background:#f0f7ff;color:#0366d6;padding:6px 10px;border-radius:14px;margin-left:8px;font-weight:600">
+        {{statusLabel}}
+      </span>
+    </p>
+
+    {{#if isShipment}}
+      <p style="margin:0 0 12px;color:#444">
+        Your package is on the move. {{#if tracking}}Tracking number: <strong>{{tracking}}</strong>.{{/if}}
+      </p>
+    {{/if}}
+
+    {{#if eta}}
+      <p style="margin:0 0 12px;color:#444">Estimated delivery: <strong>{{eta}}</strong></p>
+    {{/if}}
+
+    <p style="margin:18px 0 0;color:#666">Thanks for shopping with <strong>MINICON</strong>. If you need help, reply to this email.</p>
+  </div>
+
+  <p style="text-align:center;color:#999;font-size:12px;margin:12px 0 0">Order #{{id}} • Updated on {{updatedAt}}</p>
+</div>
+
+{{> _footer}}

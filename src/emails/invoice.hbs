@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+  <body>
+    <h2>Thanks for your order, {{customerName}}</h2>
+    <p>Your order <strong>#{{id}}</strong> has been received. Attached is your invoice.</p>
+    <h3>Order summary</h3>
+    <ul>
+      {{#each items}}
+        <li>{{this.product?.title}}{{#unless this.product}} {{this.title}}{{/unless}} — qty: {{this.quantity}} — price: {{this.price}}</li>
+      {{/each}}
+    </ul>
+    <p><strong>Total:</strong> {{total}}</p>
+    <p>We will notify you when your order is shipped.</p>
+    <p>— MINICON</p>
+  </body>
+</html>

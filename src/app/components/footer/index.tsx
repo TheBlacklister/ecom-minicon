@@ -101,7 +101,7 @@ export default function Footer() {
         </Box>
       </Container>
       {/* ⬇️ Add this bottom bar */}
-      <Box sx={{  py: 1.5 }}>
+      <Box sx={{ py: 1.5 }}>
         <Container maxWidth="lg">
           <Typography
             variant="caption"

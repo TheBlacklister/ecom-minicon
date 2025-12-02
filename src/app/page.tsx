@@ -59,6 +59,10 @@ export default function Home() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [slide, setSlide] = useState(0);
+  const touchStartX = useRef(0);
+  const touchCurrentX = useRef(0);
+  const dragging = useRef(false);
+  const autoSlideTimer = useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
@@ -82,7 +86,7 @@ export default function Home() {
     if (!isMobile || mobileHeroImages.length < 2) return;
     const id = setInterval(() => {
       setSlide((s) => (s + 1) % mobileHeroImages.length);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(id);
   }, [isMobile]);
 
@@ -126,8 +130,82 @@ export default function Home() {
   // Get products to display based on showAllProducts state
   const displayProducts =  products.slice(0, 16);
 
-  const handleError = (src: string) => () =>
-    console.warn('[Hero] image failed to load:', src);
+  // Restart auto-slide timer
+const restartAutoSlide = () => {
+  if (autoSlideTimer.current) clearInterval(autoSlideTimer.current);
+  autoSlideTimer.current = setInterval(() => {
+    setSlide((s) => (s + 1) % mobileHeroImages.length);
+  }, 5000); // slow slideshow
+};
+
+// Handle swipe start
+const onTouchStart = (e: any) => {
+  dragging.current = true;
+  touchStartX.current = e.touches[0].clientX;
+  touchCurrentX.current = touchStartX.current;
+  if (autoSlideTimer.current) clearInterval(autoSlideTimer.current);
+};
+
+// Handle swipe move
+const onTouchMove = (e: any) => {
+  if (!dragging.current) return;
+  touchCurrentX.current = e.touches[0].clientX;
+};
+
+// Handle swipe end
+const onTouchEnd = () => {
+  if (!dragging.current) return;
+  dragging.current = false;
+
+  const diff = touchCurrentX.current - touchStartX.current;
+
+  // Threshold for slide change
+  if (Math.abs(diff) > 50) {
+    if (diff < 0) {
+      // Swipe left → next
+      setSlide((s) => (s + 1) % mobileHeroImages.length);
+    } else {
+      // Swipe right → prev
+      setSlide((s) =>
+        s === 0 ? mobileHeroImages.length - 1 : s - 1
+      );
+    }
+  }
+
+  restartAutoSlide();
+};
+
+// Mouse drag support (desktop)
+const onMouseDown = (e: any) => {
+  dragging.current = true;
+  touchStartX.current = e.clientX;
+  touchCurrentX.current = e.clientX;
+  if (autoSlideTimer.current) clearInterval(autoSlideTimer.current);
+};
+
+const onMouseMove = (e: any) => {
+  if (!dragging.current) return;
+  touchCurrentX.current = e.clientX;
+};
+
+const onMouseUp = () => {
+  if (!dragging.current) return;
+  dragging.current = false;
+
+  const diff = touchCurrentX.current - touchStartX.current;
+  if (Math.abs(diff) > 60) {
+    if (diff < 0) {
+      setSlide((s) => (s + 1) % mobileHeroImages.length);
+    } else {
+      setSlide((s) =>
+        s === 0 ? mobileHeroImages.length - 1 : s - 1
+      );
+    }
+  }
+
+  restartAutoSlide();
+};
+
 
 
   return (
@@ -143,106 +221,183 @@ export default function Home() {
     >
       {/* Hero section replaced with looping video */}
       <Box
-  sx={{
-    width: '100%',
-    mb: { xs: 4, sm: 1 },
-    display: 'flex',
-    justifyContent: 'center',
-    height: { xs: '100vh', sm: 'auto' },
-  }}
->
-{isMobile ? (
-        // ===== MOBILE: SLIDESHOW (no crop) =====
-        <Box
-      sx={{
-        position: 'relative',
-        width: '100vw',
-        height: '100svh', // better on mobile than 100vh
-        overflow: 'hidden',
-      }}
-    >
-      {mobileHeroImages.map((src, i) => (
-        <Box
-          key={src}
           sx={{
-            position: 'absolute',
-            inset: 0,
-            opacity: i === slide ? 1 : 0,
-            transition: 'opacity 700ms ease-in-out',
-            willChange: 'opacity',
+            width: '100%',
+            mb: 0,                 // ← REMOVE WHITE GAP
+            p: 0,
+            height: 'auto',
           }}
-        >
-          {/* Background fill: same image, full-bleed, blurred (no solid color) */}
-          <Image
-            src={src}
-            alt=""
-            fill
-            priority={i === 0}
-            sizes="100vw"
-            onError={handleError(src)}
-            style={{
-              objectFit: 'cover',
-              filter: 'blur(18px)',
-              transform: 'scale(1.08)', // hides blur edges
-            }}
-          />
-
-          {/* Foreground: full artwork, never-crop */}
-          <Image
-            src={src}
-            alt={`Slide ${i + 1}`}
-            fill
-            sizes="100vw"
-            priority={i === 0}
-            onError={handleError(src)}
-            style={{
-              objectFit: 'contain',       // <— no cropping
-              objectPosition: 'center',
-            }}
-          />
-        </Box>
-      ))}
-
-      {/* Dots */}
+      >
+    {isMobile ? (
+  <Box
+    sx={{
+      position: "relative",
+      width: "100vw",
+      height: "65vh",
+      overflow: "hidden",
+      mb: 0,
+      touchAction: "pan-y",
+    }}
+    onTouchStart={onTouchStart}
+    onTouchMove={onTouchMove}
+    onTouchEnd={onTouchEnd}
+    onMouseDown={onMouseDown}
+    onMouseMove={onMouseMove}
+    onMouseUp={onMouseUp}
+  >
+    {/* Slides */}
+    {mobileHeroImages.map((src, i) => (
       <Box
+        key={src}
         sx={{
-          position: 'absolute',
-          bottom: 12,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 1,
-          zIndex: 1,
+          position: "absolute",
+          inset: 0,
+          opacity: i === slide ? 1 : 0,
+          transform: `translateX(${(i - slide) * 100}%)`,
+          transition: dragging.current
+            ? "none"
+            : "all 0.6s cubic-bezier(.4,0,.2,1)",
         }}
       >
-        {mobileHeroImages.map((_, i) => (
-          <Box
-            key={i}
-            onClick={() => setSlide(i)}
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              cursor: 'pointer',
-              backgroundColor: i === slide ? '#fff' : 'rgba(255,255,255,0.5)',
-              transition: 'background-color 200ms ease',
-            }}
-          />
-        ))}
-      </Box>
-    </Box>
-      ) : (
-        // ===== DESKTOP/TABLET: KEEP VIDEO =====
-        <video
-          src="/gifs/Banner 2.0 (DESKTOP Video).mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+        <Image
+          src={src}
+          alt={`Slide ${i + 1}`}
+          fill
+          style={{
+            objectFit: "contain",
+            width: "100%",
+            height: "100%",
+            userSelect: "none",
+            touchAction: "none",
+          }}
+          draggable="false"
         />
-      )}
+      </Box>
+    ))}
+
+    {/* Left Arrow */}
+    <Box
+  onClick={() => {
+    setSlide((s) => (s === 0 ? mobileHeroImages.length - 1 : s - 1));
+    restartAutoSlide();
+  }}
+  sx={{
+    position: "absolute",
+    top: "50%",
+    left: 12,
+    transform: "translateY(-50%)",
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    backgroundColor: "#fff",
+    boxShadow: "0px 2px 8px rgba(0,0,0,0.25)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    cursor: "pointer",
+  }}
+>
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="black"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+</Box>
+
+
+    {/* Right Arrow */}
+    <Box
+  onClick={() => {
+    setSlide((s) => (s + 1) % mobileHeroImages.length);
+    restartAutoSlide();
+  }}
+  sx={{
+    position: "absolute",
+    top: "50%",
+    right: 12,
+    transform: "translateY(-50%)",
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    backgroundColor: "#fff",
+    boxShadow: "0px 2px 8px rgba(0,0,0,0.25)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    cursor: "pointer",
+  }}
+>
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="black"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="9 6 15 12 9 18" />
+  </svg>
+</Box>
+
+
+    {/* Dots */}
+    <Box
+      sx={{
+        position: "absolute",
+        bottom: 12,
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        gap: 1.2,
+        zIndex: 15,
+      }}
+    >
+      {mobileHeroImages.map((_, i) => (
+        <Box
+          key={i}
+          onClick={() => {
+            setSlide(i);
+            restartAutoSlide();
+          }}
+          sx={{
+            width: i === slide ? 10 : 8,
+            height: i === slide ? 10 : 8,
+            borderRadius: "50%",
+            backgroundColor: i === slide ? "#027c80" : "#d6d6d6",
+            transition: "all 0.25s ease",
+            cursor: "pointer",
+          }}
+        />
+      ))}
+    </Box>
+  </Box>
+) : (
+  <video
+    src="/gifs/Banner 2.0 (DESKTOP Video).mp4"
+    autoPlay
+    loop
+    muted
+    playsInline
+    style={{
+      width: "100%",
+      height: "auto",
+      objectFit: "cover",
+    }}
+  />
+)}
+
+
 </Box>
 
 

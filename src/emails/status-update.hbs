@@ -1,0 +1,22 @@
+{{> _header }}
+
+<h2>Order #{{orderNumber}} — Status update</h2>
+
+<p>Hi {{customerName}},</p>
+
+<p>Your order <strong>#{{orderNumber}}</strong> is now <strong>{{status}}</strong>.</p>
+
+{{#if tracking}}
+<p>Tracking: {{tracking}}</p>
+{{/if}}
+
+<p>Summary:</p>
+<ul>
+  {{#each items}}
+    <li>{{this.title}} — qty: {{this.quantity}} — price: ₹{{this.price}}</li>
+  {{/each}}
+</ul>
+
+<p>Total: ₹{{total}}</p>
+
+{{> _footer }}

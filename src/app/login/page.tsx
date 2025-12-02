@@ -1,44 +1,118 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { TextField, Button, Box, Typography } from '@mui/material'
+import { 
+  TextField, Button, Box, Typography, IconButton, InputAdornment,
+  Snackbar, Alert
+} from '@mui/material'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function LoginPage() {
   const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [resetSent, setResetSent] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  // Snackbar (your new message system)
+  const [alert, setAlert] = useState({ open: false, type: 'info', msg: '' })
+  const showAlert = (type: any, msg: string) => setAlert({ open: true, type, msg })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+
     if (error) {
-      setError(error.message)
+      showAlert('error', 'Invalid login credentials')
     } else {
-      router.push('/')
+      showAlert('success', 'Login successful!')
+      setTimeout(() => router.push('/'), 1200)
     }
   }
 
   const handleForgotPassword = async () => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
-    if (error) setError(error.message)
-    else setResetSent(true)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo:
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/update-password`
+          : 'https://www.minicon.in/update-password'
+    })
+
+    if (error) {
+      showAlert('error', error.message)
+    } else {
+      showAlert('success', 'Password reset link sent to your email.')
+    }
   }
 
   return (
-    <Box sx={{ bgcolor: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 8 }}>
-      <Typography variant='h5' color='black' sx={{ mb: 2 }}>Login</Typography>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 300 }}>
-        <TextField label='Email' type='email' value={email} onChange={e => setEmail(e.target.value)} required />
-        <TextField label='Password' type='password' value={password} onChange={e => setPassword(e.target.value)} required />
-        {error && <Typography color='error' variant='body2'>{error}</Typography>}
-        <Button type='submit' variant='contained'>Login</Button>
+    <Box sx={{
+      bgcolor: '#fff',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      pt: 8
+    }}>
+      <Typography variant='h5' sx={{ mb: 2 }}>Login</Typography>
+
+      <form 
+        onSubmit={handleSubmit}
+        style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 16 }}
+      >
+        <TextField 
+          label='Email' 
+          type='email'
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required 
+        />
+
+        <TextField
+          label='Password'
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position='end'>
+                <IconButton onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
+
+        <Button 
+          type='submit'
+          variant='contained'
+          sx={{ bgcolor: 'black', '&:hover': { bgcolor: '#333' } }}
+        >
+          LOGIN
+        </Button>
       </form>
-      <Button sx={{ mt: 2 }} onClick={() => router.push('/signup')}>Create Account</Button>
-      <Button sx={{ mt: 2 }} onClick={handleForgotPassword} disabled={!email}>Forgot your password?</Button>
-      {resetSent && <Typography color='primary' variant='body2'>Password reset email sent!</Typography>}
+
+      <Button sx={{ mt: 2 }} onClick={() => router.push('/signup')}>
+        CREATE ACCOUNT
+      </Button>
+
+      <Button sx={{ mt: 1 }} onClick={handleForgotPassword} disabled={!email}>
+        FORGOT PASSWORD?
+      </Button>
+
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={3000} 
+        onClose={() => setAlert({ ...alert, open: false })}
+      >
+        <Alert severity={alert.type as any}>{alert.msg}</Alert>
+      </Snackbar>
     </Box>
   )
 }

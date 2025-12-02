@@ -247,6 +247,12 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     // Coupon data
     const availableCoupons = useMemo(() => [
         {
+            code: 'ONLINE100',
+            discount: 100,
+            description: 'Get ₹100 off on online payment',
+            type: 'online_payment'
+        },
+        {
             code: 'FLAT200',
             discount: 200,
             description: 'Get flat ₹200 off on orders above ₹2000',
@@ -376,7 +382,8 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
         [cart]
     );
     const shipping = 0;
-    const taxes = Math.round(subtotal * 0.05);
+    //const taxes = Math.round(subtotal * 0.05);
+    const taxes = 0;
     
     // Coupon calculation
     const couponDiscount = useMemo(() => {
@@ -483,10 +490,10 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
     };
 
     // Check if coupon is applicable
-    const isCouponApplicable = (coupon: typeof availableCoupons[0]) => {
+    {/*const isCouponApplicable = (coupon: typeof availableCoupons[0]) => {
         if (!coupon.minOrder) return true;
         return subtotal >= coupon.minOrder;
-    };
+    };*/}
 
     // Handle proceed to payment
     const handleProceedToPayment = async () => {
@@ -1003,7 +1010,9 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                     
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                                         {availableCoupons.map((coupon) => {
-                                            const isApplicable = isCouponApplicable(coupon);
+                                            const meetsMin = !coupon.minOrder || subtotal >= coupon.minOrder;
+                                            const meetsPayment = !(coupon.code === "ONLINE100" && paymentMode === "cod");
+                                            const isApplicable = meetsMin && meetsPayment;
                                             const isSelected = selectedCoupon?.code === coupon.code;
                                             
                                             return (

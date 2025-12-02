@@ -79,7 +79,7 @@ const [isWished, setIsWished] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [suggestedLoading, setSuggestedLoading] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<{code: string, discount: number, description: string, type: string, minOrder?: number} | null>(null);
   const [reviewComment, setReviewComment] = useState('');
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -94,6 +94,12 @@ const [isWished, setIsWished] = useState(false);
 
   // Coupon data
   const availableCoupons = [
+    {
+      code: 'ONLINE100',
+      discount: 100,
+      description: 'Get ₹100 off on online payment',
+      type: 'online_payment'
+    },
     {
       code: 'FLAT200',
       discount: 200,
