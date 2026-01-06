@@ -36,9 +36,11 @@ const marqueeImages = [
 
 // Put near marqueeImages (reuse your optimizer helper if you like)
 const mobileHeroImages = [
-  '/gifs/Banner1.png',
-  '/gifs/Banner2.png',
-  '/gifs/Banner3.png',
+  '/Bannerformobile/Baner1.png',
+  '/Bannerformobile/Baner2.png',
+  '/Bannerformobile/Baner3.png',
+  '/Bannerformobile/Baner4.png',
+  '/Bannerformobile/Baner5.png'
 ].map(getFormattedOptimizedImageSrc);
 
 const scroll = keyframes`
@@ -68,19 +70,34 @@ export default function Home() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        console.log('Products from Supabase:', data);
-        setProducts(data);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('allProducts', JSON.stringify(data));
+        const res = await fetch('/api/products')
+  
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`)
         }
-      } catch (error) {
-        console.error('Error fetching products:', error);
+  
+        const json = await res.json()
+  
+        const safeProducts = Array.isArray(json.products)
+          ? json.products
+          : []
+  
+        setProducts(safeProducts)
+  
+        localStorage.setItem(
+          'allProducts',
+          JSON.stringify(safeProducts)
+        )
+      } catch (err) {
+        console.error('Error fetching products:', err)
+        setProducts([])
       }
     }
-    fetchProducts();
+  
+    fetchProducts()
   }, []);
+  
+  
 
   useEffect(() => {
     if (!isMobile || mobileHeroImages.length < 2) return;
@@ -128,7 +145,9 @@ export default function Home() {
   }, [user]);
 
   // Get products to display based on showAllProducts state
-  const displayProducts =  products.slice(0, 16);
+  const displayProducts = Array.isArray(products)
+  ? products.slice(0, 16)
+  : [];
 
   // Restart auto-slide timer
 const restartAutoSlide = () => {
