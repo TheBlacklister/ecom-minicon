@@ -115,17 +115,30 @@ const [isWished, setIsWished] = useState(false);
         setLoading(false);
         return;
       }
-      
+  
       try {
         setLoading(true);
         const res = await fetch('/api/products');
-        const data: Product[] = await res.json();
-        const prod = data.find(p => p.id === Number(id)) || null;
+        const raw = await res.json();
+  
+        console.log('PreCheckout /api/products response:', raw);
+  
+        const products: Product[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.products)
+          ? raw.products
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+  
+        const prod = products.find(p => p.id === Number(id)) || null;
         setProduct(prod);
+  
         if (prod) {
           setSelectedSize(prod.available_sizes[0] || '');
-          // Initialize thumbnails loaded state
-          setThumbnailsLoaded(new Array(prod.images?.length || 0).fill(false));
+          setThumbnailsLoaded(
+            new Array(prod.images?.length || 0).fill(false)
+          );
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -133,8 +146,9 @@ const [isWished, setIsWished] = useState(false);
         setLoading(false);
       }
     }
+  
     fetchProduct();
-  }, [id]);
+  }, [id]);  
 
   // Check initial wishlist status
   useEffect(() => {
@@ -155,20 +169,31 @@ const [isWished, setIsWished] = useState(false);
     setSuggestedLoading(true);
     fetch('/api/products')
       .then(res => res.ok ? res.json() : [])
-      .then((allProducts: Product[]) => {
-        // Filter products with matching collections, excluding current product
-        const matchingProducts = allProducts.filter(p => 
-          p.id !== product.id && // Exclude current product
-          p.is_active !== false && // Only active products
-          p.collections && p.collections.length > 0 && // Has collections
-          product.collections && product.collections.length > 0 && // Current product has collections
-          p.collections.some(collection => 
-            product.collections.includes(collection)
+      .then((raw) => {
+        console.log('PreCheckout suggested products raw:', raw);
+      
+        const allProducts: Product[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.products)
+          ? raw.products
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+      
+        const matchingProducts = allProducts
+          .filter(p => 
+            p.id !== product.id &&
+            p.is_active !== false &&
+            Array.isArray(p.collections) &&
+            Array.isArray(product.collections) &&
+            p.collections.some(collection =>
+              product.collections.includes(collection)
+            )
           )
-        ).slice(0, 8); // Limit to 8 products
-        
+          .slice(0, 8);
+      
         setSuggestedProducts(matchingProducts);
-      })
+      })      
       .catch(error => {
         console.error('Error fetching suggested products:', error);
         setSuggestedProducts([]);

@@ -70,7 +70,17 @@ export default function CataloguePage() {
         setLoading(true);
         const res = await fetch('/api/products');
         const data = await res.json();
-        setAllProducts(data);
+        console.log('Products API response:', data);
+        if (Array.isArray(data)) {
+          setAllProducts(data);
+        } else if (Array.isArray(data?.products)) {
+          setAllProducts(data.products);
+        } else if (Array.isArray(data?.data)) {
+          setAllProducts(data.data);
+        } else {
+          console.error('Unexpected /api/products response:', data);
+          setAllProducts([]);
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -100,24 +110,46 @@ export default function CataloguePage() {
     });
   }, [user]);
 
-  const filters = useMemo(() => ({
-    categories: Array.from(new Set(
-      allProducts.flatMap(p =>
-        Array.isArray(p.category) ? p.category : p.category ? [p.category] : []
+  const filters = useMemo(() => {
+    // 🛡️ SAFETY GUARD — prevents flatMap crash
+    if (!Array.isArray(allProducts)) {
+      return {
+        categories: [],
+        size: [],
+        colors: [],
+      };
+    }
+  
+    return {
+      categories: Array.from(
+        new Set(
+          allProducts.flatMap(p =>
+            Array.isArray(p.category)
+              ? p.category
+              : p.category
+              ? [p.category]
+              : []
+          )
+        )
       )
-    ))
-      .sort()
-      .map(category => ({
-        label: category
-          .split('_')
-          .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' '),
-        value: category,
-      })),
-
-    size: Array.from(new Set(allProducts.flatMap(p => p.available_sizes))).sort(),
-    colors: Array.from(new Set(allProducts.flatMap(p => p.available_colors))).sort(),
-  }), [allProducts]);
+        .sort()
+        .map(category => ({
+          label: category
+            .split('_')
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' '),
+          value: category,
+        })),
+  
+      size: Array.from(
+        new Set(allProducts.flatMap(p => p.available_sizes ?? []))
+      ).sort(),
+  
+      colors: Array.from(
+        new Set(allProducts.flatMap(p => p.available_colors ?? []))
+      ).sort(),
+    };
+  }, [allProducts]);  
 
 
   /* ---------------- Filter products by label / item ----------------------- */
