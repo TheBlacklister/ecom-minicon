@@ -46,7 +46,7 @@ export default function OrdersSection() {
       // First fetch user's qikink_order_id values from Supabase
       const myOrderIds = await fetchMyOrders();
 
-      const response = await fetch('/api/qikinkOrders');
+      const response = await fetch('/api/getMyOrders');
 
       if (!response.ok) {
         const errorData = await response.json();

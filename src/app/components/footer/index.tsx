@@ -105,6 +105,137 @@ export default function Footer() {
           </Grid>
         </Box>
       </Container>
+{/* ================= TRUST STRIP ================= */}
+<Box
+  sx={{
+    borderTop: '1px solid #2a2a2a',
+    py: { xs: 2, md: 3 },
+    backgroundColor: '#1a1a1a'
+  }}
+>
+  <Container maxWidth="lg">
+
+    {/* PAYMENTS */}
+    <Box sx={{ textAlign: 'center', mb: { xs: 2.5, md: 3 } }}>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 600,
+          color: '#fff',
+          fontFamily: '"Montserrat", sans-serif',
+          display: 'block',
+          mb: 1
+        }}
+      >
+        100% Secure Payments
+      </Typography>
+
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          gap: 2
+        }}
+      >
+        {[
+          '/payments/gpay.svg',
+          '/payments/phonepe.svg',
+          '/payments/paytm.svg',
+          '/payments/amazonpay.svg',
+          '/payments/visa.svg',
+          '/payments/mastercard.svg',
+          '/payments/rupay.svg',
+          '/payments/cod.svg'
+        ].map((logo) => (
+          <Box
+            key={logo}
+            sx={{
+              backgroundColor:
+                logo.includes('visa') ||
+                logo.includes('mastercard') ||
+                logo.includes('rupay') ||
+                logo.includes('cod') ||
+                logo.includes('amazonpay')
+                  ? '#fff'
+                  : 'transparent',
+              px: 0.8,
+              py: 0.4,
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              component="img"
+              src={logo}
+              alt="payment"
+              sx={{ height: 20 }}
+            />
+          </Box>
+        ))}
+      </Box>
+    </Box>
+
+    {/* SHIPPING */}
+    <Box sx={{ textAlign: 'center' }}>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 600,
+          color: '#fff',
+          fontFamily: '"Montserrat", sans-serif',
+          display: 'block',
+          mb: 1
+        }}
+      >
+        Shipping Partners
+      </Typography>
+
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          gap: 2
+        }}
+      >
+        {[
+          '/shipping/bluedart.svg',
+          '/shipping/delhivery.svg',
+          '/shipping/xpressbees.png',
+          '/shipping/dtdc.svg'
+        ].map((logo) => (
+          <Box
+            key={logo}
+            sx={{
+              backgroundColor:
+                logo.includes('delhivery') ||
+                logo.includes('xpressbees')
+                  ? '#fff'
+                  : 'transparent',
+              px: 0.8,
+              py: 0.4,
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              component="img"
+              src={logo}
+              alt="shipping"
+              sx={{ height: 20 }}
+            />
+          </Box>
+        ))}
+      </Box>
+    </Box>
+
+  </Container>
+</Box>
+
+
       {/* ⬇️ Add this bottom bar */}
       <Box sx={{ py: 1.5 }}>
         <Container maxWidth="lg">
