@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-
-
 export async function sendShipmentEmail(order: any, shipment: any) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY!);

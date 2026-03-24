@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendShipmentEmail } from "@/lib/email/sendShipmentEmail";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = "force-dynamic";
 
 async function fetchQikinkOrderStatus(orderId: number, token: string) {
     const res = await fetch(
@@ -24,6 +21,10 @@ async function fetchQikinkOrderStatus(orderId: number, token: string) {
 
 // ✅ THIS IS THE FIX
 export async function GET() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   try {
     console.log("🔄 Syncing Qikink tracking...");
 
