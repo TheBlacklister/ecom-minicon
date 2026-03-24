@@ -1,9 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+
 
 export async function sendShipmentEmail(order: any, shipment: any) {
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY!);
     const trackingLink = `https://www.courierupdates.com/awb/${shipment.awb_number}`;
 
     await resend.emails.send({
