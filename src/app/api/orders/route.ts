@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     (async () => {
       try {
         const shapedOrder = {
-          id: fullOrder.id,
+          id: fullOrder.order_number,
           created_at: fullOrder.created_at,
           email: fullOrder.user_email,
           customerName:
@@ -168,30 +168,66 @@ export async function POST(request: NextRequest) {
 
         const pdfBuffer = await generateInvoiceBuffer(shapedOrder);
 
-        await sendMail({
-          to: shapedOrder.email,
-          subject: `Your MINICON Order #${shapedOrder.id} — Invoice`,
-          template: "order_created",
-          templateData: {
-            id: shapedOrder.id,
-            customerName: shapedOrder.customerName,
-            items: shapedOrder.items,
-            total: shapedOrder.total,
-            createdAt: new Date(shapedOrder.created_at).toLocaleString(),
-            year: new Date().getFullYear(),
-          },
-          attachments: [
-            {
-              filename: `invoice-${shapedOrder.id}.pdf`,
-              content: pdfBuffer,
-              contentType: "application/pdf",
-            },
-          ],
-        });
+        // 1️⃣ ORDER CONFIRMATION EMAIL (NO ATTACHMENT)
+await sendMail({
+  to: shapedOrder.email,
+  subject: `Your MINICON Order #${shapedOrder.id} has been placed`,
+  template: "order_created",
+  templateData: {
+    id: shapedOrder.id || "",
+    customerName: shapedOrder.customerName || "Customer",
+    items: shapedOrder.items || [],
+    total: shapedOrder.total || 0,
+    createdAt: shapedOrder.created_at
+      ? new Date(shapedOrder.created_at).toLocaleString()
+      : "",
+
+    tracking: null,
+    trackingLink: null,
+
+    shippingName: fullOrder.shipping_address?.name || "",
+    shippingAddressLine1: fullOrder.shipping_address?.address1 || "",
+    shippingAddressLine2: fullOrder.shipping_address?.address2 || "",
+    shippingCity: fullOrder.shipping_address?.city || "",
+    shippingPostcode: fullOrder.shipping_address?.pincode || "",
+    shippingState: fullOrder.shipping_address?.state || "",
+    shippingCountry: fullOrder.shipping_address?.country || "",
+
+    year: new Date().getFullYear(),
+  },
+});
+
+
+// 2️⃣ INVOICE EMAIL (WITH PDF ATTACHMENT)
+await sendMail({
+  to: shapedOrder.email,
+  subject: `Invoice for Order #${shapedOrder.id}`,
+  template: "invoice",
+  templateData: {
+    id: shapedOrder.id,
+    customerName: shapedOrder.customerName,
+    items: shapedOrder.items,
+    total: shapedOrder.total,
+    createdAt: new Date(shapedOrder.created_at).toLocaleString(),
+    year: new Date().getFullYear(),
+  },
+  attachments: [
+    {
+      filename: `invoice-${shapedOrder.id}.pdf`,
+      content: pdfBuffer,
+      contentType: "application/pdf",
+    },
+  ],
+});
 
         console.log("Order email sent");
       } catch (mailErr) {
         console.error("Email failed:", mailErr);
+
+        await supabase
+        .from("orders")
+        .update({ email_failed: true })
+        .eq("id", order.id);
       }
     })();
 

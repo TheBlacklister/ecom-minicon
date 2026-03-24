@@ -9,7 +9,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { GridLegacy as Grid } from '@mui/material';
 import { ProductCard } from './components/productCard';
 //import { useAuth } from './components/AuthProvider';
-//import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import type { Product } from '@/types';
 import CategoryCards from './components/categoryCards';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ interface CartItem {
   product: Product;
   quantity: number;
 }*/
-
+{/*
 const marqueeImages = [
   { src: '/products/regular-fit-tshirt/bloom_asthestic/2minicon-asthetic-2.webp', id: 29 },
   { src: '/products/regular-fit-tshirt/aesthetic-outgrown_asthestic/1minicon-asthetic-3.webp', id: 34 },
@@ -32,16 +32,9 @@ const marqueeImages = [
   { src: '/products/regular-fit-tshirt/astrobuddy_printed/2-astrobuddy.webp', id: 39 },
   { src: '/products/regular-fit-tshirt/hedgehog_printed-and-streetwear/2hedgehog-regular-fit.webp', id: 41 },
   { src: '/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp', id: 38 },
-];
+];*/}
 
 // Put near marqueeImages (reuse your optimizer helper if you like)
-const mobileHeroImages = [
-  { src: '/Bannerformobile/Baner1.png', productId: 12 },
-  { src: '/Bannerformobile/Baner2.png', productId: 17 },
-  { src: '/Bannerformobile/Baner3.png', productId: 6 },
-  { src: '/Bannerformobile/Baner4.png', productId: 29 },
-  { src: '/Bannerformobile/Baner5.png', productId: 35 },
-];
 
 const scroll = keyframes`
   from {
@@ -56,6 +49,17 @@ export default function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
   const [products, setProducts] = useState<Product[]>([]);
+  const [banner, setBanner] = useState<any>(null);
+  const mobileBanner = banner?.mobile_urls;
+  const desktopBanner = banner?.desktop_url;
+
+  const mobileType = mobileBanner?.type;
+  const mobileValue = mobileBanner?.value;
+
+  const desktopType = desktopBanner?.type;
+  const desktopValue = desktopBanner?.value;
+
+  const [topPicks, setTopPicks] = useState<any[]>([]);
   //const { user } = useAuth();
   //const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
   const router = useRouter();
@@ -65,6 +69,7 @@ export default function Home() {
   const touchCurrentX = useRef(0);
   const dragging = useRef(false);
   const autoSlideTimer = useRef<NodeJS.Timeout | null>(null);
+  const [desktopSlide, setDesktopSlide] = useState(0);
 
 
   useEffect(() => {
@@ -81,15 +86,52 @@ export default function Home() {
     fetchProducts()
   }, []);
   
+  useEffect(() => {
+    let active = true;
   
+    async function fetchBanner() {
+      const { data, error } = await supabase
+        .from("hero_banner")
+        .select("*")
+        .eq("id", "main")
+        .single();
+  
+      if (!active) return;
+  
+      if (error) {
+        console.error(error);
+        return;
+      }
+  
+      setBanner(data);
+    }
+  
+    fetchBanner();
+  
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!isMobile || mobileHeroImages.length < 2) return;
+    if (!isMobile || mobileType !== "images" || !Array.isArray(mobileValue)) return;
+  
     const id = setInterval(() => {
-      setSlide((s) => (s + 1) % mobileHeroImages.length);
+      setSlide((s) => (s + 1) % mobileValue.length);
     }, 5000);
+  
     return () => clearInterval(id);
-  }, [isMobile]);
+  }, [isMobile, mobileType, mobileValue]);
+
+  useEffect(() => {
+    if (isMobile || desktopType !== "images" || !Array.isArray(desktopValue)) return;
+  
+    const id = setInterval(() => {
+      setDesktopSlide((s) => (s + 1) % desktopValue.length);
+    }, 5000);
+  
+    return () => clearInterval(id);
+  }, [isMobile, desktopType, desktopValue]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -108,6 +150,22 @@ export default function Home() {
       }
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    async function fetchTopPicks() {
+      const { data } = await supabase
+        .from("top_picks")
+        .select("*")
+        .eq("id", "main")
+        .single();
+  
+      if (data?.products) {
+        setTopPicks(data.products);
+      }
+    }
+  
+    fetchTopPicks();
+  }, []);
   
 
   // Get products to display based on showAllProducts state
@@ -119,7 +177,7 @@ export default function Home() {
 const restartAutoSlide = () => {
   if (autoSlideTimer.current) clearInterval(autoSlideTimer.current);
   autoSlideTimer.current = setInterval(() => {
-    setSlide((s) => (s + 1) % mobileHeroImages.length);
+    setSlide((s) => (s + 1) % (mobileValue.length || 1));
   }, 5000); // slow slideshow
 };
 
@@ -148,11 +206,11 @@ const onTouchEnd = () => {
   if (Math.abs(diff) > 50) {
     if (diff < 0) {
       // Swipe left → next
-      setSlide((s) => (s + 1) % mobileHeroImages.length);
+      setSlide((s) => (s + 1) % (mobileValue.length || 1));
     } else {
       // Swipe right → prev
       setSlide((s) =>
-        s === 0 ? mobileHeroImages.length - 1 : s - 1
+        s === 0 ? (mobileValue.length || 1) - 1 : s - 1
       );
     }
   }
@@ -180,15 +238,53 @@ const onMouseUp = () => {
   const diff = touchCurrentX.current - touchStartX.current;
   if (Math.abs(diff) > 60) {
     if (diff < 0) {
-      setSlide((s) => (s + 1) % mobileHeroImages.length);
+      setSlide((s) => (s + 1) % (mobileValue.length || 1));
     } else {
       setSlide((s) =>
-        s === 0 ? mobileHeroImages.length - 1 : s - 1
+        s === 0 ? (mobileValue.length || 1) - 1 : s - 1
       );
     }
   }
 
   restartAutoSlide();
+};
+
+const renderTopPick = (item: any, i: number, suffix: string) => {
+  if (!products.length || !topPicks.length) return null;
+
+  const product = products.find(
+    (p) => Number(p.id) === Number(item.id)
+  );
+if (!product) return null;
+
+  return (
+    <Box
+      key={`${product.id}-${suffix}-${i}`}
+      onClick={() => router.push(`/preCheckout?id=${product.id}`)}
+      sx={{
+        position: 'relative',
+        display: 'inline-block',
+        borderRadius: { xs: 2, sm: 3 },
+        overflow: 'hidden',
+        flexShrink: 0,
+        height: { xs: '300px', sm: '400px', md: '450px' },
+        cursor: 'pointer',
+      }}
+    >
+      <Image
+        src={product.images?.[0] || "/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp"}
+        alt={product.title}
+        width={0}
+        height={0}
+        sizes="100vw"
+        style={{
+          width: 'auto',
+          height: '100%',
+          objectFit: 'contain'
+        }}
+      />
+    </Box>
+  );
 };
 
 
@@ -213,14 +309,14 @@ const onMouseUp = () => {
             height: 'auto',
           }}
       >
-    {isMobile ? (
+      {isMobile ? (
+  /* ================= MOBILE ================= */
   <Box
     sx={{
       position: "relative",
       width: "100vw",
       height: "65vh",
       overflow: "hidden",
-      mb: 0,
       touchAction: "pan-y",
     }}
     onTouchStart={onTouchStart}
@@ -230,156 +326,245 @@ const onMouseUp = () => {
     onMouseMove={onMouseMove}
     onMouseUp={onMouseUp}
   >
-    {/* Slides */}
-    {mobileHeroImages.map((slideItem, i) => (
-      <Box
-      key={slideItem.src}
-      onClick={() => router.push(`/preCheckout?id=${slideItem.productId}`)}
-      sx={{
-        position: "absolute",
-        inset: 0,
-        opacity: i === slide ? 1 : 0,
-        transform: `translateX(${(i - slide) * 100}%)`,
-        transition: dragging.current
-          ? "none"
-          : "all 0.6s cubic-bezier(.4,0,.2,1)",
-        cursor: "pointer",
-      }}
-    >
-      <Image
-        src={slideItem.src}
-        alt={`Slide ${i + 1}`}
-        fill
-        style={{
-          objectFit: "contain",
-          width: "100%",
-          height: "100%",
-        }}
+    {/* 🔥 VIDEO */}
+    {mobileType === "video" && typeof mobileValue === "string" && (
+      <video
+        src={mobileValue}
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
-    </Box>
-    
-    ))}
+    )}
 
-    {/* Left Arrow */}
-    <Box
-  onClick={() => {
-    setSlide((s) => (s === 0 ? mobileHeroImages.length - 1 : s - 1));
-    restartAutoSlide();
-  }}
-  sx={{
-    position: "absolute",
-    top: "50%",
-    left: 12,
-    transform: "translateY(-50%)",
-    width: 34,
-    height: 34,
-    borderRadius: "50%",
-    backgroundColor: "#fff",
-    boxShadow: "0px 2px 8px rgba(0,0,0,0.25)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-    cursor: "pointer",
-  }}
->
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="black"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6" />
-  </svg>
-</Box>
+    {/* 🔥 IMAGES */}
+    {mobileType === "images" &&
+      Array.isArray(mobileValue) &&
+      mobileValue.map((item: any, i: number) => {
+        const imgUrl = item?.url;
+        if (!imgUrl) return null;
 
+        return (
+          <Box
+            key={i}
+            onClick={async () => {
+              if (!item?.product) return;
 
-    {/* Right Arrow */}
-    <Box
-  onClick={() => {
-    setSlide((s) => (s + 1) % mobileHeroImages.length);
-    restartAutoSlide();
-  }}
-  sx={{
-    position: "absolute",
-    top: "50%",
-    right: 12,
-    transform: "translateY(-50%)",
-    width: 34,
-    height: 34,
-    borderRadius: "50%",
-    backgroundColor: "#fff",
-    boxShadow: "0px 2px 8px rgba(0,0,0,0.25)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-    cursor: "pointer",
-  }}
->
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="black"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="9 6 15 12 9 18" />
-  </svg>
-</Box>
+              let productId = item.product;
 
+              if (isNaN(productId)) {
+                const { data } = await supabase
+                  .from("products")
+                  .select("id")
+                  .eq("slug", productId)
+                  .single();
 
-    {/* Dots */}
-    <Box
-      sx={{
-        position: "absolute",
-        bottom: 12,
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        gap: 1.2,
-        zIndex: 15,
-      }}
-    >
-      {mobileHeroImages.map((_, i) => (
+                if (!data) return;
+                productId = data.id;
+              }
+
+              router.push(`/preCheckout?id=${productId}`);
+            }}
+            sx={{
+              position: "absolute",
+              inset: 0,
+              opacity: i === slide ? 1 : 0,
+              transform: `translateX(${(i - slide) * 100}%)`,
+              transition: dragging.current
+                ? "none"
+                : "all 0.6s ease",
+              cursor: "pointer",
+            }}
+          >
+            <Image
+              src={imgUrl}
+              alt={`mobile-${i}`}
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              style={{ objectFit: "cover" }}
+            />
+          </Box>
+        );
+      })}
+
+    {/* 🔥 CONTROLS ONLY FOR IMAGES */}
+    {mobileType === "images" && Array.isArray(mobileValue) && (
+      <>
+        {/* LEFT */}
         <Box
-          key={i}
-          onClick={() => {
-            setSlide(i);
-            restartAutoSlide();
-          }}
+          onClick={() =>
+            setSlide((s) =>
+              s === 0 ? mobileValue.length - 1 : s - 1
+            )
+          }
+          sx={arrowStyleLeft}
+        >
+          ‹
+        </Box>
+
+        {/* RIGHT */}
+        <Box
+          onClick={() =>
+            setSlide((s) => (s + 1) % mobileValue.length)
+          }
+          sx={arrowStyleRight}
+        >
+          ›
+        </Box>
+
+        {/* DOTS */}
+        <Box
           sx={{
-            width: i === slide ? 10 : 8,
-            height: i === slide ? 10 : 8,
-            borderRadius: "50%",
-            backgroundColor: i === slide ? "#027c80" : "#d6d6d6",
-            transition: "all 0.25s ease",
-            cursor: "pointer",
+            position: "absolute",
+            bottom: 12,
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            gap: 1,
           }}
-        />
-      ))}
-    </Box>
+        >
+          {mobileValue.map((_: any, i: number) => (
+            <Box
+              key={i}
+              onClick={() => setSlide(i)}
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: i === slide ? "#008080" : "#ccc",
+                cursor: "pointer",
+              }}
+            />
+          ))}
+        </Box>
+      </>
+    )}
   </Box>
 ) : (
-  <video
-    src="/gifs/Banner 2.0 (DESKTOP Video).mp4"
-    autoPlay
-    loop
-    muted
-    playsInline
-    style={{
-      width: "100%",
-      height: "auto",
-      objectFit: "cover",
-    }}
-  />
+  /* ================= DESKTOP ================= */
+  <>
+    {/* 🔥 VIDEO */}
+    {desktopType === "video" && typeof desktopValue === "string" && (
+      <video
+        src={desktopValue}
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ width: "100%", height: "auto", objectFit: "cover" }}
+      />
+    )}
+
+    {/* 🔥 IMAGES */}
+    {desktopType === "images" &&
+      Array.isArray(desktopValue) && (
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            height: "80vh",
+            overflow: "hidden",
+          }}
+        >
+          {desktopValue.map((item: any, i: number) => {
+            const imgUrl = item?.url;
+            if (!imgUrl) return null;
+
+            return (
+              <Box
+                key={i}
+                onClick={async () => {
+                  if (!item?.product) return;
+
+                  let productId = item.product;
+
+                  if (isNaN(productId)) {
+                    const { data } = await supabase
+                      .from("products")
+                      .select("id")
+                      .eq("slug", productId)
+                      .single();
+
+                    if (!data) return;
+                    productId = data.id;
+                  }
+
+                  router.push(`/preCheckout?id=${productId}`);
+                }}
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  opacity: i === desktopSlide ? 1 : 0,
+                  transition: "opacity 0.6s ease",
+                  cursor: "pointer",
+                }}
+              >
+                <Image
+                  src={imgUrl}
+                  alt={`desktop-${i}`}
+                  fill
+                  priority={i === 0}
+                  sizes="100vw"
+                  style={{ objectFit: "cover" }}
+                />
+              </Box>
+            );
+          })}
+
+          {/* CONTROLS */}
+          <Box
+            onClick={() =>
+              setDesktopSlide((s) =>
+                s === 0 ? desktopValue.length - 1 : s - 1
+              )
+            }
+            sx={arrowStyleLeft}
+          >
+            ‹
+          </Box>
+
+          <Box
+            onClick={() =>
+              setDesktopSlide((s) =>
+                (s + 1) % desktopValue.length
+              )
+            }
+            sx={arrowStyleRight}
+          >
+            ›
+          </Box>
+
+          {/* DOTS */}
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+              gap: 1,
+            }}
+          >
+            {desktopValue.map((_: any, i: number) => (
+              <Box
+                key={i}
+                onClick={() => setDesktopSlide(i)}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background:
+                    i === desktopSlide ? "#008080" : "#ccc",
+                  cursor: "pointer",
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
+  </>
 )}
 
 
@@ -423,77 +608,16 @@ const onMouseUp = () => {
             gap: { xs: 1, sm: 1.5 },
           }}
         >
-          {/* First set of images */}
-          {marqueeImages.map((item, i) => (
-            <Box
-            key={`${item.src}-1-${i}`}
-            onClick={() => router.push(`/preCheckout?id=${item.id}`)}
-            sx={{
-              position: 'relative',
-              display: 'inline-block',
-              borderRadius: { xs: 2, sm: 3 },
-              overflow: 'hidden',
-              flexShrink: 0,
-              height: { xs: '300px', sm: '400px', md: '450px' },
-              cursor: 'pointer',
-            }}
-          >
-            <Image
-              src={item.src}
-              alt="Marquee"
-              width={0}
-              height={0}
-              sizes="100vw"
-              style={{
-                width: 'auto',
-                height: '100%',
-                objectFit: 'contain'
-              }}
-            />
-          </Box>
-          
-          ))}
-          {/* Duplicate set for seamless loop */}
-          {marqueeImages.map((item, i) => (
-            <Box
-              key={`${item.src}-2-${i}`}
-              sx={{
-                position: 'relative',
-                display: 'inline-block',
-                borderRadius: { xs: 2, sm: 3 },
-                overflow: 'hidden',
-                flexShrink: 0,
-                // Scale images responsively
-                width: {
-                  xs: 'auto',
-                  sm: 'auto'
-                },
-                height: {
-                  xs: '300px', // Base height for mobile
-                  sm: '400px', // Base height for desktop
-                  md: '450px'
-                },
-                '& img': {
-                  height: '100%',
-                  width: 'auto',
-                  maxWidth: 'none'
-                }
-              }}
-            >
-              <Image
-                src={item.src}
-                alt={`Marquee duplicate ${i + 1}`}
-                width={0}
-                height={0}
-                sizes="100vw"
-                style={{
-                  width: 'auto',
-                  height: '100%',
-                  objectFit: 'contain'
-                }}
-              />
-            </Box>
-          ))}
+          {/* FIRST SET */}
+          {(topPicks.length > 1 ? topPicks : [...topPicks, ...topPicks]).map((item, i) =>
+  renderTopPick(item, i, "first")
+)}
+
+
+{/* DUPLICATE SET (IMPORTANT) */}
+{(topPicks.length > 1 ? topPicks : [...topPicks, ...topPicks]).map((item, i) =>
+  renderTopPick(item, i, "second")
+)}
         </Box>
       </Box>
       <Typography variant="h4"
@@ -577,3 +701,25 @@ const onMouseUp = () => {
     </Box>
   );
 }
+
+const arrowStyleLeft = {
+  position: "absolute",
+  top: "50%",
+  left: 20,
+  transform: "translateY(-50%)",
+  background: "rgba(255,255,255,0.9)",
+  borderRadius: "50%",
+  width: 42,
+  height: 42,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  zIndex: 5,
+};
+
+const arrowStyleRight = {
+  ...arrowStyleLeft,
+  left: "auto",
+  right: 20,
+};

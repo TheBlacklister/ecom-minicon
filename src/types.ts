@@ -19,7 +19,11 @@ export interface Product {
   slug: string | null;
   created_at: string | null;
   updated_at: string | null;
-  sku: Record<string, string> | null; // Size -> SKU mapping
+  sku: Record<string, string> | null;
+  inventory?: {
+    size: string;
+    quantity: number;
+  }[];
 }
 
 export interface Review {

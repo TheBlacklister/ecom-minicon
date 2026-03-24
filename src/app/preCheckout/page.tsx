@@ -38,6 +38,20 @@ const PreCheckout = () => {
   //const [pincodeError, setPincodeError] = useState<string | null>(null);
   const [openNotDeliverableSnack, setOpenNotDeliverableSnack] = useState(false);
 
+  const getInventoryMap = (inventory: any[]) => {
+    if (!Array.isArray(inventory)) return {};
+  
+    const map: Record<string, number> = {};
+  
+    inventory.forEach((item) => {
+      if (item.size) {
+        map[item.size] = item.quantity === null ? null : item.quantity ?? 0;
+      }
+    });
+  
+    return map;
+  };
+
   async function checkPincode(pin: string, paymentType: 'any' | 'prepaid' | 'cod' = 'any') {
     //setPincodeError(null);
     if (!pin || !/^\d{3,6}$/.test(pin)) {
@@ -70,7 +84,7 @@ const PreCheckout = () => {
       return { deliverable: false };
     }
   }
-const [isWished, setIsWished] = useState(false);
+  const [isWished, setIsWished] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
@@ -91,6 +105,11 @@ const [isWished, setIsWished] = useState(false);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
   const [userRating, setUserRating] = useState(0);
+
+  const inventoryMap = getInventoryMap(product?.inventory || []);
+    const stock = inventoryMap[selectedSize];
+    //const isUnlimited = stock === null;
+    //const isOutOfStock = stock === 0;
 
   // Coupon data
   const availableCoupons = [
@@ -384,19 +403,39 @@ const [isWished, setIsWished] = useState(false);
       router.push('/login');
       return;
     }
+  
+    // ✅ ADD THIS BLOCK HERE (TOP)
+    
+  
+    if (stock === 0) {
+      alert("Out of stock");
+      return;
+    }
+    
+    if (quantity > stock) {
+      alert(`Only ${stock} items available`);
+      return;
+    }
+  
+    // existing code continues...
     const { data: { session } } = await supabase.auth.getSession();
+  
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+  
     const res = await fetch('/api/cart', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ product_id: product.id, quantity: quantity, selected_size: selectedSize })
+      body: JSON.stringify({
+        product_id: product.id,
+        quantity: quantity,
+        selected_size: selectedSize
+      })
     });
+  
     if (res.ok) {
       await res.json();
-      // Update cart count optimistically
       incrementCartCount();
-      // Show success notification
       setShowNotification(true);
     }
   };
@@ -406,10 +445,34 @@ const [isWished, setIsWished] = useState(false);
       router.push('/login');
       return;
     }
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+  
+    // ✅ ADD THIS BLOCK HERE (TOP)
+    const inventoryMap = getInventoryMap(product?.inventory || []);
+    const stock = inventoryMap[selectedSize];
+  
+    if (stock === 0) {
+      alert("Out of stock");
+      return;
+    }
     
+    if (stock !== null && quantity > stock) {
+      alert(`Only ${stock} items available`);
+      return;
+    }
+
+    if (quantity > stock) {
+      alert(`Only ${stock} items available`);
+      return;
+    }
+  
+    const { data: { session } } = await supabase.auth.getSession();
+  
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+  
+    if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
+  
     const response = await fetch('/api/cart?buyNow=true', {
       method: 'POST',
       headers,
@@ -420,11 +483,13 @@ const [isWished, setIsWished] = useState(false);
         coupon: selectedCoupon?.code || null
       })
     });
-    
+  
     if (response.ok) {
-      // Update cart count optimistically
       incrementCartCount();
-      const couponParam = selectedCoupon?.code ? `&coupon=${selectedCoupon.code}` : '';
+      const couponParam = selectedCoupon?.code
+        ? `&coupon=${selectedCoupon.code}`
+        : '';
+  
       router.push(`/cart?buyNow=${product.id}${couponParam}`);
     }
   };
@@ -1171,29 +1236,56 @@ const [isWished, setIsWished] = useState(false);
             </Typography>
           </Box>
           <Box>
-            {product.available_sizes.map((s) => (
-              <Button
-                key={s}
-                onClick={() => setSelectedSize(s)}
-                sx={{
-                  border: selectedSize === s ? '2px solid #e53935' : '1px solid',
-                  borderRadius: 1,
-                  px: 1.5,
-                  py: 0.5,
-                  fontSize: 14,
-                  color: selectedSize === s ? '#e53935' : 'black',
-                  margin: '1vh 0.5vw',
-                  textTransform: 'none',
-                  fontWeight: selectedSize === s ? 700 : 400,
-                  fontFamily: '"Montserrat", sans-serif ',
-                  bgcolor: selectedSize === s ? '#ffeaea' : 'white',
-                  boxShadow: selectedSize === s ? 2 : 0,
-                }}
-              >
-                {s}
-              </Button>
-            ))}
-          </Box>
+  {product.available_sizes.map((s) => {
+    const stock = inventoryMap[s];
+
+    return (
+      <Button
+        key={s}
+        disabled={stock === 0}
+        onClick={() => setSelectedSize(s)}
+        sx={{
+          border: selectedSize === s ? '2px solid #e53935' : '1px solid',
+          borderRadius: 1,
+          px: 1.5,
+          py: 0.5,
+          fontSize: 14,
+          color: selectedSize === s ? '#e53935' : 'black',
+          margin: '1vh 0.5vw',
+          textTransform: 'none',
+          fontWeight: selectedSize === s ? 700 : 400,
+          fontFamily: '"Montserrat", sans-serif ',
+          bgcolor: selectedSize === s ? '#ffeaea' : 'white',
+          boxShadow: selectedSize === s ? 2 : 0,
+          opacity: stock === 0 ? 0.4 : 1,
+          cursor: stock === 0 ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {s}
+      </Button>
+    );
+  })}
+</Box>
+{selectedSize && (
+  <Typography
+    sx={{
+      mt: 1,
+      fontSize: '0.9rem',
+      fontWeight: 500,
+      color:
+      stock !== null && stock <= 5
+          ? 'error.main'
+          : '#666',
+      fontFamily: '"Montserrat", sans-serif',
+    }}
+  >
+    {stock === null
+  ? "In stock"
+  : stock > 0
+  ? `Only ${stock} left in stock`
+  : "Out of stock"}
+  </Typography>
+)}
         </Box>
         
         {/* Coupon Section */}

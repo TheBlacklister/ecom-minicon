@@ -26,12 +26,14 @@ import CartDrawer from '../cartDrawer'
 import { useAuth } from '../AuthProvider'
 import { useCount } from '../CountProvider'
 import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer'
+import { isAdmin } from '@/lib/isAdmin';
 
 export default function Header() {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAuth();
+  const isAdminUser = isAdmin(user?.email);
   const { cartCount, wishlistCount } = useCount();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
@@ -348,6 +350,22 @@ export default function Header() {
               onClick={() => router.push(user ? '/account' : '/login')}
               style={{ cursor: 'pointer' }}
             />
+            {isAdminUser && (
+            <button
+              onClick={() => router.push('/admin')}
+              style={{
+              background: 'black',
+              color: 'white',
+              padding: '6px 10px',
+              borderRadius: '6px',
+              marginRight: '8px',
+              cursor: 'pointer',
+              fontSize: '12px'
+              }}
+            >
+            Admin
+          </button>
+          )}
           </div>
           </div>
 

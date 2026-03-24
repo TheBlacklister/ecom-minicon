@@ -160,6 +160,27 @@ export async function POST(req: NextRequest) {
     
     console.log('📦 Creating order with Qikink...');
     const orderResult = await createQikinkOrder(orderData, qikinkToken);
+
+// ✅ UPDATE YOUR EXISTING ORDER IN DB
+const { error: updateError } = await supabase
+  .from("orders")
+  .update({
+    qikink_order_id: orderResult.order_id,
+    order_number: orderResult.order_number || orderData.order_number,
+    status: "processing",
+  })
+  .eq("order_number", orderData.order_number);
+
+  if (updateError) {
+    console.error("❌ Failed to update order:", updateError);
+  
+    await supabase
+      .from("orders")
+      .update({ qikink_sync_failed: true })
+      .eq("order_number", orderData.order_number);
+  } else {
+    console.log("✅ Order updated with Qikink ID:", orderResult.order_id);
+  }
     
     // TODO: Save order details to Supabase orders table
     // const { data: orderRecord, error: dbError } = await supabase

@@ -1,13 +1,21 @@
-{{> _header }}
+{{> _header}}
 
-<h1>Welcome to MINICON, {{customerName}} 🎉</h1>
+<div style="max-width:600px;margin:0 auto;font-family:system-ui,Arial,sans-serif;color:#222;">
+  <div style="padding:24px;background:#fff;border-radius:0 0 8px 8px;">
 
-<p>Thanks for creating an account. We're excited to have you on board!</p>
+    <h2>Welcome to MINICON 🎉</h2>
 
-<p>
-  <strong>Username:</strong> {{email}}<br/>
-</p>
+    <p>Hi {{customerName}},</p>
 
-<p>If you ever need help, reply to this email or reach out to support.</p>
+    <p>We’re excited to have you with us.</p>
 
-{{> _footer }}
+    <p><strong>Email:</strong> {{email}}</p>
+
+    <p>Start exploring our latest collections and drops.</p>
+
+    <p>If you need any help, just reply to this email.</p>
+
+  </div>
+</div>
+
+{{> _footer}}
