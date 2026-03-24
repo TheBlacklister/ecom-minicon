@@ -11,6 +11,64 @@ import { useCount } from '../CountProvider';
 import type { Product } from '@/types';
 import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
 
+const getProductAlt = (product: Product) => {
+  const title = product.title || '';
+
+  const category = product.category?.join(' ').toLowerCase() || '';
+  const collections = product.collections?.join(' ').toLowerCase() || '';
+  const material = product.material?.toLowerCase() || '';
+
+  /* 🔥 COLLECTION-BASED (HIGHEST PRIORITY) */
+  if (collections.includes('puff') || collections.includes('puffed')) {
+    return `Minicon ${title} puff print t-shirt for men`;
+  }
+
+  if (collections.includes('minimalist')) {
+    return `Minicon ${title} minimalist aesthetic t-shirt for men`;
+  }
+
+  if (collections.includes('streetwear')) {
+    return `Minicon ${title} streetwear t-shirt for men India`;
+  }
+
+  if (collections.includes('printed')) {
+    return `Minicon ${title} printed t-shirt for men`;
+  }
+
+  if (collections.includes('acid')) {
+    return `Minicon ${title} acid washed t-shirt for men`;
+  }
+
+  /* 🔥 CATEGORY-BASED */
+  if (category.includes('oversized')) {
+    return `Minicon ${title} oversized t-shirt for men India`;
+  }
+
+  if (category.includes('regular')) {
+    return `Minicon ${title} regular fit t-shirt for men India`;
+  }
+
+  if (category.includes('polo')) {
+    return `Minicon ${title} polo t-shirt for men India`;
+  }
+
+  if (category.includes('gym')) {
+    return `Minicon ${title} gym vest for men India`;
+  }
+
+  if (category.includes('sweatshirt')) {
+    return `Minicon ${title} sweatshirt for men India`;
+  }
+
+  /* 🔥 MATERIAL-BASED */
+  if (material.includes('supima')) {
+    return `Minicon ${title} Supima cotton t-shirt for men`;
+  }
+
+  /* 🔥 DEFAULT (SAFE SEO FALLBACK) */
+  return `Minicon ${title} aesthetic t-shirt for men India`;
+};
+
 export const ProductCard: React.FC<{
   product: Product;
   initialIsWished?: boolean;
@@ -207,7 +265,8 @@ export const ProductCard: React.FC<{
             <Image
               ref={imageRef}
               src={currentImage}
-              alt={`${product.title} - Image ${currentImageIndex + 1}`}
+              alt={getProductAlt(product)}
+              title={product.title}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               style={{

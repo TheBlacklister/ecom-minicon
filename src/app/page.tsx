@@ -8,33 +8,10 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { GridLegacy as Grid } from '@mui/material';
 import { ProductCard } from './components/productCard';
-//import { useAuth } from './components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import type { Product } from '@/types';
 import CategoryCards from './components/categoryCards';
 import { useRouter } from 'next/navigation';
-//import { getFormattedOptimizedImageSrc } from '@/lib/imageOptimizer';
-
-// Define types for API responses
-/*interface WishlistItem {
-  product: Product;
-}
-
-interface CartItem {
-  product: Product;
-  quantity: number;
-}*/
-{/*
-const marqueeImages = [
-  { src: '/products/regular-fit-tshirt/bloom_asthestic/2minicon-asthetic-2.webp', id: 29 },
-  { src: '/products/regular-fit-tshirt/aesthetic-outgrown_asthestic/1minicon-asthetic-3.webp', id: 34 },
-  { src: '/products/regular-fit-tshirt/royal-blue_asthestic/5-minicon-asthetic.webp', id: 36 },
-  { src: '/products/regular-fit-tshirt/astrobuddy_printed/2-astrobuddy.webp', id: 39 },
-  { src: '/products/regular-fit-tshirt/hedgehog_printed-and-streetwear/2hedgehog-regular-fit.webp', id: 41 },
-  { src: '/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp', id: 38 },
-];*/}
-
-// Put near marqueeImages (reuse your optimizer helper if you like)
 
 const scroll = keyframes`
   from {
@@ -52,16 +29,11 @@ export default function Home() {
   const [banner, setBanner] = useState<any>(null);
   const mobileBanner = banner?.mobile_urls;
   const desktopBanner = banner?.desktop_url;
-
   const mobileType = mobileBanner?.type;
   const mobileValue = mobileBanner?.value;
-
   const desktopType = desktopBanner?.type;
   const desktopValue = desktopBanner?.value;
-
   const [topPicks, setTopPicks] = useState<any[]>([]);
-  //const { user } = useAuth();
-  //const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [slide, setSlide] = useState(0);
@@ -272,8 +244,8 @@ if (!product) return null;
       }}
     >
       <Image
-        src={product.images?.[0] || "/products/regular-fit-tshirt/hoot-pepar_asthestic/3hoot-pepar.webp"}
-        alt={product.title}
+        src={product.images?.[0] || "/products/regular-fit-tshirt/hoot-pepar_aesthetic/3hoot-pepar.webp"}
+        alt={`Minicon ${product.title} aesthetic t-shirt for men`}
         width={0}
         height={0}
         sizes="100vw"
@@ -330,6 +302,7 @@ if (!product) return null;
     {mobileType === "video" && typeof mobileValue === "string" && (
       <video
         src={mobileValue}
+        aria-label="Minicon aesthetic t-shirts collection video"
         autoPlay
         muted
         loop
@@ -337,6 +310,39 @@ if (!product) return null;
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     )}
+     {/* ✅ HERO SEO OVERLAY */}
+     <Box
+      sx={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 2,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        color: "#fff",
+        textAlign: "center",
+        px: 2,
+        background: "rgba(0,0,0,0.3)", // optional overlay
+      }}
+    >
+      <h1>Aesthetic T-Shirts for Men</h1>
+      <p>Oversized. Puff Print. Supima Cotton. Under ₹999.</p>
+      <a
+        href="/collections/all"
+        style={{
+          marginTop: "10px",
+          padding: "10px 20px",
+          background: "#fff",
+          color: "#000",
+          textDecoration: "none",
+          borderRadius: "6px",
+          fontWeight: 600,
+        }}
+      >
+        Shop All Styles
+      </a>
+    </Box>
 
     {/* 🔥 IMAGES */}
     {mobileType === "images" &&
@@ -379,7 +385,11 @@ if (!product) return null;
           >
             <Image
               src={imgUrl}
-              alt={`mobile-${i}`}
+              alt={
+                item?.product
+                  ? `Minicon aesthetic t-shirt for men`
+                  : "Minicon banner aesthetic t-shirts"
+              }
               fill
               priority={i === 0}
               sizes="100vw"
@@ -446,16 +456,72 @@ if (!product) return null;
   /* ================= DESKTOP ================= */
   <>
     {/* 🔥 VIDEO */}
-    {desktopType === "video" && typeof desktopValue === "string" && (
-      <video
-        src={desktopValue}
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{ width: "100%", height: "auto", objectFit: "cover" }}
-      />
-    )}
+    <Box sx={{ position: "relative", width: "100%", height: "80vh" }}>
+
+  {/* VIDEO */}
+  {desktopType === "video" && typeof desktopValue === "string" && (
+    <video
+      src={desktopValue}
+      autoPlay
+      muted
+      loop
+      playsInline
+      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+    />
+  )}
+
+  {/* DARK OVERLAY */}
+  <Box
+    sx={{
+      position: "absolute",
+      inset: 0,
+      background: "rgba(0,0,0,0.35)",
+      zIndex: 1,
+    }}
+  />
+
+  {/* HERO TEXT */}
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      zIndex: 2,
+      textAlign: "center",
+      color: "#fff",
+      px: 2,
+      width: "100%",
+      maxWidth: "700px",
+    }}
+  >
+    <Typography variant="h3" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
+      Aesthetic T-Shirts for Men
+    </Typography>
+
+    <Typography sx={{ mb: 2 }}>
+      Oversized. Puff Print. Supima Cotton. Under ₹999.
+    </Typography>
+
+    <Box
+      component="a"
+      href="/categories/shop-by/all"   // ✅ CHANGE HERE
+      sx={{
+        px: 3,
+        py: 1,
+        background: "#fff",
+        color: "#000",
+        borderRadius: 2,
+        textDecoration: "none",
+        fontWeight: 600,
+        display: "inline-block",
+      }}
+    >
+      Shop All Styles
+    </Box>
+  </Box>
+
+</Box>
 
     {/* 🔥 IMAGES */}
     {desktopType === "images" &&
@@ -503,7 +569,11 @@ if (!product) return null;
               >
                 <Image
                   src={imgUrl}
-                  alt={`desktop-${i}`}
+                  alt={
+                    item?.product
+                      ? `Minicon aesthetic t-shirt for men`
+                      : "Minicon banner aesthetic t-shirts"
+                  }
                   fill
                   priority={i === 0}
                   sizes="100vw"
@@ -569,9 +639,57 @@ if (!product) return null;
 
 
 </Box>
+      {/* ✅ BRAND SEO SECTION */}
+      <Box
+  component="section"
+  sx={{
+    py: { xs: 5, md: 8 },
+    px: 2,
+    backgroundColor: "#fff",
+  }}
+>
+  <Box sx={{ maxWidth: "900px", mx: "auto", textAlign: "center" }}>
 
+    <Typography
+      variant="h4"
+      component="h2"
+      sx={{
+        fontWeight: 600,
+        mb: 2,
+        fontSize: { xs: "1.4rem", md: "2rem" },
+      }}
+    >
+      Aesthetic & Streetwear T-Shirts for Men — Made in India
+    </Typography>
 
-      <Typography variant="h4"
+    <Typography
+      sx={{
+        mb: 2,
+        color: "#444",
+        lineHeight: 1.7,
+      }}
+    >
+      Minicon is a Kolkata-based D2C apparel brand built for men who lead with their aesthetic. 
+      We design aesthetic t-shirts, oversized tees, puff print t-shirts, polo t-shirts, and gym vests — 
+      all crafted in premium Supima cotton and streetwear-inspired fabrics. Every piece is priced under ₹999, 
+      made in India, and shipped nationwide with COD.
+    </Typography>
+
+    <Typography
+      sx={{
+        color: "#444",
+        lineHeight: 1.7,
+      }}
+    >
+      From minimalist bloom aesthetics to bold puff print graphics, our collections are designed for the 18–28 Indian man 
+      who wants quality without the premium brand markup. Shop regular fit, oversized, and Supima solid tees — 
+      free shipping on all orders.
+    </Typography>
+
+  </Box>
+</Box>
+
+      <Typography variant="h2"
         align="center"
         sx={{
           margin: {
@@ -620,7 +738,8 @@ if (!product) return null;
 )}
         </Box>
       </Box>
-      <Typography variant="h4"
+      <Typography variant="h2"
+        id="shop-categories"
         align="center"
         sx={{
           mb: {
@@ -632,7 +751,7 @@ if (!product) return null;
           fontWeight: 600
         }}
         color="black">
-        TRENDING CATEGORY
+        SHOP BY CATEGORY
       </Typography>
       <CategoryCards />
       {/* Product grid section with minimal spacing */}
@@ -644,7 +763,8 @@ if (!product) return null;
         },
         mb: 6
       }}>
-        <Typography variant="h4"
+        <Typography variant="h2"
+          id="new-arrivals"
           align="center"
           sx={{
             mb: {

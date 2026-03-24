@@ -14,12 +14,12 @@ interface CategoryCardProps {
 
 const categories: CategoryCardProps[] = [
   { 
-    image: '/products/regular-fit-tshirt/rabbit_asthestic/3-rabbit.webp', 
+    image: '/products/regular-fit-tshirt/rabbit_aesthetic/3-rabbit.webp', 
     title: 'Under 999',
     route: '/categories/price_after/999'
   },
   { 
-    image: '/products/regular-fit-tshirt/flourish-n_asthestic/1flourish.webp', 
+    image: '/products/regular-fit-tshirt/flourish-n_aesthetic/1flourish.webp', 
     title: 'T-shirts',
     route: '/categories/shop-by/new-arrivals'
   },
@@ -60,6 +60,32 @@ const categories: CategoryCardProps[] = [
   },
 ];
 
+/* 🔥 SEO ALT FUNCTION (NO FUNCTIONAL IMPACT) */
+const getCategoryAlt = (title: string) => {
+  switch (title.toLowerCase()) {
+    case 'under 999':
+      return 'Aesthetic t-shirts under ₹999 — Minicon';
+    case 'oversized':
+      return 'Oversized t-shirts for men India — Minicon';
+    case 'polo':
+      return "Men's polo t-shirts India — Minicon";
+    case 'supima':
+      return 'Supima cotton t-shirts for men India — Minicon';
+    case 'puff':
+      return 'Puff print t-shirts for men India — Minicon';
+    case 'gym vest':
+      return 'Printed gym vest for men India — Minicon';
+    case 't-shirts':
+      return 'Aesthetic t-shirts for men India — Minicon';
+    case 'regular':
+      return 'Regular fit t-shirts for men India — Minicon';
+    case 'sweatshirts':
+      return 'Men’s sweatshirts India — Minicon';
+    default:
+      return 'Minicon t-shirts for men India';
+  }
+};
+
 export default function CategoryCards() {
   const router = useRouter();
 
@@ -97,8 +123,9 @@ export default function CategoryCards() {
             >
               <Image
                 src={getFormattedOptimizedImageSrc(category.image)}
-                alt={category.title}
+                alt={getCategoryAlt(category.title)}
                 fill
+                priority={idx === 0} 
                 style={{ objectFit: 'cover' }}
                 onError={(e) => {
                   console.error('Category image failed to load:', category.image);
