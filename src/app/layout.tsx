@@ -5,7 +5,7 @@ import AuthProvider from './components/AuthProvider'
 import { CountProvider } from './components/CountProvider'
 import { Box } from '@mui/material';
 import Script from 'next/script';
-import ClientLayout from './ClientLayout';
+import ClientWrapper from './components/ClientWrapper';
 
 export const metadata = {
   title: "Aesthetic T-Shirts for Men India | Oversized, Puff Print & Supima — Minicon",
@@ -114,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
 
         {/* ✅ CLIENT LOGIC WRAPPED */}
-        <ClientLayout>
+        <ClientWrapper>
           <AuthProvider>
             <CountProvider>
               <Header />
@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Footer />
             </CountProvider>
           </AuthProvider>
-        </ClientLayout>
+        </ClientWrapper>
 
         {/* Razorpay */}
         <Script

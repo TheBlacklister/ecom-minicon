@@ -1,4 +1,5 @@
 // src/lib/mailer.ts
+import "server-only";
 import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
