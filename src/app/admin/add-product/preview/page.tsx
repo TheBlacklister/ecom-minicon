@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useProduct } from "../ProductContext";
 import { supabase } from "@/lib/supabaseClient";
@@ -156,12 +157,13 @@ export default function PreviewPage() {
       <div style={{ background: "white", padding: "30px" }}>
         <div style={{ display: "flex", gap: "15px", marginBottom: "20px" }}>
           {productData.images.map((file: File, index: number) => (
-            <img
+            <Image
               key={index}
               src={URL.createObjectURL(file)}
               alt="preview"
               width={150}
               height={150}
+              unoptimized
             />
           ))}
         </div>

@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function ProductListPage() {
     const router = useRouter();
@@ -120,7 +121,7 @@ export default function ProductListPage() {
               <tr key={product.id} style={tbodyRow}>
                 <td>
                   {product.images?.length > 0 ? (
-                    <img
+                    <Image
                       src={product.images[0]}
                       alt={product.title}
                       width={90}
@@ -129,6 +130,7 @@ export default function ProductListPage() {
                         borderRadius: "10px",
                         objectFit: "cover",
                       }}
+                      unoptimized
                     />
                   ) : (
                     <div style={imagePlaceholder} />
