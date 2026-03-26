@@ -219,6 +219,7 @@ export default function Header() {
                     console.error('Image failed to load:', imagePath);
                     e.currentTarget.src = '/placeholder.jpg';
                   }}
+                  unoptimized
                 />
               </Box>
               

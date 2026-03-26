@@ -897,6 +897,7 @@ const PreCheckout = () => {
                 onError={() => setMainImageLoading(false)}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                unoptimized
               />
             </Box>
           ) : (
@@ -2042,6 +2043,7 @@ const PreCheckout = () => {
                       objectFit: 'contain',
                     }}
                     quality={70}
+                    unoptimized
                   />
                 </Box>
               )}

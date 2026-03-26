@@ -143,7 +143,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
               {cart.map(item => (
                 <Box key={`${item.id}-${item.selected_size || 'no-size'}`} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
                   <Box sx={{ width: 80, height: 80, bgcolor: '#f5f5f5', borderRadius: 1, overflow: 'hidden', mr: 1 }}>
-                    <Image src={item.img} alt={item.title} width={80} height={80} style={{ objectFit: 'contain' }} />
+                    <Image src={item.img} alt={item.title} width={80} height={80} style={{ objectFit: 'contain' }} unoptimized/>
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>{item.title}</Typography>

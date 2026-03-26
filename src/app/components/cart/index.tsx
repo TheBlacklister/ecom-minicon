@@ -906,6 +906,7 @@ export default function CartPage({ buyNowProductId, couponCode }: { buyNowProduc
                                                         height: '100%',
                                                         display: 'block',
                                                     }}
+                                                    unoptimized
                                                 />
 
                                             </Box>
