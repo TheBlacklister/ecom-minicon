@@ -1,7 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -120,7 +120,7 @@ export default function ProductListPage() {
               <tr key={product.id} style={tbodyRow}>
                 <td>
                   {product.images?.length > 0 ? (
-                    <Image
+                    <img
                       src={product.images[0]}
                       alt={product.title}
                       width={90}
