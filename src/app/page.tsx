@@ -699,7 +699,7 @@ if (!product) return null;
           fontWeight: 600
         }}
         color="black">
-        TOP PICKS OF THE WEEK
+        Top picks of the week
       </Typography>
 
       {/* Horizontally scrolling marquee with border radius */}
@@ -751,7 +751,7 @@ if (!product) return null;
           fontWeight: 600
         }}
         color="black">
-        SHOP BY CATEGORY
+        Shop by category
       </Typography>
       <CategoryCards />
       {/* Product grid section with minimal spacing */}
@@ -774,7 +774,7 @@ if (!product) return null;
             fontWeight: 600
           }}
           color="black">
-          NEW ARRIVALS
+          New arrivals
         </Typography>
 
         <Grid container spacing={{ xs: 0.5, sm: 1, md: 1 }} justifyContent="center">

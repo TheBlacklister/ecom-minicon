@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir, rm } from "fs/promises";
+import { mkdir, rm, rename } from "fs/promises";
 import path from "path";
 import { supabase } from "@/lib/supabaseClient";
-import { exec } from "child_process";
 import { verifyAdmin } from "@/lib/adminGuard";
+import { exec } from "child_process";
 
 const uploadBase = path.join(process.cwd(), "public/products");
 
@@ -19,10 +19,6 @@ function generateSlug(title: string) {
     .trim();
 }
 
-/**
- * Map category + collection to folder structure
- * You can expand this anytime safely
- */
 function getCategoryBasePath(category: string, collection: string) {
   if (category === "regular_fit") {
     if (collection === "solid")
@@ -57,7 +53,6 @@ function getCategoryBasePath(category: string, collection: string) {
 ====================================== */
 
 export async function POST(req: NextRequest) {
-
   const auth = await verifyAdmin(req);
 
   if ("error" in auth) {
@@ -70,13 +65,15 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    /* ========= BASIC FIELDS ========= */
+    /* ========= BASIC ========= */
 
     const title = formData.get("title") as string;
     const subtitle = formData.get("subtitle") as string;
     const description = formData.get("description") as string;
+
     const price_before = Number(formData.get("price_before"));
     const price_after = Number(formData.get("price_after"));
+
     const material = formData.get("material") as string;
     const wash_care = formData.get("wash_care") as string;
 
@@ -111,17 +108,23 @@ export async function POST(req: NextRequest) {
       ? JSON.parse(formData.get("sku") as string)
       : {};
 
-    /* ========= AUTO INVENTORY ========= */
-    // Initially all sizes available, quantity null
+    /* ========= INVENTORY ========= */
+
     const inventory = available_sizes.map((size: string) => ({
       size,
       quantity: null,
     }));
 
-    /* ========= IMAGES ========= */
+    /* ========= IMAGES (TEMP URLS) ========= */
 
-    const images = formData.getAll("images") as File[];
-    const sizeChart = formData.get("size_chart") as File | null;
+    const imagePaths = JSON.parse(
+      (formData.get("images") as string) || "[]"
+    );
+
+    const sizeChartPath =
+      (formData.get("size_chart") as string) || "";
+
+    /* ========= SLUG + FOLDER ========= */
 
     const slug = generateSlug(title);
 
@@ -136,56 +139,81 @@ export async function POST(req: NextRequest) {
     const productFolder = path.join(uploadBase, baseFolder, slug);
     await mkdir(productFolder, { recursive: true });
 
-    const imagePaths: string[] = [];
+    const finalImagePaths: string[] = [];
 
-    for (let i = 0; i < images.length; i++) {
-      const file = images[i];
-      if (!file || file.size === 0) continue;
+    /* ========= MOVE IMAGES ========= */
 
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const fileName = `${i + 1}-${file.name}`;
+    for (let i = 0; i < imagePaths.length; i++) {
+      const tempPath = imagePaths[i]; // /products/temp/xxx.jpg
 
-      await writeFile(path.join(productFolder, fileName), buffer);
+      const fileName = tempPath.split("/").pop();
 
-      const optimizedName = fileName.replace(/\.(png|jpg|jpeg)$/i, ".webp");
+      const oldPath = path.join(
+        process.cwd(),
+        "public",
+        tempPath
+      );
 
-      imagePaths.push(
-          `/products/${baseFolder}/${slug}/${optimizedName}`
-        );
+      const newPath = path.join(productFolder, fileName!);
+
+      await rename(oldPath, newPath);
+
+      const optimizedName = fileName!.replace(
+        /\.(png|jpg|jpeg)$/i,
+        ".webp"
+      );
+
+      finalImagePaths.push(
+        `/products/${baseFolder}/${slug}/${optimizedName}`
+      );
     }
 
-    let sizeChartPath = "";
+    /* ========= SIZE CHART ========= */
 
-    if (sizeChart && sizeChart.size > 0) {
-      const buffer = Buffer.from(await sizeChart.arrayBuffer());
-      const fileName = `size-chart-${sizeChart.name}`;
+    let finalSizeChartPath = "";
 
-      await writeFile(path.join(productFolder, fileName), buffer);
+    if (sizeChartPath) {
+      const fileName = sizeChartPath.split("/").pop();
 
-      const optimizedChart = fileName.replace(/\.(png|jpg|jpeg)$/i, ".webp");
+      const oldPath = path.join(
+        process.cwd(),
+        "public",
+        sizeChartPath
+      );
 
-      sizeChartPath = `/products/${baseFolder}/${slug}/${optimizedChart}`;
+      const newPath = path.join(productFolder, fileName!);
+
+      await rename(oldPath, newPath);
+
+      const optimizedName = fileName!.replace(
+        /\.(png|jpg|jpeg)$/i,
+        ".webp"
+      );
+
+      finalSizeChartPath = `/products/${baseFolder}/${slug}/${optimizedName}`;
     }
 
-    /* =========================
-   RUN IMAGE OPTIMIZER
-========================= */
+    /* ========= RUN OPTIMIZER ========= */
 
+    const scriptPath = path.join(
+      process.cwd(),
+      "scripts",
+      "replace-with-optimized.js"
+    );
 
-const scriptPath = path.join(process.cwd(), "scripts", "replace-with-optimized.js");
+    await new Promise((resolve, reject) => {
+      exec(`node "${scriptPath}" "${productFolder}"`, (err, stdout) => {
+        if (err) {
+          console.error("Optimizer failed:", err);
+          reject(err);
+        } else {
+          console.log(stdout);
+          resolve(true);
+        }
+      });
+    });
 
-await new Promise((resolve, reject) => {
-  exec(`node "${scriptPath}"`, (err, stdout) => {
-    if (err) {
-      console.error("Image optimization failed:", err);
-      reject(err);
-    } else {
-      console.log("Optimizer output:", stdout);
-      resolve(true);
-    }
-  });
-});
-    /* ========= INSERT INTO DB ========= */
+    /* ========= INSERT ========= */
 
     const { error } = await supabase.from("products").insert([
       {
@@ -199,8 +227,8 @@ await new Promise((resolve, reject) => {
         wash_care,
         category,
         collections,
-        images: imagePaths,
-        size_chart_image: sizeChartPath,
+        images: finalImagePaths,
+        size_chart_image: finalSizeChartPath,
         available_sizes,
         available_colors,
         inventory,
@@ -235,7 +263,6 @@ await new Promise((resolve, reject) => {
 ====================================== */
 
 export async function DELETE(req: NextRequest) {
-
   const auth = await verifyAdmin(req);
 
   if ("error" in auth) {
@@ -247,10 +274,7 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const body = await req.json();
-
     const { id, slug, category, collections } = body;
-
-    /* ========= VALIDATION ========= */
 
     if (!id || !slug) {
       return NextResponse.json(
@@ -258,8 +282,6 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    /* ========= RESOLVE PATH ========= */
 
     const primaryCategory = category?.[0] || "misc";
     const primaryCollection = collections?.[0] || "";
@@ -271,28 +293,20 @@ export async function DELETE(req: NextRequest) {
 
     const folderPath = path.join(uploadBase, baseFolder, slug);
 
-    console.log("Deleting product folder:", folderPath);
-
-    /* ========= DELETE DB FIRST ========= */
-
     const { error } = await supabase
       .from("products")
       .delete()
       .eq("id", id);
 
     if (error) {
-      console.error("DB DELETE ERROR:", error);
       return NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
     }
 
-    /* ========= DELETE FILES ========= */
-
     try {
       await rm(folderPath, { recursive: true, force: true });
-      console.log("Folder deleted successfully");
     } catch (err) {
       console.error("FOLDER DELETE ERROR:", err);
     }

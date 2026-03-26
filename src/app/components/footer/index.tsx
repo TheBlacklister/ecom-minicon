@@ -72,7 +72,7 @@ export default function Footer() {
             {/* Column 1: About Us (Learn More only) - Shifted 3vw to the right on desktop */}
             <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Stack spacing={0.5} sx={{ marginLeft: { md: '6vw', lg: '6vw' } }}>
-                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: '"Montserrat", sans-serif ' }}><strong>ABOUT US</strong></Typography>
+                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: '"Montserrat", sans-serif ' }}><strong>About us</strong></Typography>
                 <Stack spacing={0.5}>
                   <Link href="/about" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Learn More</Link>
                   <Link href="/disclaimer" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Disclaimer</Link>
@@ -84,7 +84,7 @@ export default function Footer() {
             {/* Column 2: Policies + Disclaimer + Contact Us */}
             <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <Box>
-                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: '"Montserrat", sans-serif ' }}><strong>POLICIES</strong></Typography>
+                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1, fontFamily: '"Montserrat", sans-serif ' }}><strong>Policies</strong></Typography>
                 <Stack spacing={0.5}>
                   <Link href="/returnPolicy" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Return Your Order</Link>
                   <Link href="/shipping" underline="hover" sx={{ color: 'inherit', fontSize: 14, fontFamily: '"Montserrat", sans-serif ' }}>Shipping Policy</Link>
@@ -97,7 +97,7 @@ export default function Footer() {
             {/* Column 3: Newsletter only */}
             <Grid size={{ xs: 12, sm: 12, md: 3 }}>
               <Box>
-                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1 }}>NEWSLETTER</Typography>
+                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1 }}>Newsletter</Typography>
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   You can be the first one to know about our new releases, latest offers and more. <Link href="/newsletter-signup" underline="hover" sx={{ color: 'primary.main', fontWeight: 500 }}>Sign up now!</Link>
                 </Typography>
@@ -146,7 +146,7 @@ export default function Footer() {
             {/* Column 4: Follow Us - Shifted 3vw to the right on desktop */}
             <Grid size={{ xs: 12, sm: 12, md: 3 }}>
               <Box sx={{ marginLeft: { md: '3vw', lg: '6vw' } }}>
-                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1 }}><strong>FOLLOW US</strong></Typography>
+                <Typography component="p" sx={{ fontWeight: 700, mb: 1, letterSpacing: 1 }}><strong>Follow us</strong></Typography>
                 <Typography variant="body2" sx={{ mb: 1 }}>Stay in touch!</Typography>
                 <Stack direction="row" spacing={1}>
                 <IconButton size="small" component="a" href="https://www.facebook.com/profile.php?id=61576563387778" target="_blank" rel="noopener noreferrer" aria-label="Minicon on Facebook" title="Minicon Facebook" sx={{ color: '#fff', border: '1px solid #333', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' } }}>
