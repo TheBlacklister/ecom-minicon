@@ -21,12 +21,12 @@ import {
   ListItemButton,
   ListItemText,
   Chip,
-  CircularProgress,
 } from '@mui/material';
 import { GridLegacy as Grid } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import Link from 'next/link';
 
 /* -------------------------------------------------------------------------- */
 /*                             Product utilities                              */
@@ -35,6 +35,8 @@ import type { Product } from '@/types';
 import { ProductCard } from '@/app/components/productCard';
 import { useAuth } from '@/app/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
+import { categoryContent } from '@/lib/categoryContent';
+import { categoryBreadcrumbs } from '@/lib/categoryBreadcrumbs';
 
 // Define types for API responses
 interface WishlistItem {
@@ -46,12 +48,23 @@ interface CartItem {
   quantity: number;
 }
 
-export default function CataloguePage() {
+export default function CatalogueClient({
+    initialProducts,
+    seo,
+    slug,
+  }: {
+    initialProducts: Product[];
+    seo?: {
+      h1: string;
+      sub: string;
+      description?: string;
+    };
+    slug?: string;
+  }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [allProducts] = useState<Product[]>(initialProducts);
   const { user } = useAuth();
   const [wishedIds, setWishedIds] = useState<Set<number>>(new Set());
   const pathname = usePathname();
@@ -64,31 +77,6 @@ export default function CataloguePage() {
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
   const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        console.log('Products API response:', data);
-        if (Array.isArray(data)) {
-          setAllProducts(data);
-        } else if (Array.isArray(data?.products)) {
-          setAllProducts(data.products);
-        } else if (Array.isArray(data?.data)) {
-          setAllProducts(data.data);
-        } else {
-          console.error('Unexpected /api/products response:', data);
-          setAllProducts([]);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
-  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -256,41 +244,6 @@ export default function CataloguePage() {
     }
   }, [filteredProducts, sortOpt]);
 
-  // Show loading screen while fetching data
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          width: '100vw',
-          bgcolor: 'white',
-        }}
-      >
-        <CircularProgress
-          size={60}
-          thickness={4}
-          sx={{
-            color: '#e53935',
-            mb: 3
-          }}
-        />
-        <Typography
-          variant="h6"
-          sx={{
-            fontFamily: '"Montserrat", sans-serif',
-            color: '#666',
-            fontWeight: 500
-          }}
-        >
-          Loading products...
-        </Typography>
-      </Box>
-    );
-  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -566,6 +519,40 @@ export default function CataloguePage() {
   );
 
   return (
+  <>
+    {seo && (
+  <>
+    {slug && categoryBreadcrumbs[slug] && (
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="body2">
+      {categoryBreadcrumbs[slug].map((item, index) => (
+        <span key={index}>
+          {item.href ? (
+            <Link href={item.href}>{item.label}</Link>
+          ) : (
+            <span>{item.label}</span>
+          )}
+          {index < categoryBreadcrumbs[slug].length - 1 && " › "}
+        </span>
+      ))}
+    </Typography>
+  </Box>
+)}
+
+    <Typography
+      variant="h4"
+      fontWeight={700}
+      sx={{ mb: 1, fontFamily: '"Montserrat", sans-serif' }}
+    >
+      {seo.h1}
+    </Typography>
+
+    <Typography sx={{ mb: 3 }}>
+      {seo.sub}
+    </Typography>
+  </>
+)}
+
     <Box component="section" sx={{
       display: 'flex',
       flexDirection: { xs: 'column', md: 'row' },
@@ -818,5 +805,26 @@ export default function CataloguePage() {
         {mobileSortDrawer}
       </Drawer>
     </Box>
+    {/* ✅ SEO CONTENT SECTION */}
+    {slug && categoryContent[slug] && (
+  <Box sx={{ mt: 6 }}>
+    <Typography variant="h5" fontWeight={700} mb={2}>
+      {categoryContent[slug].h2}
+    </Typography>
+
+    {categoryContent[slug].sections.map((section: any, index: number) => (
+      <Box key={index} mb={3}>
+        {section.title && (
+          <Typography variant="h6" fontWeight={600}>
+            {section.title}
+          </Typography>
+        )}
+        <Typography>{section.text}</Typography>
+      </Box>
+    ))}
+  </Box>
+)}
+      
+    </>
   );
 }
