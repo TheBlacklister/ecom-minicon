@@ -1,35 +1,95 @@
 import { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://minicon.in";
 
-  // Static pages
-  const staticRoutes = [
-    "",
-    "/categories/shop-by/new-arrivals",
-    "/categories/shop-by/bestsellers",
-    "/categories/shop-by/oversized",
-    "/categories/shop-by/supima",
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: route === "" ? 1 : 0.8,
-  }));
+  // =========================
+  // FETCH PRODUCTS
+  // =========================
+  const res = await fetch(`${baseUrl}/api/products`, {
+    cache: "no-store",
+  });
 
-  // 👉 OPTIONAL: Dynamic products (IMPORTANT for SEO)
-  // Replace this with your actual DB/API call
-  const products = [
-    "black-oversized-tshirt",
-    "white-puff-print-tee",
+  const data = await res.json();
+  const products = data.products || [];
+
+  // =========================
+  // PRODUCT ROUTES (/preCheckout?id=)
+  // =========================
+  const productRoutes = products
+    .filter((p: any) => p.id) // safety check
+    .map((product: any) => ({
+      url: `${baseUrl}/preCheckout?id=${product.id}`,
+      lastModified: product.updated_at
+        ? new Date(product.updated_at)
+        : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
+
+  // =========================
+  // UNIQUE CATEGORY SLUGS
+  // =========================
+  const uniqueCategories = [
+    ...new Set(
+      products
+        .filter((p: any) => p.category)
+        .map((p: any) =>
+          p.category.toLowerCase().trim().replace(/\s+/g, "-")
+        )
+    ),
   ];
 
-  const productRoutes = products.map((slug) => ({
-    url: `${baseUrl}/products/${slug}`,
+  // =========================
+  // SHOP-BY ROUTES
+  // =========================
+  const shopByRoutes = uniqueCategories.map((slug) => ({
+    url: `${baseUrl}/categories/shop-by/${slug}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
-    priority: 0.7,
+    priority: 0.8,
   }));
 
-  return [...staticRoutes, ...productRoutes];
+  // =========================
+  // CATEGORY ROUTES
+  // =========================
+  const categoryRoutes = uniqueCategories.map((slug) => ({
+    url: `${baseUrl}/categories/category/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // =========================
+  // UNIQUE COLLECTION SLUGS
+  // =========================
+  const uniqueCollections = [
+    ...new Set(
+      products
+        .filter((p: any) => p.collections)
+        .map((p: any) =>
+          p.collections.toLowerCase().trim().replace(/\s+/g, "-")
+        )
+    ),
+  ];
+
+  // =========================
+  // COLLECTION ROUTES
+  // =========================
+  const collectionRoutes = uniqueCollections.map((slug) => ({
+    url: `${baseUrl}/categories/collections/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // =========================
+  // FINAL SITEMAP
+  // =========================
+  return [
+    ...productRoutes,
+    ...shopByRoutes,
+    ...categoryRoutes,
+    ...collectionRoutes,
+  ];
 }
