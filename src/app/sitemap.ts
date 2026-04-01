@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://minicon.in";
 
   // =========================
-  // CONNECT SUPABASE DIRECTLY
+  // SUPABASE
   // =========================
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq("is_active", true);
 
   if (error || !products) {
-    console.error("Sitemap Supabase Error:", error);
+    console.error("Sitemap Error:", error);
     return [];
   }
 
@@ -35,15 +35,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // =========================
-  // UNIQUE CATEGORY SLUGS
+  // CATEGORY SLUGS (ARRAY SAFE)
   // =========================
   const uniqueCategories = [
     ...new Set(
-      products
-        .filter((p: any) => p.category)
-        .map((p: any) =>
-          p.category.toLowerCase().trim().replace(/\s+/g, "-")
-        )
+      products.flatMap((p: any) =>
+        Array.isArray(p.category)
+          ? p.category.map((cat: string) =>
+              cat.toLowerCase().trim().replace(/\s+/g, "-")
+            )
+          : []
+      )
     ),
   ];
 
@@ -62,15 +64,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // =========================
-  // UNIQUE COLLECTION SLUGS
+  // COLLECTION SLUGS (ARRAY SAFE)
   // =========================
   const uniqueCollections = [
     ...new Set(
-      products
-        .filter((p: any) => p.collections)
-        .map((p: any) =>
-          p.collections.toLowerCase().trim().replace(/\s+/g, "-")
-        )
+      products.flatMap((p: any) =>
+        Array.isArray(p.collections)
+          ? p.collections.map((col: string) =>
+              col.toLowerCase().trim().replace(/\s+/g, "-")
+            )
+          : []
+      )
     ),
   ];
 
