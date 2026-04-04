@@ -10,13 +10,24 @@ export default function AddProductForm() {
 
   const SIZES = ["S", "M", "L", "XL", "XXL"];
 
+  const COLLECTIONS = [
+    { label: "Solid", value: "solid" },
+    { label: "Printed", value: "printed" },
+    { label: "Minimalist", value: "minimalist" },
+    { label: "Street Wear", value: "street_wear" },
+    { label: "Aesthetic", value: "aesthetic" },
+    { label: "Puffed", value: "puffed" },
+    { label: "Acid Washed", value: "acid_washed" },
+    { label: "Supima", value: "supima" },
+  ];
+
   const [form, setForm] = useState({
     name: "",
     subtitle: "",
     description: "",
     images: [] as File[],
     category: "",
-    collection: "",
+    collection: [] as string[],
     price_before: "",
     price_after: "",
     material: "",
@@ -61,10 +72,10 @@ export default function AddProductForm() {
     form.description &&
     form.images.length > 0 &&
     form.category &&
-    form.collection &&
+    form.collection.length > 0 &&
     form.price_before &&
     form.price_after &&
-    form.wash_care &&
+    form.wash_care && 
     allSkuFilled;
 
   const handlePreview = () => {
@@ -113,17 +124,53 @@ export default function AddProductForm() {
         </select>
 
         <label>Collection</label>
-        <select name="collection" value={form.collection} onChange={handleChange} style={input}>
-          <option value="">Select Collection</option>
-          <option value="solid">Solid</option>
-          <option value="printed">Printed</option>
-          <option value="minimalist">Minimalist</option>
-          <option value="street_wear">Street Wear</option>
-          <option value="aesthetic">Aesthetic</option>
-          <option value="puffed">Puffed</option>
-          <option value="acid_washed">Acid Washed</option>
-          <option value="supima">Supima</option>
-        </select>
+
+<div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+  {COLLECTIONS.map((col) => {
+    const isSelected = form.collection.includes(col.value);
+
+    return (
+      <label
+        key={col.value}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          border: isSelected ? "1px solid #111827" : "1px solid #ddd",
+          background: isSelected ? "#f9fafb" : "white",
+          padding: "6px 10px",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setForm({
+                ...form,
+                collection: [...form.collection, col.value],
+              });
+            } else {
+              setForm({
+                ...form,
+                collection: form.collection.filter(
+                  (c) => c !== col.value
+                ),
+              });
+            }
+          }}
+        />
+        {col.label}
+      </label>
+    );
+  })}
+</div>
+
+<small style={{ color: "#666" }}>
+  You can select multiple collections
+</small>
 
         <label>Material</label>
         <input name="material" value={form.material} onChange={handleChange} style={input} />
@@ -143,16 +190,36 @@ export default function AddProductForm() {
 
         <h3 style={{ marginTop: "20px" }}>SKU IDs (Required for Qikink)</h3>
 
-        {SIZES.map((size) => (
-          <div key={size} style={{ marginBottom: "8px" }}>
-            <label>SKU for {size}</label>
-            <input
-              value={form.sku[size]}
-              onChange={(e) => handleSkuChange(size, e.target.value)}
-              style={input}
-              placeholder={`Enter unique SKU for ${size}`}
-            />
-          </div>
+<small style={{ color: "#666", lineHeight: "1.6" }}>
+  Example:
+  <br />
+  {"{"}
+  <br />
+  &nbsp;&nbsp;&quot;S&quot;: &quot;v-9xGj0SSFaVZV0MAJPB8qubHSpAja83E=&quot;,<br />
+  &nbsp;&nbsp;&quot;M&quot;: &quot;v-9xGj0SSFaVZV0MAJPB8qubHSpAja83Y=&quot;,<br />
+  &nbsp;&nbsp;&quot;L&quot;: &quot;v-9xGj0SSFaVZV0MAJPB8qubHSpAja83c=&quot;,<br />
+  &nbsp;&nbsp;&quot;XL&quot;: &quot;v-9xGj0SSFaVZV0MAJPB8qubHSpAja83c=&quot;,<br />
+  &nbsp;&nbsp;&quot;XXL&quot;: &quot;v-9xGj0SSFaVZV0MAJPB8qubHSpAja83U=&quot;,<br />
+  {"}"}
+</small>
+
+{SIZES.map((size) => (
+  <div key={size} style={{ marginBottom: "10px" }}>
+    <label style={{ fontWeight: 500 }}>
+      SKU for {size}
+    </label>
+
+    <input
+      value={form.sku[size]}
+      onChange={(e) => handleSkuChange(size, e.target.value)}
+      style={input}
+      placeholder={`Enter unique SKU for ${size}`}
+    />
+
+    <small style={{ color: "#888" }}>
+      Must match Qikink SKU for size {size}
+    </small>
+  </div>
         ))}
 
         <button

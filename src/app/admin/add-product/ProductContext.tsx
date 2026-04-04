@@ -8,7 +8,7 @@ type ProductType = {
     description: string;
     images: File[];
     category: string;
-    collection: string;
+    collection: string[];
     price_before: string;
     price_after: string;
     material: string;
